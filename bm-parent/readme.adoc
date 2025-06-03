@@ -1,0 +1,208 @@
+
+:toc:
+
+= Multi Module repository
+
+This `bm-sim` repository is a 
+link:https://maven.apache.org/guides/mini/guide-multiple-modules.html[Maven Multiple Module] 
+project.
+The Maven Reactor mechanism makes sure to collect all modules and assert correct build order
+with every `mvn` command executed. 
+It makes sure that any project is build as required by another (and so on).
+
+== project nature
+
+The Java development cycle is defined by the major components:
+
+=== Maven build tool 
+ 
+Implies major versioning, dependency management, 
+plugin configuration, and build lifecycle.
+
+
+=== Camel integration framework 
+  
+At its core, Apache Camel is an integration engine, which can be used 
+to facilitate interactions between a wide and varied array of technologies.
+These bridges between service- and technology Endpoints, 
+the Routes are implemented on an engine - the CamelContext, 
+and they communicate with “exchange messages”.
+
+
+=== Spring Boot application framework 
+ 
+Spring context, dependency injection, and application startup.
+
+https://camel.apache.org/camel-spring-boot/4.8.x/spring-boot.html
+
+Spring Boot component also provides auto-configuration for Apache Camel. 
+Our opinionated auto-configuration of the Camel context 
+auto-detects Camel routes available in the Spring context 
+and registers the key Camel utilities 
+(like producer template, consumer template and the type converter) as beans.
+
+[NOTE]
+====
+ Spring Boot will automatically auto-configure Camel for you.
+====
+
+
+=== Testing 
+ 
+For details see:  
+link:../bm-traccar/dox/testSetup.adoc[Testing] 
+
+For initial setup of testing and 
+developer switch from JUnit to Integration Testing see: 
+link:../bm-traccar/dox/developmentSetup.adoc[Development and Production Setup]
+
+
+== root project
+
+The Maven Bill of Materials (BOM) is collected the root `pom.xml` file, i.e. _aggregator POM_ 
+that defines common dependencies, versions, properties and other dependent Maven Projects.
+It is considered good development practice to run `mvn clean install` 
+in the repository root directory in order to create all artifacts 
+in the local `.m2/repository`. After that the developer can exclusively
+focus on the project s/he is assigned to. 
+
+see link:https://docs.microfocus.com/doc/205/saas/bestpracticesmavenprojects[structuring Maven projects and modules]
+
+===== `<modules>`
+
+This approach reduces duplication and allows to share configurations between modules.
+Practically the parent pom can be seen as the cover sheet with project information
+and most important - the list of submodules.
+
+see [jeets repository] ...
+
+[source,xml]
+----
+    <modules>
+        <module>bm-parent</module>
+        <module>bm-traccar</module>
+                ...
+    </modules
+----
+
+== bm-parent project
+
+The parent project is the first module called in the build process. +
+It starts by running the `os-maven-plugin` 
+
+[source,text]
+-----------------
+[INFO] Scanning for projects...
+[INFO] ---------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ---------------------------------------------------
+[INFO] os.detected.name: linux
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 6.11
+[INFO] os.detected.version.major: 6
+[INFO] os.detected.version.minor: 11
+[INFO] os.detected.release: tuxedo
+[INFO] os.detected.release.version: 22.04
+[INFO] os.detected.release.like.tuxedo: true
+[INFO] os.detected.release.like.ubuntu: true
+[INFO] os.detected.release.like.debian: true
+[INFO] os.detected.classifier: linux-x86_64
+-----------------
+
+which provides Maven parameters, like `${os.detected.name}`, 
+to direct the build lifecycle as required.
+
+=== project setup
+
+===== `<properties>`
+
+The properties of the parent project are applied to the full repo.
+Here the main parameters for Java, JDK, Maven with components and plugins,
+the driving Camel version in conjunction with spring boot.
+
+
+==== `<dependencyMgm>` and top level BOM
+
+The repository versioning of Java archives is defined by 
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-spring-boot-bom</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+It is recommended to import Camel Spring Boot BOM before Spring Boot BOM
+to ensure Camel dependencies are using supported JARs from the release.
+
+compare jeets approach
+
+https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml
+  
+       <groupId>org.apache.camel.springboot</groupId>
+    <artifactId>camel-spring-boot-dependencies</artifactId>
+
+
+== OpenAPITools: openapi-generator
+
+move to traccar-api-client
+
+github.com/OpenAPITools/openapi-generator
+    
+    ademico-software.com/how-to-generate-the-client-api-for-an-openapi-rest-service/
+
+evaluate 3 vs 3.1
+ 
+
+== google code style plugin
+
+There are many code formatters and formats out there.
+Just like in the `jeets` project we chose the   
+https://github.com/spotify/fmt-maven-plugin
+
+       <groupId>com.coveo</groupId>
+    <artifactId>fmt-maven-plugin</artifactId>
+
+The choice is based on simplicity and the most common code style with 
+link:https://google.github.io/styleguide/javaguide.html[Google Java Style]. 
+The plugin is strict about styling, cannot be configured by design 
+and automatically formats the code before compilation.
+
+
+=== useful mvn commands
+
+Maven also provides 
+
+    dependency:analyze 
+    
+plugin goal for analyzing the dependencies:
+it helps making this best practice more achievable.
+
+Most Maven plugins have a help goal
+that prints a description of the plugin and its parameters and types.
+For instance, to see help for the javadoc goal, type:
+
+      mvn javadoc:help -Ddetail -Dgoal=javadoc
+
+updates
+
+  mvn versions:display-plugin-updates
+
+ *  javadoc header: +
+  license, project, @author etc. - compare jeets, traccar, camel
+
+ * find . -type f -exec touch {} +
+ 
+ 
+ 
+ 
+ 
+ 
+ 

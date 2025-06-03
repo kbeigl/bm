@@ -1,0 +1,191 @@
+
+:toc:
+
+= The Traccar OpenAPI Client
+
+The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
+And it can be used to integrate your Tracking with your company systems, 
+like human resources- and fleet management Software.
+Synchronize your employees with their cars and driver information without utilizing the traccar UI.
+Pull driving reports for your sales team ... and much more ;)
+
+== The Traccar API
+
+The Traccar OpenAPI Client wraps the Traccar API in a Spring @Service, simple as that. +
+You can always counter check against the 
+link:https://www.traccar.org/api-reference[Official Traccar API Reference].
+
+== implementation
+
+This software is based on a generated *Java* REST client from the traccar specification.
+The single package (`bm.traccar.api`) implementation wraps the Java client in a *Spring* @Service
+to be applied wherever feasible. The API client completely hides the REST intricities
+inside regular Java methods.
+
+== configuration
+
+For convenience you can use the `application.properties` file 
+and grab the `@Value` in your source code, depending on your security concepts.
+Check the `*.*IT` integration test files for demo code.
+
+=== application.properties
+
+    # traccar.host=https://demo3.traccar.org
+    traccar.host=http://localhost
+    traccar.user.name=admin
+    traccar.user.password=admin
+    traccar.user.email=admin@domain.com
+
+your implementation (compare ITests)
+
+  @Value("${traccar.user.name}")     private String name;
+  @Value("${traccar.user.password}") private String password;
+  @Value("${traccar.user.email}")    private String mail;
+
+For integration testing with docker we apply a fixed `serviceAccountToken`
+to gain (virtual) administration over the complete server.
+
+  traccar.web.serviceAccountToken=VIRTUAL_ADMIN_ACCESS
+  
+  @Value("${traccar.web.serviceAccountToken}") private String virtualAdmin;
+
+Note that you have to prepare your docker version of traccar via `traccar.xml` file.
+
+== usage
+
+After adding the jar to your software or build system 
+the API can easily be added to any Springboot Application as a @Service in your code
+
+      @Autowired private ApiService api;
+
+=== authentication
+
+Then you can set your credentials via bearer token or basic authentication
+
+    // use your token generated from your Traccar server
+    api.setBearerToken(YOUR_TRACCAR_TOKEN);
+    // switch auth method
+    api.setBasicAuth(mail, password);
+    // switch for every REST call ..
+
+or switch users with different access to different user, devices etc.
+directly in your code. +
+see `package bm.traccar.invoke.auth`
+
+=== generated Java API
+
+Traccar v6.6 provides *17 APIs* (see `package bm.traccar.generated.api`)
+for all aspects of GPS Tracking. 
+The `traccar-api-client` defines _one single (nested) API interface:_ 
+`bm.traccar.api.Api`, which allows us to switch the implementation.
+This was required, for example, when changing from swagger to OpenAPI (3 to 3.1). +
+
+[TIP]
+====
+Therefor you should stick to the `API` interface to connect your program logic!
+====
+
+=== Data Transfer Objects - DTOs
+
+In addition the `traccar-api-client` provides *21 Data Transfer Objects* +
+see `package bm.traccar.generated.model.dto`
+
+These DTO _represent_ the different System Entities 
+and are used to exchange information with the server. +
+For example the User API call to 
+link:https://www.traccar.org/api-reference/#tag/Users/paths/~1users/post[Create a User] 
+is provided as Java method by the Api interface:
+
+    public interface Api {
+        interface Users {
+            User createUser(User user) throws ApiException;
+
+In your code you can create a `new User()` in your software 
+
+    User userIN = new User();
+    userIN.setName(usr);
+    userIN.setEmail(mail);
+    userIN.setPassword(pwd);
+    userIN. ...
+    
+and  then create it on server side and receive a copy:
+
+    User userOUT =  api.users.createUser(userIN);
+
+Note that `userIN` and `userOUT` are different instances.
+The latter provides the `userId` provided by the Traccar Model
+and is vital to use in the client server communication.
+
+==== ... are not System Entities
+
+Nevertheless you should always distinguish _Data Transfer Objects_
+from actual Entities in the Systems _Entity Relations Model_ - ERM.
+_The Traccar System_ is build around the _Traccar Data Model_,
+which is represented in the 
+link:https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/model[model package],
+while the DTOs are created in the
+link:https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/api/resource[resource package].
+The Entities are only accessed by Traccar itself, while DTOs are snapshots of them.
+Of course you can always peek into the Traccar Database to check what's going on.
+
+This is similar to DNA and RNA. +
+The DNA is part of the _living_ organic System, while the RNA is simply a copy of the DNA.
+
+=== mimic URL syntax
+
+As you can see the above expression is similar the URL
+
+    http://{host}:{port}/api/users/{id}
+    User userOUT =       api.users.createUser(user);
+
+    https://demo3.traccar.org/api/devices?id=3
+    Device[] devices =        api.devices.getById(3);
+
+=== `ApiAspect` and `ApiException`
+
+This API client implementation applies Aspect-oriented programming (AOP) 
+as the technique for handling exceptions in Spring Boot applications.its designator.
+This way all exception handling happens in one central code and reduces code duplication.
+
+As you can see in the `bm.traccar.api.ApiAspect` class 
+the pointcut includes all `*Api` classes and methods in :
+
+      @Pointcut("execution(public * bm.traccar.generated.api.*Api.*(..))")
+
+and the joinput is defined to only catch `RestClientException` s,
+wrap them in an `ApiException` and throw it for the method execution:
+
+  public void afterThrowingApiMethod(JoinPoint joinPoint, RestClientException rcEx)
+      throws ApiException {
+
+Note that the `ApiException` is a `RuntimeException` and 
+the caller is not forced by the compiler to catch it.
+However you should handle it as good practice
+and to ensure that you have a binding communication.
+
+
+== TODO
+
+* 05.05.25 restore original yaml!
+* 03.05.25 traccar: super/virtual/admin, user, permissions, groups
+* 25.03.25 openapi-generator-maven-plugin
+* 26.02.25 operationId
+* 17.01.25   get traccar openapi (for docker) +
+    https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml
+
+[source,text]
+-----------------
+Spring AOP
+invocation order
+    invoke **UsersApi.usersPost(..)**  <-------------+
+      invoke ApiClient.selectHeaderAccept(..)        |
+      invoke ApiClient.selectHeaderContentType(..)   |
+      invoke ApiClient.invokeAPI(..)                 |
+    Exception in ApiMethod: **UsersApi.usersPost(..)**
+
+
+-----------------
+
+
+
+

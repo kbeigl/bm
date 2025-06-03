@@ -1,0 +1,5 @@
+
+= traccar-openapitools-client
+
+*After* generating the `traccar-openapitools-client' you can access 
+link:./target/generated-sources/openapi/target/apidocs/index.html[the javadocs here].

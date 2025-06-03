@@ -1,0 +1,82 @@
+
+= Testing with Traccar Server
+
+[toc]
+
+The Traccar Client is _not_ a software 
+with complex implementations of Java Units.
+Actually it is merely an interface between REST and Java. 
+Therefor there is no need for cumbersom JUnit test setups
+to test the technology we rely on.
+The functionality is achieved by wiring diffent technology components
+together, configure and run them.
+
+For example the Camel `RestOpenApiComponent` 
+is already being tested with each Camel build. These tests should not be repeated. 
+see 
+https://github.com/apache/camel/tree/main/components/camel-rest-openapi/src/test/java/org/apache/camel/component/rest/openapi[RestOpenApiComponent JUnit tests]
+
+== surefire vs failsafe testing with docker
+
+The aim of this project is to remote control a traccar server.
+So we can take a broader approach to testing by setting up a traccar server for tests.
+This makes the actual build of the Traccar Client software faster by skipping tests.
+Development gets mucher faster, if we use the Maven lifecycle 
+to start a traccar docker container 
+and apply failsafe to make sure the container is stoped after testing.
+
+To speed up test development the traccar container can be started via command line 
+and tests can be set to surefire testing. And the developer can login to the Traccar
+Frontend to inspect test results and more.
+
+== docker-maven-plugin
+
+Requirements to docker are dead simple:
+We need a traccar container out of the box, configure it to our needs, 
+introspect the logs at runtime and finally using the traccar UI 
+to visualize what's going on!
+
+Since the project does not dockerize anything,
+the plugin should not be to fancy about docker, kubernetes, cloud etc.
+After setting up the project once, the focus is on using Spring Test framework 
+and Camel's testing utilities to `mvn verify` integration logic and not unit-level.
+
+There is no need to integrate Docker into the source code with
+https://camel.apache.org/components/4.8.x/docker-component.html[Docker :: Apache Camel]
+or the like, since this is not a docker project.
+ 
+The choice is fabric8's `docker-maven-plugin` 
+ 
+[quote,fabric8io/docker-maven-plugin] 
+____
+This is a Maven plugin for managing Docker images and containers. +
+It focuses on two major aspects for a Docker build integration: +
+Building Images and  Running Containers.
+____
+
+
+== maven-failsafe-plugin
+ 
+specifically for integration testing, focusing on lifecycle and reporting for integration tests.
+
+Run Docker containers during the integration test phase to manage container lifecycle.
+
+Failsafe and Docker Integration: Combining Failsafe plugin with Docker management 
+to execute tests within a Dockerized environment and ensure proper test lifecycle.
+
+https://maven.apache.org/surefire/maven-failsafe-plugin/ +
+https://maven.apache.org/surefire/maven-failsafe-plugin/usage.html
+
+  -> Usage in multi-module projects
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+
+  -> Reporting integration test results   LATER
+    <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>

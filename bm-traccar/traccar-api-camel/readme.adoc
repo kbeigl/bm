@@ -1,0 +1,17 @@
+
+= Camel Example with OpenAPI Contract
+
+This example demonstrates how to apply Camel to expose REST APIs 
+from the existing OpenAPI specification for Traccar (contract first).
+This is a good starting point to integrate Camel channels 
+with your administrativ software for full automation.
+
+From the contract we generate Java POJO classes (using maven plugin, see `pom.xml`).
+
+In the Camel route we use Rest DSL using OpenAPI in contract-first mode.
+This makes it possible to expose all the APIs very easily, 
+and map this to corresponding Camel
+routes via `direct:operationId` naming convention.
+
+This example has only implemented one of the Traccar APIs. 
+This is handy, so you can implement each APIs as required by your program logic.

@@ -1,0 +1,37 @@
+{"properties": [
+  {
+    "name": "traccar.host",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.host'"
+  },
+  {
+    "name": "traccar.openapi",
+    "type": "java.lang.String",
+    "description": "traccar openapi specification"
+  },
+  {
+    "name": "traccar.user.name",
+    "type": "java.lang.String",
+    "description": "user name on traccar server"
+  },
+  {
+    "name": "traccar.user.password",
+    "type": "java.lang.String",
+    "description": "password for user name'"
+  },
+  {
+    "name": "traccar.apikey",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.apikey'"
+  },
+  {
+    "name": "traccar.user.email",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.user.email'"
+  },
+  {
+    "name": "traccar.web.serviceAccountToken",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.web.serviceAccountToken'"
+  }
+]}

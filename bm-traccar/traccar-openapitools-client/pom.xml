@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2025 Kristof Beiglböck kbeigl@web.de
+
+    The blue marble repository licenses this file to you
+    under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>bm</groupId>
+        <artifactId>bm-traccar</artifactId>
+        <version>6.6</version>
+    </parent>
+
+    <artifactId>traccar-openapitools-client</artifactId>
+
+    <name>..... traccar-openapitools-client</name>
+    <description>remote control on your traccar server</description>
+
+    <properties>
+        <maven.main.skip>true</maven.main.skip>
+        <exec-maven-plugin-version>3.5.0</exec-maven-plugin-version>
+        <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+
+        <openapi-generator-maven-plugin-version>7.13.0</openapi-generator-maven-plugin-version>
+        <!--
+            consider configuration via maven props
+            github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-maven-plugin/README.md
+            openapi.generator.maven.plugin.apiPackage
+        -->
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator-maven-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi-traccar-${traccar.version}.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            
+                            <invokerPackage>bm.traccar.invoke</invokerPackage>
+                            <!-- <packageName>bm.traccar.package</packageName> -->
+
+                            <apiPackage>bm.traccar.generated.api</apiPackage>
+                            <generateApis>true</generateApis>
+
+                            <modelPackage>bm.traccar.generated.model.dto</modelPackage>
+                            <generateModels>true</generateModels>
+                            <!-- 
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <supportingFilesToGenerate>pom.xml</supportingFilesToGenerate>
+-->
+                            <generateModelDocumentation>true</generateModelDocumentation>
+                            <generateModelTests>true</generateModelTests>
+
+                            <groupId>bm</groupId>
+                            <artifactId>traccar-api-generated</artifactId>
+
+                            <cleanupOutput>true</cleanupOutput>
+
+                            <configOptions>
+                                <javaVersion>${jdk.version}</javaVersion>
+                                <library>restclient</library>
+                                <openApiNullable>false</openApiNullable>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin-version}</version> 
+                <executions>
+                    <execution>
+                        <id>install-generated-client</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <workingDirectory>${project.build.directory}/generated-sources/openapi</workingDirectory>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>traccar</alias>
+                            <name>traccar/traccar:${traccar.version}-ubuntu</name>
+                            <build>
+                                <skip>true</skip>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

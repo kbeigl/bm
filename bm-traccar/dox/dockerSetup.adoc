@@ -1,0 +1,352 @@
+
+= build and run Traccar Docker
+
+[toc]
+
+The traccar project at Github provides instructions to fetch and 
+install the 
+https://hub.docker.com/r/traccar/traccar[DockerHub image].
+To avoid the `sudo` command you can create a docker group to enable non-root user access:
+
+[source,text]
+-----------------
+    sudo groupadd -f docker
+    sudo usermod -aG docker $USER
+    newgrp docker
+    groups
+-----------------
+
+[IMPORTANT]
+====
+Please note that this repository was set up with `Dockerfile.ubuntu`. + 
+You might want to switch to `Dockerfile.alpine` or `Dockerfile.debian`
+for your purposes.
+====
+
+== `docker:build`
+
+You can compare the parameters of the `docker-maven-plugin` 
+with the four point checklist at
+https://github.com/traccar/traccar-docker?tab=readme-ov-file#readme[Github]
+and adopt them to your requirements and system.
+
+=== `<build>`
+
+In the plugin configuration of the images `<build>` section
+you can find the traccar version, the dockerfile used
+and where to place it
+
+[source,xml]
+----
+    <artifactId>docker-maven-plugin</artifactId>
+
+    <image>
+        <alias>traccar</alias>
+        <name>traccar/traccar:${project.version}-ubuntu</name>
+        <build>
+            <dockerFile>Dockerfile.ubuntu</dockerFile>
+            <contextDir>${project.basedir}/src/main/docker</contextDir>
+            <noCache>true</noCache>
+        </build>
+----
+
+creates an image `traccar/traccar:6.6-ubuntu` +
+from `src/main/docker/dockerFile` 
+
+==== `<dockerFile>` 
+
+The docker file ...
+
+    - defines os version image, ie ubuntu:24:04
+    - grabs the https://github.com/traccar/traccar/releases[traccar release] 
+      from github and unzips
+    - provides entry point, ie java cmdline
+    
+Now you should go to the projects main directory with its `pom.xml` file + 
+and _do not run_  the command `docker run . . .` !! + 
+Rather pick up the above Maven Plugin configuration with the command
+
+    ~/repo/bm/bm-traccar/traccar-api-client$ mvn docker:build
+
+and wait (less than) a minute to get
+
+[source,text]
+-----------------
+[INFO] ----------------< org.roaf.traccar:traccar-api-client >-----------------
+[INFO] Building ... traccar-api-client 6.6
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- docker-maven-plugin:0.45.1:build (default-cli) @ traccar-api-client ---
+[INFO] Building tar: ../bm/bm-traccar/traccar-api-client/
+                        target/docker/traccar/traccar/6.6-ubuntu/tmp/docker-build.tar
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+                        Created docker-build.tar in 60 milliseconds
+[INFO] DOCKER> Pulling from library/ubuntu
+        5a7813e071bf: Downloading [===========================>   ]   28.4MB
+        5a7813e071bf: Extracting  [==============================>]  29.75MB
+        5a7813e071bf: Pull complete 
+[INFO] DOCKER> Digest: sha256:72297848456d5d37d1262630108ab308d3e9e...
+[INFO] DOCKER> Status: Downloaded newer image for ubuntu:24.04
+[INFO] DOCKER> Pulled ubuntu:24.04 in 5 seconds 
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+       BUILT IMAGE sha256:45ed780b9051bc8009793ff4fb3d80aaa639...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  36.464 s
+-----------------
+
+==== `docker-build.tar` 
+
+Create a Docker tar archive which is used as the artifact
+and which later can be used for building an image.
+It contains essentially a Dockerfile with supporting files.
+
+[NOTE]
+====
+Note that `mvn docker:build` is not configured to be part of the Maven Lifecycle Configuration! + 
+It only needs to be executed once - manually - for every traccar version.
+====
+
+_Now_ you can check your local system with docker command:
+
+[source,text]
+-----------------
+$ docker images -a
+    REPOSITORY        TAG          IMAGE ID       CREATED          SIZE
+    traccar/traccar   6.6-ubuntu   45ed780b9051   10 minutes ago   440MB
+    <none>            <none>       c93f2f999617   10 minutes ago   440MB
+    <none>            <none>       b74be2b18d35   10 minutes ago   440MB
+    <none>            <none>       92e9629b9af4   11 minutes ago   78.1MB
+    <none>            <none>       320478e81e3c   11 minutes ago   78.1MB
+    ubuntu            24.04        a04dc4851cbc   7 weeks ago      78.1MB
+-----------------
+
+
+== `docker:run`
+
+Now we are almost ready create a container from the image and run it. + 
+Back to the traccar instructions we are asked to create workdirectories
+and `chmod` as you like.
+
+=== Create work directories
+
+  sudo mkdir -p /opt/traccar/
+  sudo chmod 777 traccar
+
+=== Get default traccar.xml
+
+*cat* the `traccar.xml` file to your local file system. +
+Make sure you pick the correct name, version and flavor for `traccar/traccar:6.6-ubuntu` . +
+This time we are directly applying the `docker run` command without `mvn` !
+
+    $ docker run --rm --entrypoint cat traccar/traccar:6.6-ubuntu \
+       /opt/traccar/conf/traccar.xml > /opt/traccar/traccar.xml
+
+Now you should find the `traccar.xml` file as specified.
+As an experienced traccar admin you can now configure traccar 
+according to your production server.
+Keep in mind that this project does not require Tracker information 
+nor opening the ports as described in `<port>` below. 
+
+The [DatabaseTest] setup we will look at different options to develop 
+with database introspection ...
+
+The focus _of this project_ is on interacting with the Traccar API.
+
+==== Create container
+
+The last step creating the traccar container on the traccar Github page 
+is to run direcly with docker `docker run`.
+We do not want to run docker via command line,
+we want to start and stop the container for integration testing.
+So we will use `mvn docker:run` to make sure everything is in place.
+
+==== `<run>`
+
+Next you should check the parameters of the `<run>` section for your personal preferences
+
+[source,xml]
+----
+        <run>
+            <hostname>traccar</hostname>
+            <ports>
+                <port>80:8082</port>
+            </ports>
+            <volumes>
+                <bind>
+                    <volume>/opt/traccar/logs:/opt/traccar/logs:rw</volume>
+                    <volume>/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
+                    <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
+                </bind>
+            </volumes>
+            <log><!-- do not remove --></log>
+            <wait>
+                <http>
+                    <url>http://localhost</url>
+                </http>
+            </wait>
+        </run>
+----
+
+===== `<port>`
+
+Set the external port to 80 simplify the http url of the traccar UI to `http://localhost`.
+
+[NOTE]
+====
+Please note that this project is for OpenAPI development and the access is restricted
+to the main port (default 80). 
+The Tracker Protocol TCP and UDP Ports 
+
+    --publish 5000-5150:5000-5150 \
+    --publish 5000-5150:5000-5150/udp \
+    
+are not required _nor configured_ for API testing _in this project_. 
+====
+
+[TIP]
+====
+In order to test your Traccar Server in Docker with an Android Traccar Client 
+you can open the relevant port with
+
+    <ports>
+        <port>80:8082</port>
+        <port>5055:5055</port>
+    </ports>
+====
+
+
+===== `<wait>`
+
+Wait for availabity of the container, before running tests. + 
+Once the container has started you can also access the traccar UI 
+in you local browser with `http://localhost` .
+
+===== `<volumes>`
+
+The volumes define the mapped traccar folders on your local system.
+
+ . we want to tail the logfile to see what's going on on server side.
+ . you might want to configure the `traccar.xml` according to your production server.
+ . we want to see what's going on in the database.
+
+These volumes represent the standard installation of traccar 
+and `<traccar/data>` was added for development support. 
+
+===== `<traccar/data>`
+
+
+In the `<volumes>` section above you will find an additional volume
+
+    <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
+
+This way developers can always peak into traccar's data model.
+Different options are explained in [DatabaseTest] ...
+
+===== `<log>`
+
+Note that the empty 
+
+    `<log><!-- do not remove --></log>` 
+
+section is required as described in
+https://dmp.fabric8.io/#start-logging[5.2.10. Logging]: 
+"Logging is enabled by default if a <log> section is given."  !!
+
+
+==== `mvn docker:run` 
+
+Now we can execute: `mvn docker:run` 
+
+[source,text]
+-----------------
+$/bm/bm-traccar/traccar-api-client$ mvn docker:run
+[INFO] ----------------< org.roaf.traccar:traccar-api-client >-----------------
+[INFO] Building ... traccar-api-client 6.6
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] --- docker-maven-plugin:0.45.1:run (default-cli) @ traccar-api-client ---
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+                Start container 4e24f3a4440b
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+                Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+                Waited  on url http://localhost 4941 ms
+-----------------
+
+Looks good: Container started and waited half a second for the localhost.
+We have manually started `mvn docker:run`, now we can manually stop the container 
+with the familiar key combination <ctrl><C> .
+
+[source,text]
+-----------------
+^C
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+                Stop and removed container ddc9dd7181ca after 0 ms
+-----------------
+
+== validate development environment
+
+Let's check, if everything is in place.
+
+=== `tracker-server.log`
+
+In your local folder you should find the logfile
+
+    /opt/traccar/logs/tracker-server.log
+
+There you should see the server start and the database setup by liquibase. + 
+
+
+[source,text]
+-----------------
+INFO: Operating system name: Linux version: 6.11.0-109019-tuxedo architecture: amd64
+INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Ubuntu version: 17.0.14+7-Ubuntu-124.04
+INFO: Memory limit heap: 1024mb non-heap: 0mb
+INFO: Character encoding: US-ASCII
+INFO: Version: 6.6
+INFO: Starting server...
+INFO: HikariPool-1 - Starting...
+
+INFO: Set default schema name to PUBLIC
+INFO: Creating database history table with name: PUBLIC.DATABASECHANGELOG
+
+INFO: Table tc_attributes created
+
+INFO: Foreign key constraint added to tc_device_command (deviceid)
+
+INFO: New row inserted into tc_servers
+INFO: ChangeSet changelog-4.0-clean::changelog-4.0-clean::author ran successfully in 214ms
+
+INFO: Index user_device_user_id created
+
+INFO: Column tc_orders.toAddress renamed to toaddresstmp
+
+INFO: UPDATE SUMMARY
+INFO: Run:                         50
+INFO: Previously run:               0
+INFO: Filtered out:                 0
+INFO: -------------------------------
+INFO: Total change sets:           50
+
+INFO: Update summary generated
+
+INFO: Started Server@c18dcc4{STARTING}[11.0.24,sto=0] @4926ms
+
+INFO: Stopping server...
+
+INFO: Version: 6.6
+INFO: Starting server...
+
+INFO: UPDATE SUMMARY
+INFO: Run:                          0
+INFO: Previously run:              50
+INFO: Filtered out:                 0
+INFO: -------------------------------
+INFO: Total change sets:           50
+-----------------
+
+Note that the second start is faster, since the database is already there -
+which is exactely what we wanted.
+
+

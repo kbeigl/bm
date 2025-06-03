@@ -1,0 +1,147 @@
+
+= setup development environment
+
+The `traccar-api-client` defines an interface between a Java Client and a Traccar Server REST API. 
+In order to test the remote invocation, development requires a running traccar server. 
+This is acquired by using a traccar docker container managed in the Maven lifecycle.
+The only system requirement to the environment is a `docker` command line and 
+adequat permissions. 
+
+[toc]
+
+== credentials
+
+The integration tests are only required for development. + 
+The `traccar-api-client` can be build without executing tests.
+
+If you want to develop additional functionality the integration tests can be run 
+against _any_ traccar server. If you set your server host, port and credentials 
+in the `application.properties` file
+
+[source,text]
+-----------------
+    traccar.host=http[s]://traccar-host:port
+    traccar.user.name=admin
+    traccar.user.password=admin
+-----------------
+
+[TIP]
+====
+Option 2 is to apply the `web.serviceAccountToken` by restarting the Traccar Service.
+====
+
+
+== surefire vs failsafe
+
+You can 'turn off' the docker management in the project by removing
+the executions of the pre- and post-integration phases:
+
+[source,xml]
+----
+    <executions>
+        ...
+        <phase>pre-integration-test</phase>
+        ...
+        <phase>post-integration-test</phase>
+----
+
+Then you can simply start the traccar server from the project folder
+
+[source,xml]
+----
+/bm/bm-traccar/traccar-api-client$ mvn docker:run
+
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-client ---
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": Start container 839381eec187
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+               Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+               Waited on url http://localhost 5183 ms
+----
+
+With the server running you can switch the testing modes in 
+`/bm-sim/bm-traccar/pom.xml`
+    
+[source,xml]
+----
+    <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+            <includes>
+                <include>**/*IT.java</include>
+            </includes>
+        </configuration>
+
+    <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+            <excludes>
+                <exclude>**/*IT.java</exclude>
+            </excludes>
+        </configuration>
+----   
+
+and then you can simply run the IntegrationTests in JUnit during development time.
+
+[TIP]
+====
+The developer should be aware of the Traccar Frontend on localhost (see below). +
+Very helpful to compare changes before/after testing. 
+====
+
+
+Don't forget the good old `uncheckout` of these _temporary developer changes_ 
+after development, +
+i.e. set the repo back to production.
+
+== browser UI
+
+Now there is one last thing to do, before running the ITests:
+We need to create the admin user for traccar.
+Traccar used to be shipped with an `admin/admin` user, but not anymore: + 
+First registered user automatically becomes an admin !!
+
+It's a little tricky to automate the insertion of the admin user.
+We have to run the container once to create the data model,
+before we could insert the user ... TODO
+
+Anyhow you should check the prop file
+
+    /bm-sim/bm-traccar/traccar-api-client/src/main/resources/application.properties
+
+for the configured credentials
+
+[source,text]
+-----------------
+    traccar.host=http://localhost
+    traccar.user.name=admin
+    traccar.user.password=admin
+-----------------
+
+ * Execute `mvn docker:run` again.
+ * check log tail
+
+    INFO: Started Server@649534a4{STARTING}[11.0.24,sto=0] @4954ms
+
+ * open `http://localhost` in your browser + 
+   since there is no user configured it yould jump to `http://localhost/register` + 
+   enter `admin` for name, password and email (works without valid email syntax) +
+   login with the new credentials
+   
+done
+   
+
+== run integration tests
+
+Now the repository is setup for development 
+and you can use the familiar Maven commands
+
+ * `mvn clean` to make sure there are no conflicts
+ * `mvn verify` to make run the integration tests
+ * `mvn install` to build, run integration tests and install the `jar`.
+ 
+Hopefully with
+    
+    [INFO] BUILD SUCCESS
+
+
+
+
