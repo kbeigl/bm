@@ -24,20 +24,19 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.0</version>
+        <version>1.1-SNAPSHOT</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-traccar</artifactId>
-    <!-- reflect traccar version, while allowing subversions -->
-    <version>6.6</version>
+    <version>6.7.1-RC</version>
     <packaging>pom</packaging>
 
-    <name>---- traccar client implementations          ---</name>
+    <name>---- traccar client implementations    ---</name>
 
     <properties>
-        <!-- actual traccar (vs current project sub-) version -->
-        <traccar.version>6.6</traccar.version>
+        <!-- actual traccar (vs current project sub-, snaphsot-, RC-) version -->
+        <traccar.version>6.7.1</traccar.version>
 
         <docker.maven.plugin.version>0.46.0</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>
@@ -47,6 +46,7 @@
     </properties>
 
     <modules>
+        <!-- demo only -->
         <module>traccar-api-camel</module>
         <module>traccar-openapitools-client</module>
         <!-- generates /target/generated-sources/openapi for subsequent modules -->

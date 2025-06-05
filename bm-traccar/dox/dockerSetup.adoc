@@ -1,11 +1,14 @@
 
-= build and run Traccar Docker
+:toc:
 
-[toc]
+= build and run Traccar Docker Container
 
-The traccar project at Github provides instructions to fetch and 
-install the 
+The traccar project at Github provides instructions to fetch and install the Traccar
 https://hub.docker.com/r/traccar/traccar[DockerHub image].
+This Maven Module faciliates the
+https://github.com/fabric8io/docker-maven-plugin/blob/master/README.md[`fabric8io docker-maven-plugin`] 
+to control the Docker container phases.
+
 To avoid the `sudo` command you can create a docker group to enable non-root user access:
 
 [source,text]
@@ -19,7 +22,7 @@ To avoid the `sudo` command you can create a docker group to enable non-root use
 [IMPORTANT]
 ====
 Please note that this repository was set up with `Dockerfile.ubuntu`. + 
-You might want to switch to `Dockerfile.alpine` or `Dockerfile.debian`
+You might want to swap with `Dockerfile.alpine` or `Dockerfile.debian`
 for your purposes.
 ====
 
@@ -42,7 +45,7 @@ and where to place it
 
     <image>
         <alias>traccar</alias>
-        <name>traccar/traccar:${project.version}-ubuntu</name>
+        <name>traccar/traccar:${traccar.version}-ubuntu</name>
         <build>
             <dockerFile>Dockerfile.ubuntu</dockerFile>
             <contextDir>${project.basedir}/src/main/docker</contextDir>
@@ -50,10 +53,20 @@ and where to place it
         </build>
 ----
 
-creates an image `traccar/traccar:6.6-ubuntu` +
-from `src/main/docker/dockerFile` 
+creates an image `traccar/traccar:6.7.1-ubuntu` 
+just like the command line
+
+    $ docker pull traccar/traccar:6.7.1-ubuntu
+
+Note that we distinguish `project-` and `${traccar.version}` 
+in order to apply patch versions, when required.
+
 
 ==== `<dockerFile>` 
+
+Download the `<dockerFile>` version and flavor for your purposes 
+https://github.com/traccar/traccar-docker/blob/master/Dockerfile.ubuntu[from here]
+to the project directory `<contextDir>`
 
 The docker file ...
 
@@ -62,51 +75,56 @@ The docker file ...
       from github and unzips
     - provides entry point, ie java cmdline
     
-Now you should go to the projects main directory with its `pom.xml` file + 
-and _do not run_  the command `docker run . . .` !! + 
-Rather pick up the above Maven Plugin configuration with the command
+Now you should go to the modules main directory with its `pom.xml` file + 
+and *do _not_ run*  the command `docker run . . .` !!
 
-    ~/repo/bm/bm-traccar/traccar-api-client$ mvn docker:build
+Note that the docker `<build>` section is set to skipping the build,
+since we only want to do it once and do not want to wait more than 30 seconds
+for every integration test.
+Therefor you should set 
 
-and wait (less than) a minute to get
+    <build>
+        <skip>true</skip>
+
+to `false` and pick up the above Maven Plugin configuration with the command
+
+    ~/repo/bm/bm-traccar/$ mvn docker:build
+
+and wait (less than) a minute to get your version `x.y.z`, i.e. `6.7.1`
 
 [source,text]
 -----------------
-[INFO] ----------------< org.roaf.traccar:traccar-api-client >-----------------
-[INFO] Building ... traccar-api-client 6.6
-[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] Building ---- traccar client implementations          --- x.y.z-RC [1/4]
+[INFO] --------------------------------[ pom ]---------------------------------
 [INFO] 
-[INFO] --- docker-maven-plugin:0.45.1:build (default-cli) @ traccar-api-client ---
-[INFO] Building tar: ../bm/bm-traccar/traccar-api-client/
-                        target/docker/traccar/traccar/6.6-ubuntu/tmp/docker-build.tar
-[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
-                        Created docker-build.tar in 60 milliseconds
+[INFO] --- docker-maven-plugin:0.46.0:build (default-cli) @ bm-traccar ---
+[INFO] Building tar: /home/kbeigl/git/bm/bm-traccar/
+                      target/docker/traccar/traccar/x.y.z-ubuntu/tmp/docker-build.tar
+[INFO] DOCKER> [traccar/traccar:x.y.z-ubuntu] "traccar": 
+                      Created docker-build.tar in 22 milliseconds
 [INFO] DOCKER> Pulling from library/ubuntu
-        5a7813e071bf: Downloading [===========================>   ]   28.4MB
-        5a7813e071bf: Extracting  [==============================>]  29.75MB
-        5a7813e071bf: Pull complete 
-[INFO] DOCKER> Digest: sha256:72297848456d5d37d1262630108ab308d3e9e...
+                      d9d352c11bbd: Pull complete 
+[INFO] DOCKER> Digest: sha256:b59d21599a2b151e23eea5f6602f4af4d7d31c4e236d22bf0b62b86d2e386b8f
 [INFO] DOCKER> Status: Downloaded newer image for ubuntu:24.04
-[INFO] DOCKER> Pulled ubuntu:24.04 in 5 seconds 
-[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
-       BUILT IMAGE sha256:45ed780b9051bc8009793ff4fb3d80aaa639...
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  36.464 s
+[INFO] DOCKER> Pulled ubuntu:24.04 in 6 seconds 
+[INFO] DOCKER> [traccar/traccar:x.y.z-ubuntu] "traccar": 
+           Built image sha256:216787216abdf4cbcbdcc2c114178d82693d6858edd0b63b3aa41d876251d1f4
 -----------------
 
 ==== `docker-build.tar` 
 
-Create a Docker tar archive which is used as the artifact
-and which later can be used for building an image.
+As you can see in the output above a Docker tar archive `docker-build.tar` was created
+in the `/target/..` folder, 
+which is used as the artifact and which later can be used for building an image.
 It contains essentially a Dockerfile with supporting files.
 
 [NOTE]
 ====
 Note that `mvn docker:build` is not configured to be part of the Maven Lifecycle Configuration! + 
-It only needs to be executed once - manually - for every traccar version.
+It only needs to be executed once - manually - for every traccar version. +
+Therfore you should set the `<build><skip>` back to `true` for fluent development.
 ====
+
 
 _Now_ you can check your local system with docker command:
 
@@ -114,7 +132,7 @@ _Now_ you can check your local system with docker command:
 -----------------
 $ docker images -a
     REPOSITORY        TAG          IMAGE ID       CREATED          SIZE
-    traccar/traccar   6.6-ubuntu   45ed780b9051   10 minutes ago   440MB
+    traccar/traccar   x.y.z-ubuntu 45ed780b9051   10 minutes ago   440MB
     <none>            <none>       c93f2f999617   10 minutes ago   440MB
     <none>            <none>       b74be2b18d35   10 minutes ago   440MB
     <none>            <none>       92e9629b9af4   11 minutes ago   78.1MB
@@ -129,32 +147,33 @@ Now we are almost ready create a container from the image and run it. +
 Back to the traccar instructions we are asked to create workdirectories
 and `chmod` as you like.
 
-=== Create work directories
+=== create work directories
+
+&#8230; and set permissions according to your policies.
 
   sudo mkdir -p /opt/traccar/
   sudo chmod 777 traccar
 
-=== Get default traccar.xml
+=== cat default traccar.xml
 
 *cat* the `traccar.xml` file to your local file system. +
 Make sure you pick the correct name, version and flavor for `traccar/traccar:6.6-ubuntu` . +
-This time we are directly applying the `docker run` command without `mvn` !
+_This time we are directly applying_ the `docker run` command without `mvn` !
 
-    $ docker run --rm --entrypoint cat traccar/traccar:6.6-ubuntu \
+    $ docker run --rm --entrypoint cat traccar/traccar:x.y.z-ubuntu \
        /opt/traccar/conf/traccar.xml > /opt/traccar/traccar.xml
 
 Now you should find the `traccar.xml` file as specified.
 As an experienced traccar admin you can now configure traccar 
 according to your production server.
-Keep in mind that this project does not require Tracker information 
+Keep in mind that _this project_ does not require Tracker information 
 nor opening the ports as described in `<port>` below. 
 
-The [DatabaseTest] setup we will look at different options to develop 
-with database introspection ...
+The focus _of this project_ is on interacting with the 
+link:https://www.traccar.org/api-reference[Traccar API]
+in the Traccar container.
 
-The focus _of this project_ is on interacting with the Traccar API.
-
-==== Create container
+=== create container
 
 The last step creating the traccar container on the traccar Github page 
 is to run direcly with docker `docker run`.
@@ -162,7 +181,7 @@ We do not want to run docker via command line,
 we want to start and stop the container for integration testing.
 So we will use `mvn docker:run` to make sure everything is in place.
 
-==== `<run>`
+=== `<run>`
 
 Next you should check the parameters of the `<run>` section for your personal preferences
 
@@ -189,7 +208,7 @@ Next you should check the parameters of the `<run>` section for your personal pr
         </run>
 ----
 
-===== `<port>`
+==== `<port>`
 
 Set the external port to 80 simplify the http url of the traccar UI to `http://localhost`.
 
@@ -207,7 +226,7 @@ are not required _nor configured_ for API testing _in this project_.
 
 [TIP]
 ====
-In order to test your Traccar Server in Docker with an Android Traccar Client 
+In order to test your Traccar Server in Docker with an Android or iPhone Traccar Client 
 you can open the relevant port with
 
     <ports>
@@ -217,45 +236,85 @@ you can open the relevant port with
 ====
 
 
-===== `<wait>`
+==== `<wait>`
 
-Wait for availabity of the container, before running tests. + 
+Wait for availabity of the container, before running tests.
+
+[TIP]
+====
 Once the container has started you can also access the traccar UI 
 in you local browser with `http://localhost` .
+====
 
-===== `<volumes>`
+The container start, wait, stop and remove should look someting like this
+
+[source,text]
+-----------------
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ bm-traccar ---
+[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": Start container d795a852db4c
+[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": 
+                        Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": Waited  on url http://localhost 5785 ms
+^C
+[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": Stop and removed container d795a852db4c after 0 ms
+-----------------
+
+and 6 seconds is a reasonable time span, even for a single Integration Test.
+
+==== `<volumes>`
 
 The volumes define the mapped traccar folders on your local system.
 
- . we want to tail the logfile to see what's going on on server side.
- . you might want to configure the `traccar.xml` according to your production server.
+ . we want to `tail` the logfile to see what's going on on server side.
+ . we want to configure the `traccar.xml` analog to the production server.
  . we want to see what's going on in the database.
 
 These volumes represent the standard installation of traccar 
 and `<traccar/data>` was added for development support. 
 
-===== `<traccar/data>`
-
+==== `<traccar/data>`
 
 In the `<volumes>` section above you will find an additional volume
 
     <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
 
-This way developers can always peak into traccar's data model.
-Different options are explained in [DatabaseTest] ...
+[TIP]
+====
+This way developers can always peak into traccar's data model. +
+Different options to work with the Database are explained 
+link:./databaseTest.adoc[here]
+====
 
-===== `<log>`
+Also note the `Database` heading at the bottom of
+
+    https://hub.docker.com/r/traccar/traccar
+
+____
+The default when executing the above docker run command is an internal H2 database.
+ The docker run command also doesn't create a mount point on the host for the data folder
+ which will cause the database to be lost when the container is recreated.
+ This point can be mitigated by adding the line 
+ 
+    -v /var/docker/traccar/data:/opt/traccar/data:rw \
+
+____
+
+==== `<log>`
 
 Note that the empty 
 
     `<log><!-- do not remove --></log>` 
 
 section is required as described in
-https://dmp.fabric8.io/#start-logging[5.2.10. Logging]: 
-"Logging is enabled by default if a <log> section is given."  !!
+https://dmp.fabric8.io/#start-logging[5.2.10. Logging]:
+____
+Logging is enabled by default if a `<log>` section is given!
+____
 
+This way you can always keep a console or editor open 
+to auto reload, i.e. `tail` the `tracker-server.log` file.
 
-==== `mvn docker:run` 
+=== `mvn docker:run` 
 
 Now we can execute: `mvn docker:run` 
 
@@ -274,14 +333,14 @@ $/bm/bm-traccar/traccar-api-client$ mvn docker:run
                 Waited  on url http://localhost 4941 ms
 -----------------
 
-Looks good: Container started and waited half a second for the localhost.
+Looks good: Container started and waited five seconds for the localhost.
 We have manually started `mvn docker:run`, now we can manually stop the container 
-with the familiar key combination <ctrl><C> .
+with the familiar key combination `<Ctrl><c>` :
 
 [source,text]
 -----------------
 ^C
-[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
+[INFO] DOCKER> [traccar/traccar:x.y.z-ubuntu] "traccar": 
                 Stop and removed container ddc9dd7181ca after 0 ms
 -----------------
 

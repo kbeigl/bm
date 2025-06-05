@@ -6,9 +6,9 @@
 This `bm-sim` repository is a 
 link:https://maven.apache.org/guides/mini/guide-multiple-modules.html[Maven Multiple Module] 
 project.
-The Maven Reactor mechanism makes sure to collect all modules and assert correct build order
-with every `mvn` command executed. 
-It makes sure that any project is build as required by another (and so on).
+The Maven Reactor mechanism makes sure to collect all modules 
+and assert correct build order with every `mvn` command executed. 
+It assures that any project is build as required by another.
 
 == project nature
 

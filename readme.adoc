@@ -3,18 +3,70 @@
 
 = Repo
 
-Traccar Tracking System with RealObjects, see book
+This repository is the development envoironment of the `RealObject` 
+described in the book.
+
+== latest versions
+
+[source,text]
+-----------------
+[INFO] === blue marble simulations        === 1.1-SNAPSHOT 
+[INFO] --- blue marble parameters         --- 1.1-SNAPSHOT 
+[INFO] ---- traccar client implementations    --- 6.7.1-RC 
+[INFO] ..... traccar-api-camel 6.6 .......................
+[INFO] ..... traccar-openapitools-client 6.7.1 ...........
+[INFO] ..... traccar-api-client 6.7.1-RC .................
+-----------------
 
 == `/bm-parent`
 
-The complete software development kept together in a
-link:./bm-parent/readme.adoc[Multi Module repository]
+This `bm-sim` repository is a *Maven Multi Module* project.
+The Maven Reactor mechanism makes sure to collect all modules 
+and assert correct build order with every `mvn` command executed. 
+It assures that any project is build as required by another.  +
+link:./bm-parent/readme.adoc[read more ...]
 
 == `/bm-traccar`
 
-=== `/traccar-api-camel`
+The `bm-traccar` aggregator POM is the development environment 
+to code against the link:https://www.traccar.org/[Traccar GPS Tracking Platform].
+Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
+The System was thoroughly analyzed in the 
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[Jeets Project]
+and
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[Jeets Book].
+
+link:./bm-traccar/readme.adoc[read more to setup and adopt your development environment]
+
+=== `/traccar-openapitools-client`
+
+The Traccar REST API is defined in a single `openapi.yaml` file,
+which is processed with the  
+link:https://github.com/OpenAPITools/openapi-generator[OpenAPI Generator] 
+to generate a plain Java Client `traccar-api-generated-x.y.z.jar` from the 
+link:https://swagger.io/specification/[OpenAPI specification]. 
+
+link:./bm-traccar/traccar-openapitools-client/readme.adoc[read more ...]
 
 === `/traccar-api-client`
 
-=== `/traccar-openapitools-client`
+==== The Traccar OpenAPI Client
+
+The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
+And it can be used to integrate your Tracking with your company systems, 
+like Human Resources-, Sales- and Fleet Management Software.
+Synchronize your employees with their cars and driver information without utilizing the traccar UI.
+Pull driving reports for your sales team ... and much more ;) +
+link:./bm-traccar/traccar-api-client/readme.adoc[read more ...]
+
+=== `/traccar-api-camel`
+
+==== Camel Example with OpenAPI
+
+An example to demonstrate how to utilize Camel to expose REST APIs 
+from the existing OpenAPI specification for Traccar.
+This is a good starting point to integrate Camel channels 
+with your administrativ software for full automation.
+
+link:./bm-traccar/traccar-api-camel/readme.adoc[read more ...]
 

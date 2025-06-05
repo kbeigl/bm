@@ -24,20 +24,20 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.0</version>
+        <version>1.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
     <packaging>pom</packaging>
 
-    <name>--- blue marble parameters                   ---</name>
+    <name>--- blue marble parameters         ---</name>
     <description>
         Parent POM for common definitions and constants for all sources.
     </description>
 
     <properties>
         <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
-        <formatter-maven-plugin-version>2.26.0</formatter-maven-plugin-version>
+        <fmt-maven-plugin-version>2.27</fmt-maven-plugin-version>
 
         <!-- ${java.runtime.version} and requireJavaVersion -->
         <jdk.version>17</jdk.version>
@@ -91,13 +91,6 @@
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
-<!--
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
--->
     </dependencies>
 
     <build>
@@ -106,7 +99,7 @@
                 <plugin>
                     <groupId>com.spotify.fmt</groupId>
                     <artifactId>fmt-maven-plugin</artifactId>
-                    <version>2.27</version>
+                    <version>${fmt-maven-plugin-version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -142,9 +135,7 @@
                                 <requireMavenVersion>
                                     <version>${maven-minimum-version}</version>
                                 </requireMavenVersion>
-                                <!--                            <requireJavaVersion>
-                                    <version>1.5</version>
-                                </requireJavaVersion>    -->
+                                <!-- <requireJavaVersion> -->
                             </rules>
                         </configuration>
                     </execution>
@@ -163,36 +154,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-        </plugins>
-         -->
-            <!--
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
--->
+            </plugin>   -->
         </plugins>
     </build>
 

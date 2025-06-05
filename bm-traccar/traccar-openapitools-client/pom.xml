@@ -25,19 +25,22 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>6.6</version>
+        <version>6.7.1-RC</version>
     </parent>
 
     <artifactId>traccar-openapitools-client</artifactId>
+    <version>6.7.1</version>
 
     <name>..... traccar-openapitools-client</name>
     <description>remote control on your traccar server</description>
 
     <properties>
-        <maven.main.skip>true</maven.main.skip>
+        <!-- MOVE UP -->
         <exec-maven-plugin-version>3.5.0</exec-maven-plugin-version>
-        <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
-
+        <maven.main.skip>true</maven.main.skip>
+        <!-- REMOVE -->
+        <!-- spring-boot.repackage.skip>true<spring-boot.repackage.skip -->
+        <!-- DONT MOVE UP -->
         <openapi-generator-maven-plugin-version>7.13.0</openapi-generator-maven-plugin-version>
         <!--
             consider configuration via maven props
@@ -74,8 +77,8 @@
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <supportingFilesToGenerate>pom.xml</supportingFilesToGenerate>
 -->
-                            <generateModelDocumentation>true</generateModelDocumentation>
-                            <generateModelTests>true</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateModelTests>false</generateModelTests>
 
                             <groupId>bm</groupId>
                             <artifactId>traccar-api-generated</artifactId>
@@ -112,6 +115,7 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- REMOVE
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -127,6 +131,7 @@
                     </images>
                 </configuration>
             </plugin>
+            -->
         </plugins>
     </build>
 </project>

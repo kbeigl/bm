@@ -5,7 +5,7 @@
 
 The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
 And it can be used to integrate your Tracking with your company systems, 
-like human resources- and fleet management Software.
+like Human Resources-, Sales- and Fleet Management Software.
 Synchronize your employees with their cars and driver information without utilizing the traccar UI.
 Pull driving reports for your sales team ... and much more ;)
 
@@ -170,8 +170,6 @@ and to ensure that you have a binding communication.
 * 03.05.25 traccar: super/virtual/admin, user, permissions, groups
 * 25.03.25 openapi-generator-maven-plugin
 * 26.02.25 operationId
-* 17.01.25   get traccar openapi (for docker) +
-    https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml
 
 [source,text]
 -----------------

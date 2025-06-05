@@ -52,7 +52,9 @@ public class ApiService implements Api {
     apiClient.setBearerToken(token);
   }
 
+  /** see {@link UsersApi} */
   @Autowired private UsersApi usersApi;
+
   Users users =
       new Api.Users() {
 
@@ -106,7 +108,7 @@ public class ApiService implements Api {
 
         @Override
         public List<Device> getDevices(String userId) {
-          return devicesApi.getDevices(null, null, null, userId);
+          return devicesApi.devicesGet(null, null, null, userId);
         }
       };
 

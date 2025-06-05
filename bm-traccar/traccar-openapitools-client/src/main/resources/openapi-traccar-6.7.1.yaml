@@ -9,7 +9,7 @@ info:
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  version: '6.6'
+  version: '6.7.1'
 servers:
   - url: https://demo.traccar.org/api
     description: Demo Server 1
@@ -270,7 +270,6 @@ paths:
           content: {}
   /devices:
     get:
-      operationId: getDevices
       summary: Fetch a list of Devices
       description: Without any params, returns a list of the user's devices
       tags:
@@ -313,7 +312,6 @@ paths:
           description: No permission
           content: {}
     post:
-      operationId: postDevices
       summary: Create a Device
       tags:
         - Devices
@@ -333,7 +331,6 @@ paths:
       x-codegen-request-body-name: body
   /devices/{id}:
     put:
-      operationId: putDevice
       summary: Update a Device
       tags:
         - Devices
@@ -358,7 +355,6 @@ paths:
                 $ref: '#/components/schemas/Device'
       x-codegen-request-body-name: body
     delete:
-      operationId: deleteDevice
       summary: Delete a Device
       tags:
         - Devices
@@ -603,6 +599,24 @@ paths:
           content: {}
         '400':
           description: Bad Request
+          content: {}
+  /positions/{id}:
+    delete:
+      summary: Delete a Position
+      tags:
+        - Positions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+          content: {}
+        '404':
+          description: Not Found
           content: {}
   /server:
     get:
@@ -1886,9 +1900,6 @@ components:
       properties:
         id:
           type: integer
-        calendarId:
-          type: integer
-          nullable: true
         name:
           type: string
         uniqueId:
@@ -1898,11 +1909,6 @@ components:
         disabled:
           type: boolean
         lastUpdate:
-          type: string
-          description: in IS0 8601 format. eg. `1963-11-22T18:30:00Z`
-          format: date-time
-          nullable: true
-        expirationTime:
           type: string
           description: in IS0 8601 format. eg. `1963-11-22T18:30:00Z`
           format: date-time
