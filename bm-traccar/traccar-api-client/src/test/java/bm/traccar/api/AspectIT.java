@@ -47,14 +47,16 @@ public class AspectIT {
   private String email;
 
   @Autowired private ApiService api;
+
   private String invalidHost = "http://localhoRst/api";
 
   /*
    * - get/delete non existing user/id - login with wrong credentials
    */
 
-  // @Test
+  @Test
   public void createAdminUserAndLoginApiClient() {
+
     api.setBearerToken(virtualAdmin);
 
     User user = api.users.createUserWithCredentials(name, password, email);
@@ -70,11 +72,10 @@ public class AspectIT {
     List<User> users = api.users.getUsers(null);
     assertNotNull(users, "nothing returned from server");
 
-    // delete admin !!
+    // delete admin as admin!!
     api.users.deleteUser(updatedUser.getId());
 
     api.setBearerToken(virtualAdmin);
-
     users = api.users.getUsers(null);
     assertNotNull(users, "nothing returned from server");
   }
@@ -82,7 +83,6 @@ public class AspectIT {
   @Test
   public void serverPresentWithException() {
 
-    api.getApiClient().setBasePath(host + "/api");
     api.setBearerToken(virtualAdmin);
 
     // create user once without catch
@@ -93,13 +93,17 @@ public class AspectIT {
 
     int userId = user.getId();
     System.out.println("user with ID=" + userId + " was created on server");
+    //  assert?
 
     // create same user again
+    // improve: catch ApiException to handle three error messages in ApiService
     try {
       user = api.users.createUserWithCredentials(name, password, email);
     } catch (ApiException e) {
       // e.printStackTrace();
-      System.err.println("User was NOT created due to: " + e);
+      System.err.println("User was NOT created!");
+      //        System.err.println("User was NOT created due to: " + e);
+      //    assert?
     }
 
     // clean up server for next tests
@@ -110,7 +114,7 @@ public class AspectIT {
   @Test
   public void serverAbsentCreateUser() {
 
-    api.getApiClient().setBasePath(host);
+    api.getApiClient().setBasePath(invalidHost);
     api.setBearerToken(virtualAdmin);
     User user = null;
     try {

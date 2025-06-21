@@ -1,12 +1,14 @@
 package bm.traccar.api;
 
 import bm.traccar.generated.api.DevicesApi;
+import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.User;
 import bm.traccar.invoke.ApiClient;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,7 +54,31 @@ public class ApiService implements Api {
     apiClient.setBearerToken(token);
   }
 
-  /** see {@link UsersApi} */
+  @Autowired private SessionApi sessionApi;
+
+  //  experimental see SessionIT ---------------
+  public User createSession(String mail, String password) {
+    return sessionApi.sessionPost(mail, password);
+  }
+
+  public ResponseEntity<User> createSessionPostWithHttpInfo(String mail, String password) {
+    return sessionApi.sessionPostWithHttpInfo(mail, password);
+  }
+
+  //  public ResponseSpec createSessionPostWithResponseSpec(String mail, String password) {
+  //    return sessionApi.sessionPostWithResponseSpec(mail, password);
+  //  }
+  //  -------------------------------------------
+
+  Session session =
+      new Api.Session() {
+        /** see {@link SessionApi#sessionPost(mail, password)} */
+        @Override
+        public User createSession(String mail, String password) {
+          return sessionApi.sessionPost(mail, password);
+        }
+      };
+
   @Autowired private UsersApi usersApi;
 
   Users users =

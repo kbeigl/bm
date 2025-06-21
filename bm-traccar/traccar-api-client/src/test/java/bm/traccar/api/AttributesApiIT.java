@@ -25,7 +25,6 @@ public class AttributesApiIT {
 
   @Autowired private AttributesApi attributesApi;
 
-  // convenience for authentication
   @Value("${traccar.web.serviceAccountToken}")
   private String token;
 
@@ -36,13 +35,15 @@ public class AttributesApiIT {
 
     api.setBearerToken(token);
 
-    Boolean all = true; // Boolean | Can only be used by admins or managers to fetch all entities
-    Integer userId = 56; // Integer | Standard users can use this only with their own _userId_
-    Integer deviceId =
-        56; // Integer | Standard users can use this only with _deviceId_s, they have access to
-    Integer groupId =
-        56; // Integer | Standard users can use this only with _groupId_s, they have access to
-    Boolean refresh = true; // Boolean |
+    // Boolean | Can only be used by admins or managers to fetch all entities
+    Boolean all = true;
+    // Integer | Standard users can use this only with their own _userId_
+    Integer userId = 56;
+    // Integer | Standard users can use this only with _deviceId_s, they have access to
+    Integer deviceId = 56;
+    // Integer | Standard users can use this only with _groupId_s, they have access to
+    Integer groupId = 56;
+    Boolean refresh = true;
 
     List<Attribute> result = null;
     try {

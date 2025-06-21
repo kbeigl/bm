@@ -21,7 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 @ContextConfiguration(classes = {ApiService.class})
 @TestPropertySource("classpath:application.properties")
 @Import(ApiConfig.class)
-// test without AOP ?
+// test without AOP
 // @Import({ApiConfig.class, ApiAspect.class})
 // @ExtendWith(ClientExceptionHandler.class)
 public class AuthenticationIT {
@@ -44,9 +44,9 @@ public class AuthenticationIT {
   private ApiClient apiClient;
 
   /*
-   * TODO Authentication and User management - userId Can only be used by admin or manager users - create
-   * virtualAdmin, admin/s, manager/s and users - find and get virtualAdmin, admins, managers and users - login/logout
-   * > return 'role'
+   * TODO Authentication and User management - userId Can only be used by admin or
+   * manager users - create virtualAdmin, admin/s, manager/s and users - find and
+   * get virtualAdmin, admins, managers and users - login/logout > return 'role'
    */
 
   @Test
@@ -68,7 +68,7 @@ public class AuthenticationIT {
     List<User> users = api.users.getUsers(null);
     assertNotNull(users, "nothing returned from server");
 
-    // delete admin !!
+    // delete user as user!!
     api.users.deleteUser(updatedUser.getId());
 
     // change back to SuperUserAccess

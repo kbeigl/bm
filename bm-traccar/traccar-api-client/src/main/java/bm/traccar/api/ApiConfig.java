@@ -1,6 +1,7 @@
 package bm.traccar.api;
 
 import bm.traccar.generated.api.DevicesApi;
+import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,11 @@ public class ApiConfig {
   @Bean
   UsersApi usersApi(ApiClient apiClient) {
     return new UsersApi(apiClient);
+  }
+
+  @Bean
+  SessionApi sessionApi(ApiClient apiClient) {
+    return new SessionApi(apiClient);
   }
 
   @Bean

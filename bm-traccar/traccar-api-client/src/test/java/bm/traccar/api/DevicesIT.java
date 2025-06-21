@@ -1,7 +1,5 @@
 package bm.traccar.api;
 
-import bm.traccar.generated.model.dto.Device;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +31,14 @@ public class DevicesIT {
   @Autowired private ApiService api;
 
   /*
-   * storyboard create device > who does it belong create user > create device for user access device as user and as
-   * admin/superuser
+   * storyboard create device > who does it belong create user > create device for
+   * user access device as user and as admin/superuser
    */
 
   @Test
   public void getDevices() {
     api.setBearerToken(token);
-    List<Device> devices = api.devices.getDevices(null);
+    //		List<Device> devices =
+    api.devices.getDevices(null);
   }
 }

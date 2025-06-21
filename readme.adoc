@@ -10,12 +10,13 @@ described in the book.
 
 [source,text]
 -----------------
-[INFO] === blue marble simulations        === 1.1-SNAPSHOT 
-[INFO] --- blue marble parameters         --- 1.1-SNAPSHOT 
-[INFO] ---- traccar client implementations    --- 6.7.1-RC 
-[INFO] ..... traccar-api-camel 6.6 .......................
-[INFO] ..... traccar-openapitools-client 6.7.1 ...........
-[INFO] ..... traccar-api-client 6.7.1-RC .................
+[INFO] === blue marble simulations       === 1.1.1-SNAPSHOT
+[INFO] --- blue marble parameters        --- 1.1.1-SNAPSHOT
+[INFO] ---- traccar client implementations     --- 6.7.1-RC
+[INFO] ..... traccar-api-camel 6.6 ........................
+[INFO] ..... traccar-openapitools-client 6.7.1 ............
+[INFO] ..... traccar-api-client 6.7.1-RC ..................
+[INFO] ..... traccar-ws-client 6.7.1-POC ..................
 -----------------
 
 == `/bm-parent`
@@ -23,7 +24,8 @@ described in the book.
 This `bm-sim` repository is a *Maven Multi Module* project.
 The Maven Reactor mechanism makes sure to collect all modules 
 and assert correct build order with every `mvn` command executed. 
-It assures that any project is build as required by another.  +
+It assures that any project is build as required by another.  
+
 link:./bm-parent/readme.adoc[read more ...]
 
 == `/bm-traccar`
@@ -56,8 +58,20 @@ The `traccar-api-client` is a Java Client Software to provide full (remote) cont
 And it can be used to integrate your Tracking with your company systems, 
 like Human Resources-, Sales- and Fleet Management Software.
 Synchronize your employees with their cars and driver information without utilizing the traccar UI.
-Pull driving reports for your sales team ... and much more ;) +
+Pull driving reports for your sales team ... and much more ;) 
+
 link:./bm-traccar/traccar-api-client/readme.adoc[read more ...]
+
+=== `/traccar-ws-client`
+
+==== The Traccar WebSocket Client
+
+The `traccar-ws-client` is a Java Client Software to receive real time data 
+from your Traccar Server. While the `traccar-api-client` is based 
+on single requests and responses without any session handling, i.e. stateless,
+this client can create a Camel channel for each individual registered user.
+
+link:./bm-traccar/traccar-ws-client/readme.adoc[read more ...]
 
 === `/traccar-api-camel`
 

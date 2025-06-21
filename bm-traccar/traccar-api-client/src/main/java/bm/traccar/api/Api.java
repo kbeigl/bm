@@ -15,6 +15,11 @@ import java.util.List;
  */
 public interface Api {
 
+  // singular according to spec
+  interface Session {
+    User createSession(String mail, String password);
+  }
+
   interface Users {
 
     User createUser(User user) throws ApiException;

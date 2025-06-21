@@ -30,21 +30,13 @@ public class UsersIT {
   @Value("${traccar.web.serviceAccountToken}")
   private String virtualAdmin;
 
-  @Value("${traccar.user.name}")
-  private String name;
-
-  @Value("${traccar.user.password}")
-  private String password;
-
-  @Value("${traccar.user.email}")
-  private String mail;
-
   @Autowired private ApiService api;
 
   /** Test platonic API methods from interface for User DTO */
   @Test
   public void createUpdateDeleteUser() {
 
+    //		api.setBasicAuth(mail, password);
     api.setBearerToken(virtualAdmin);
 
     // get nr of users, assert users++, back to nr
@@ -65,7 +57,7 @@ public class UsersIT {
 
     // update user
     newUser_1.setEmail("email-1-b");
-    ;
+
     User putUser = api.users.updateUser(userId_1, newUser_1);
     assertEquals(userNr + 1, api.users.getUsers(null).size());
 
