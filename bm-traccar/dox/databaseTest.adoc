@@ -3,9 +3,11 @@
 
 [toc]
 
-The [DatabaseTest] setup we will look at different options to develop 
-with database introspection ...
-
+Multiple options for handling the H2 database are described, 
+including mounting external volumes, direct SQL shell access, 
+and automation scripts for admin user setup. +
+The documentation describes different database introspection approaches 
+for development and testing.
 
 options
 

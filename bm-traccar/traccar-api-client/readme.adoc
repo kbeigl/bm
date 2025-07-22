@@ -15,7 +15,7 @@ The Traccar OpenAPI Client wraps the Traccar API in a Spring @Service, simple as
 You can always counter check against the 
 link:https://www.traccar.org/api-reference[Official Traccar API Reference].
 
-== simple example
+== usage example
 
 Here's a simple example code to demo how to add the Traccar API Service 
 to your company software. +
@@ -81,6 +81,26 @@ This software is based on a generated *Java* REST client from the traccar specif
 The single package (`bm.traccar.api`) implementation wraps the Java client in a *Spring* @Service
 to be applied wherever feasible. The API client completely hides the REST intricities
 inside regular Java methods.
+
+== OpenAPITools: openapi-generator
+
+As Traccar provides a REST specification in form of a `yaml` file we faciliate the 
+link:https://github.com/OpenAPITools/openapi-generator[OpenAPI Generator]
+
+[quote, see github.com/OpenAPITools/openapi-generator]
+____
+OpenAPI Generator allows generation of API client libraries (SDK generation), 
+server stubs, documentation and configuration automatically 
+given an OpenAPI Spec v3.
+____
+
+Note that this Java code generation takes place in the isolated `traccar-openapitools-client` 
+project. It has to run before this project which is build around the generated artifact.
+
+You can check 
+link:https://ademico-software.com/how-to-generate-the-client-api-for-an-openapi-rest-service/[Generate the client using Maven] 
+for a starting point on how to apply Maven properties etc.
+
 
 == configuration
 

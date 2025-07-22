@@ -3,20 +3,25 @@ package bm.traccar.api;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import bm.traccar.generated.model.dto.User;
+import bm.traccar.ws.PositionProcessor;
+import bm.traccar.ws.TraccarWsClientRoute;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
-@SpringBootTest
+// @SpringBootTest
+@CamelSpringBootTest
 @EnableAutoConfiguration
-@ContextConfiguration(classes = {ApiService.class})
+@ContextConfiguration(
+    classes = {ApiService.class, TraccarWsClientRoute.class, PositionProcessor.class})
 @TestPropertySource("classpath:application.properties")
 @Import(ApiConfig.class)
 public class SessionIT {
@@ -34,9 +39,36 @@ public class SessionIT {
   private String mail;
 
   @Autowired private ApiService api;
+  @Autowired protected ProducerTemplate producer;
 
   @Test
-  public void createSessionsForUser() {
+  public void createSessionForUser() {
+    api.setBearerToken(virtualAdmin);
+    User user = api.users.createUserWithCredentials(name, password, mail);
+    int userId = user.getId();
+    // ----------------------------------------------------
+    System.out.println("  create session for: " + mail + "/" + password);
+    ResponseEntity<User> response = api.createSessionPostWithHttpInfo(mail, password);
+    // System.out.println(response.getBody());
+    if (checkHttpStatusCode(response.getStatusCode())) {
+      User sessionUser = response.getBody();
+      System.out.println(" Session created for: " + sessionUser.getEmail());
+      String setCookieHeader = response.getHeaders().get("Set-Cookie").get(0);
+      String sessionId = setCookieHeader.split(";")[0].split("=")[1];
+      System.out.println("received: " + "JSESSIONID: " + sessionId);
+      // call route traccarWebSocketConnectionRoute
+      producer.sendBodyAndHeader("direct:connectTraccarWebSocket", null, "JSESSIONID", sessionId);
+      // System.out.println("WebSocket connection initiated with JSESSIONID: " + sessionId);
+    } else {
+      System.out.println("Failed to create session for user: " + mail);
+    }
+    // create api.session. method ..
+    // ----------------------------------------------------
+    api.users.deleteUser(userId);
+  }
+
+  @Test
+  public void createSessionIdsForUser() {
 
     api.setBearerToken(virtualAdmin);
     User user = api.users.createUserWithCredentials(name, password, mail);
@@ -47,12 +79,11 @@ public class SessionIT {
     ResponseEntity<User> response = api.createSessionPostWithHttpInfo(mail, password);
     // System.out.println(response.getBody());
 
-    HttpStatusCode sc = response.getStatusCode();
-    if (sc.is2xxSuccessful() || sc.is3xxRedirection())
-      System.out.println("Session created successfully: " + sc);
-    else if (sc.is4xxClientError()) System.out.println("Client error occurred: " + sc);
-    else if (sc.is5xxServerError()) System.out.println("Server error occurred: " + sc);
-    else System.out.println("Failed to create session: " + sc);
+    if (checkHttpStatusCode(response.getStatusCode())) {
+      System.out.println("Session created successfully for user: " + mail);
+    } else {
+      System.out.println("Failed to create session for user: " + mail);
+    }
 
     // for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
     //   System.out.println(entry.getKey() + ": " + entry.getValue());
@@ -68,12 +99,11 @@ public class SessionIT {
     System.out.println("create another session for: " + mail + "/" + password);
     response = api.createSessionPostWithHttpInfo(mail, password);
 
-    sc = response.getStatusCode();
-    if (sc.is2xxSuccessful() || sc.is3xxRedirection())
-      System.out.println("Session created successfully: " + sc);
-    else if (sc.is4xxClientError()) System.out.println("Client error occurred: " + sc);
-    else if (sc.is5xxServerError()) System.out.println("Server error occurred: " + sc);
-    else System.out.println("Failed to create session: " + sc);
+    if (checkHttpStatusCode(response.getStatusCode())) {
+      System.out.println("Session created successfully for user: " + mail);
+    } else {
+      System.out.println("Failed to create session for user: " + mail);
+    }
 
     // extract !NEW! JSESSIONID
     // response.getHeaders().get("Set-Cookie").forEach(System.out::println);
@@ -93,7 +123,7 @@ public class SessionIT {
 
   /** Test platonic API methods from interface for User DTO */
   @Test
-  public void createUserAndSessionWithHttpInfo() {
+  public void createUserAndSessionIdWithHttpInfo() {
 
     api.setBearerToken(virtualAdmin);
     User user = api.users.createUserWithCredentials(name, password, mail);
@@ -108,9 +138,21 @@ public class SessionIT {
 
     // create method via api.session without setting BasicAuth ...
     ResponseEntity<User> response = api.createSessionPostWithHttpInfo(mail, password);
-    System.out.println(response.getHeaders());
+    System.out.println("SessionPostWithHttpInfo - response headers: " + response.getHeaders());
 
     // ----------------------------------------------------
     api.users.deleteUser(userId);
+  }
+
+  private boolean checkHttpStatusCode(HttpStatusCode sc) {
+    if (sc.is2xxSuccessful() || sc.is3xxRedirection()) return true;
+    // TODO these two respones are not considered yet
+    else if (sc.is1xxInformational()) System.out.println("Informational response received: " + sc);
+    else if (sc.is3xxRedirection()) System.out.println("Redirection response received: " + sc);
+    // else Error > return false;
+    else if (sc.is4xxClientError()) System.out.println("Client error occurred: " + sc);
+    else if (sc.is5xxServerError()) System.out.println("Server error occurred: " + sc);
+    else System.out.println("Failed to create session: " + sc);
+    return false;
   }
 }

@@ -5,9 +5,10 @@
 
 The traccar project at Github provides instructions to fetch and install the Traccar
 https://hub.docker.com/r/traccar/traccar[DockerHub image].
-This Maven Module faciliates the
+This Maven Module leverages the
 https://github.com/fabric8io/docker-maven-plugin/blob/master/README.md[`fabric8io docker-maven-plugin`] 
-to control the Docker container phases.
+to control the Docker container phases to manage a Dockerized Traccar server 
+for integration testing. 
 
 To avoid the `sudo` command you can create a docker group to enable non-root user access:
 

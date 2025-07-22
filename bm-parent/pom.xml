@@ -24,13 +24,13 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.1-SNAPSHOT</version>
+        <version>1.1.2</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
     <packaging>pom</packaging>
 
-    <name>--- blue marble parameters        ---</name>
+    <name>--- blue marble parameters                 ---</name>
     <description>
         Parent POM for common definitions and constants for all sources.
     </description>
@@ -40,17 +40,18 @@
         <fmt-maven-plugin-version>2.27</fmt-maven-plugin-version>
 
         <!-- ${java.runtime.version} and requireJavaVersion -->
-        <jdk.version>17</jdk.version>
-
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <jdk.version>21</jdk.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        
         <maven-minimum-version>3.6.3</maven-minimum-version>
-        <maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
+        <maven-enforcer-plugin-version>3.6.1</maven-enforcer-plugin-version>
         <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
         <maven-failsafe-plugin-version>3.5.3</maven-failsafe-plugin-version>
 
-        <camel-version>4.10.2</camel-version>
-        <spring-boot-version>3.4.3</spring-boot-version>
+        <!-- usually we pick the LTS versions -->
+        <camel-version>4.10.6</camel-version>
+        <spring-boot-version>3.4.7</spring-boot-version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

@@ -10,13 +10,12 @@ described in the book.
 
 [source,text]
 -----------------
-[INFO] === blue marble simulations       === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations     --- 6.7.1-RC
+[INFO] === blue marble simulations                === 1.1.2
+[INFO] --- blue marble parameters                 --- 1.1.2
+[INFO] ---- traccar client implementations        --- 6.7.1
 [INFO] ..... traccar-api-camel 6.6 ........................
 [INFO] ..... traccar-openapitools-client 6.7.1 ............
 [INFO] ..... traccar-api-client 6.7.1-RC ..................
-[INFO] ..... traccar-ws-client 6.7.1-POC ..................
 -----------------
 
 == `/bm-parent`

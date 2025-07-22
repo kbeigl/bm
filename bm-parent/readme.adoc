@@ -18,22 +18,30 @@ The Java development cycle is defined by the major components:
  
 Implies major versioning, dependency management, 
 plugin configuration, and build lifecycle.
+If available and feasible external tools, like the 
+link:../bm-traccar/traccar-openapitools-client/readme.adoc[OpenAPI Generator]
+are integrated into the lifecycle to generate code for subsequent modules.
 
 
 === Camel integration framework 
-  
+
+Apache Camel has a very powerful bean injection framework 
+to allow developers _to focus on solving business problems_. 
+
 At its core, Apache Camel is an integration engine, which can be used 
 to facilitate interactions between a wide and varied array of technologies.
 These bridges between service- and technology Endpoints, 
 the Routes are implemented on an engine - the CamelContext, 
 and they communicate with “exchange messages”.
 
+For this repository Camel is used to glue independant Units together.
+
 
 === Spring Boot application framework 
  
 Spring context, dependency injection, and application startup.
 
-https://camel.apache.org/camel-spring-boot/4.8.x/spring-boot.html
+https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html
 
 Spring Boot component also provides auto-configuration for Apache Camel. 
 Our opinionated auto-configuration of the Camel context 
@@ -43,7 +51,7 @@ and registers the key Camel utilities
 
 [NOTE]
 ====
- Spring Boot will automatically auto-configure Camel for you.
+ Spring Boot will auto-configure Camel for you.
 ====
 
 
@@ -57,7 +65,7 @@ developer switch from JUnit to Integration Testing see:
 link:../bm-traccar/dox/developmentSetup.adoc[Development and Production Setup]
 
 
-== root project
+== root project `bm-sim` 
 
 The Maven Bill of Materials (BOM) is collected the root `pom.xml` file, i.e. _aggregator POM_ 
 that defines common dependencies, versions, properties and other dependent Maven Projects.
@@ -68,7 +76,13 @@ focus on the project s/he is assigned to.
 
 see link:https://docs.microfocus.com/doc/205/saas/bestpracticesmavenprojects[structuring Maven projects and modules]
 
-===== `<modules>`
+For team development you should work with the `-SNAPSHOT` tag and a central (Nexus) Server 
+over your personal `.m2` repo.
+This way all team members are accessing the same (changeing) artifact 
+and the complete build process can be reduced to the module and artifact in focus.
+
+
+=== `<modules>`
 
 This approach reduces duplication and allows to share configurations between modules.
 Practically the parent pom can be seen as the cover sheet with project information
@@ -85,7 +99,7 @@ see [jeets repository] ...
     </modules
 ----
 
-== bm-parent project
+== `bm-parent` project
 
 The parent project is the first module called in the build process. +
 It starts by running the `os-maven-plugin` 
@@ -115,7 +129,7 @@ to direct the build lifecycle as required.
 
 === project setup
 
-===== `<properties>`
+==== `<properties>`
 
 The properties of the parent project are applied to the full repo.
 Here the main parameters for Java, JDK, Maven with components and plugins,
@@ -150,17 +164,6 @@ https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml
     <artifactId>camel-spring-boot-dependencies</artifactId>
 
 
-== OpenAPITools: openapi-generator
-
-move to traccar-api-client
-
-github.com/OpenAPITools/openapi-generator
-    
-    ademico-software.com/how-to-generate-the-client-api-for-an-openapi-rest-service/
-
-evaluate 3 vs 3.1
- 
-
 == google code style plugin
 
 There are many code formatters and formats out there.
@@ -186,14 +189,58 @@ plugin goal for analyzing the dependencies:
 it helps making this best practice more achievable.
 
 Most Maven plugins have a help goal
-that prints a description of the plugin and its parameters and types.
+that prints a description of the plugin and its parameters and types. +
 For instance, to see help for the javadoc goal, type:
 
       mvn javadoc:help -Ddetail -Dgoal=javadoc
 
-updates
+== upgrades and updates
+
+After releasing a repository version `v1,0`, `v1.1.1-SNAPSHOT` or `-RC` etc.
+the major versions are upgraded. The following steps cover the vital coordinates 
+and sometimes take more time than expected `:(` 
+
+=== step 1 - maven versions  
 
   mvn versions:display-plugin-updates
+
+=== step 2 - Camel and Spring versions  
+
+The above maven command does not check the BOM versions.
+Therefor they are incremented one by one until the repository
+is completly build with `mvn install`.
+
+        <camel-version>4.10.6</camel-version>
+  <spring-boot-version>3.4.7</spring-boot-version>
+
+We usually stick to the `LTS` versions provided.
+
+=== step 3 - Java and JDK versions
+
+Upgrading Java can be fine for the repository.
+Nevertheless we would like to keep a compromise between highest available 
+and lowest backward compatibility for users of the released jar files.
+
+        <jdk.version>21</jdk.version>
+
+=== step 4 - Tracar versions
+
+This step is more than just a change of pom coordinates.
+Traccar always has and still is evolving at a high pace and
+for this repository especially the REST API is vital.
+Therefor we go through this upgrade process, if there is time :(
+
+For your purposes check the API version and most REST calls 
+have been available for years and should be (backward) compatible
+to your Traccar Server Version.
+
+And the
+
+    org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -> 7.14.0
+
+should be updated with the Traccar Version.
+
+=== misc
 
  *  javadoc header: +
   license, project, @author etc. - compare jeets, traccar, camel

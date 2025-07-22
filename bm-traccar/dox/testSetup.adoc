@@ -3,9 +3,8 @@
 
 [toc]
 
-The Traccar Client is _not_ a software 
-with complex implementations of Java Units.
-Actually it is merely an interface between REST and Java. 
+The Traccar Client is _not_ a software with complex implementations of Java Units.
+Actually it is merely an interface between REST and Java passing Entities. 
 Therefor there is no need for cumbersom JUnit test setups
 to test the technology we rely on.
 The functionality is achieved by wiring diffent technology components
@@ -18,16 +17,24 @@ https://github.com/apache/camel/tree/main/components/camel-rest-openapi/src/test
 
 == surefire vs failsafe testing with docker
 
-The aim of this project is to remote control a traccar server.
-So we can take a broader approach to testing by setting up a traccar server for tests.
-This makes the actual build of the Traccar Client software faster by skipping tests.
-Development gets mucher faster, if we use the Maven lifecycle 
-to start a traccar docker container 
-and apply failsafe to make sure the container is stoped after testing.
+The aim of this project is to remote control a Traccar Server 
+by reacting to live information. +
+So we can take a broader approach to testing by setting up a Traccar Server for tests.
+This makes the actual build of the Traccar Client software faster.
+We use the Maven lifecycle to start a traccar docker container 
+and apply failsafe to make sure the container is stoped after testing:
+
+    [INFO] --- docker-maven-plugin:0.46.0:stop (stop) @ traccar-api-client ---
+    [INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": 
+                    Stop and removed container 7ef24f3a8f58 after 0 ms
 
 To speed up test development the traccar container can be started via command line 
-and tests can be set to surefire testing. And the developer can login to the Traccar
-Frontend to inspect test results and more.
+and the Integration Tests (**IT*) can be run as JUnit Tests against a running server.
+The developer can login to the Traccar Frontend to inspect test results and more.
+
+The botton line is that emphasis is placed on integration testing 
+using Maven’s Failsafe plugin in combination with Docker. 
+
 
 == docker-maven-plugin
 

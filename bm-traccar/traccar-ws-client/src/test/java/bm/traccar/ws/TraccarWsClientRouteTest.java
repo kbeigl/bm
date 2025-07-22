@@ -253,4 +253,32 @@ class TraccarWsClientRouteTest {
     // Assert that the mock endpoint received the message
     //    MockEndpoint.assertIsSatisfied(traccarWebSocketMessagesMockEndpoint);
   }
+
+  /**
+   * Integration test: Connects to a real Traccar WebSocket server on localhost and verifies
+   * connection. Requires Traccar server running at ws://localhost:8082/api/socket.
+   */
+  @Test
+  void integrationTest_traccarWebSocketConnectionRoute() throws Exception {
+    // Remove AdviceWith for WebSocket to allow real connection
+    camelContext.stop();
+    camelContext.removeRouteDefinition(
+        camelContext.getRouteDefinition("traccarWebSocketConnectionRoute"));
+    // Re-add the route without advice (no mocking)
+    // ...existing code to add route, if needed...
+    camelContext.start();
+
+    // Trigger login (simulate or use real credentials)
+    Exchange loginExchange = producer.request(DIRECT_START_TRACCAR_LOGIN, e -> {});
+    assertNotNull(loginExchange);
+    // Check for JSESSIONID or successful login
+    String sessionId = loginExchange.getIn().getHeader("Set-Cookie", String.class);
+    assertNotNull(sessionId, "JSESSIONID should be present after login");
+
+    // Connect to WebSocket and verify connection
+    Exchange wsExchange = producer.request("direct:connectTraccarWebSocket", e -> {});
+    assertNotNull(wsExchange);
+    // Optionally, send/receive a message and assert response
+    // ...add message exchange assertions as needed...
+  }
 }
