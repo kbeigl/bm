@@ -33,5 +33,25 @@
     "name": "traccar.web.serviceAccountToken",
     "type": "java.lang.String",
     "description": "A description for 'traccar.web.serviceAccountToken'"
+  },
+  {
+    "name": "traccar.admin.name",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.admin.name'"
+  },
+  {
+    "name": "traccar.admin.password",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.admin.password'"
+  },
+  {
+    "name": "traccar.admin.email",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.admin.email'"
+  },
+  {
+    "name": "traccar.websocket.url",
+    "type": "java.lang.String",
+    "description": "A description for 'traccar.websocket.url'"
   }
 ]}

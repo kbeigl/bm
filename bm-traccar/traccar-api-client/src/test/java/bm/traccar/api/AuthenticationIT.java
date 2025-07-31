@@ -8,8 +8,9 @@ import bm.traccar.invoke.auth.HttpBasicAuth;
 import bm.traccar.invoke.auth.HttpBearerAuth;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -24,23 +25,10 @@ import org.springframework.test.context.TestPropertySource;
 // test without AOP
 // @Import({ApiConfig.class, ApiAspect.class})
 // @ExtendWith(ClientExceptionHandler.class)
-public class AuthenticationIT {
+public class AuthenticationIT extends BaseIntegrationTest {
+  private static final Logger logger = LoggerFactory.getLogger(AuthenticationIT.class);
 
-  @Value("${traccar.web.serviceAccountToken}")
-  private String virtualAdmin;
-
-  // add and distinguish {traccar.apikey}
-  @Value("${traccar.user.name}")
-  private String name;
-
-  @Value("${traccar.user.password}")
-  private String password;
-
-  @Value("${traccar.user.email}")
-  private String mail;
-
-  @Autowired private ApiService api;
-  @Autowired // get client from IoC
+  @Autowired // get client from IoC	??
   private ApiClient apiClient;
 
   /*
@@ -50,31 +38,22 @@ public class AuthenticationIT {
    */
 
   @Test
-  public void createAdminUserAndLoginApiClient() {
-    api.setBearerToken(virtualAdmin);
+  public void switchAuthentication() {
 
-    User user1 = createUserWithCredentials(name, password, mail);
-    assertNotNull(user1, "admin user NOT created");
-
-    // upgrade user to admin
-    user1.setAdministrator(true);
-    User updatedUser = api.users.updateUser(user1.getId(), user1);
-
-    // switch Auth method, login as mail/pwd
-    api.setBasicAuth(mail, password);
-
+    // 'login' as mail/pwd
+    api.setBasicAuth(adminMail, adminPassword);
     showCredentials();
-
     List<User> users = api.users.getUsers(null);
+    logger.info("admin users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
-    // delete user as user!!
-    api.users.deleteUser(updatedUser.getId());
+    // delete user as user! suicidal?
+    // api.users.deleteUser(adminId);
 
     // change back to SuperUserAccess
     api.setBearerToken(virtualAdmin);
-
     users = api.users.getUsers(null);
+    logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }
 
@@ -85,41 +64,24 @@ public class AuthenticationIT {
   // use to initialize ApiService. or rather in setters token/user
   @Test
   public void createAdminUserAndLoginHttpAuth() {
+    // who is logged in?
     showCredentials();
-
-    // implicit authentication test
-    List<User> users = api.users.getUsers(null);
-    assertNotNull(users, "nothing returned from server");
-
-    User user1 = createUserWithCredentials(name, password, mail);
-    assertNotNull(user1, "admin user NOT created");
-
-    // upgrade user to admin
-    user1.setAdministrator(true);
-    User updatedUser = api.users.updateUser(user1.getId(), user1);
 
     // switch Auth method
     HttpBearerAuth ApiKey = (HttpBearerAuth) apiClient.getAuthentication("ApiKey");
     String nul = null;
     ApiKey.setBearerToken(nul);
 
-    // RuntimeException: No API key authentication configured!
-    // would be the third authentication, not required
-    // apiClient.setApiKey(null);
-    // apiClient.setApiKeyPrefix(null);
-
     // login as mail/pwd ...
     HttpBasicAuth BasicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
-    BasicAuth.setUsername(mail);
-    BasicAuth.setPassword(password);
+    BasicAuth.setUsername(userMail);
+    BasicAuth.setPassword(userPassword);
 
     showCredentials();
 
-    users = api.users.getUsers(null);
+    List<User> users = api.users.getUsers(null);
+    logger.info("'user' users: {}", users);
     assertNotNull(users, "nothing returned from server");
-
-    // delete admin !!
-    api.users.deleteUser(updatedUser.getId());
 
     // change back to SuperUserAccess via apiClient!
     apiClient.setUsername(null);
@@ -127,15 +89,8 @@ public class AuthenticationIT {
     apiClient.setBearerToken(virtualAdmin);
 
     users = api.users.getUsers(null);
+    logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
-  }
-
-  private User createUserWithCredentials(String usr, String pwd, String mail) {
-    User user = new User();
-    user.setName(usr);
-    user.setEmail(mail);
-    user.setPassword(pwd);
-    return api.users.createUser(user);
   }
 
   /** Authentications required to GET actual credentials. Set credentials via apiClient. */
@@ -145,8 +100,7 @@ public class AuthenticationIT {
     HttpBasicAuth BasicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
 
     // if usr/pwd = null then authenticated by ApiKey.BearerToken
-    System.out.println("ApiKey.BearerToken=" + ApiKey.getBearerToken());
-    System.out.println(
-        "         BasicAuth=" + BasicAuth.getUsername() + "/" + BasicAuth.getPassword());
+    logger.info("ApiKey.BearerToken={}", ApiKey.getBearerToken());
+    logger.info("         BasicAuth={}/{}", BasicAuth.getUsername(), BasicAuth.getPassword());
   }
 }

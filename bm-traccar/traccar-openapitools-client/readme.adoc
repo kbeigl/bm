@@ -303,6 +303,16 @@ for the Maven execution kicked off from the main lifecycle:
 [INFO] ------------------------------------------------------------------------
 -----------------
 
+=== RestClient
+
+[quote, see www.baeldung.com/spring-boot-restclient]
+____
+RestClient is a synchronous HTTP client introduced in Spring Framework 6.1 M2 that supersedes RestTemplate.
+A synchronous HTTP client sends and receives HTTP requests and responses in a blocking manner,
+meaning it waits for each request to complete before proceeding to the next one.
+____
+
+
 === javadocs
 
 *After* generating the `traccar-openapitools-client` you can access 

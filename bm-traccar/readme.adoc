@@ -16,29 +16,7 @@ This module provides a development environment with different database setups,
 different server instances: remote, local IDE, local service or 
 dockerized for automated integration testing
 
-[mermaid]
-....
-flowchart TD
-    subgraph root module
-        bm-traccar["bm-traccar"] 
-        docker-integration["Docker Integration"]
-        testing-setup["**IT**est Setup"]
-        database-handling["Database Setup"]
-    end
-  
-    traccar-module["Traccar Module"]
-    traccar-server["Traccar Server"]
-
-    bm-traccar --> docker-integration
-    bm-traccar --> testing-setup
-    bm-traccar --> database-handling
-
-    testing-setup <--> traccar-module
-    traccar-module <--> traccar-server
-
-    docker-integration --> traccar-server
-    database-handling --> traccar-server
-....
+image::dox/pix/bm-traccar-flow.svg[Static]
 
 Please read the following instructions to get the most out of your development.
 

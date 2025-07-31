@@ -30,11 +30,12 @@ public class TraccarWsClientRoute extends RouteBuilder {
 
   @Autowired protected ProducerTemplate producer;
 
-  private final PositionProcessor positionProcessor;
+  // final?
+  @Autowired protected PositionProcessor positionProcessor;
 
-  TraccarWsClientRoute(PositionProcessor positionProcessor) {
-    this.positionProcessor = positionProcessor;
-  }
+  //  TraccarWsClientRoute(PositionProcessor positionProcessor) {
+  //    this.positionProcessor = positionProcessor;
+  //  }
 
   @Override
   public void configure() throws Exception {

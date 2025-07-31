@@ -1,12 +1,12 @@
 
+:toc:
+
 = Database Testing
 
-[toc]
-
-Multiple options for handling the H2 database are described, 
+Multiple options for handling the H2 database are scribbled here, 
 including mounting external volumes, direct SQL shell access, 
 and automation scripts for admin user setup. +
-The documentation describes different database introspection approaches 
+The documentation outlines different database introspection approaches 
 for development and testing.
 
 options
@@ -16,9 +16,6 @@ options
        admin/admin hen and egg problem
        create admin/admin for template
        apply web.serviceAccountToken on truncated db
-       
-    run traccar with brand new internal h2
-       check durations during/between tests
        
     do not access database as backdoor: Entities vs DTOs
     
@@ -95,6 +92,8 @@ https://www.baeldung.com/java-h2-db-execute-sql-file
          -url jdbc:h2:/opt/traccar/data/database 
          -user sa
 
+  Welcome to H2 Shell 2.3.232 (2024-08-11)
+  
   sql> select * from tc_users;
   ID | NAME | EMAIL | HASHEDPASSWORD | SALT | READONLY | ADMINISTRATOR | MAP | LATITUDE | LONGITUDE | ZOOM |
   ATTRIBUTES | COORDINATEFORMAT | DISABLED | EXPIRATIONTIME | DEVICELIMIT | USERLIMIT | DEVICEREADONLY |
@@ -104,6 +103,20 @@ https://www.baeldung.com/java-h2-db-execute-sql-file
   select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR 
     from tc_users;
   (0 rows, 1 ms)
+  
+  sql> select id, name, email, hashedpassword, salt from tc_users;
+
+  ID | NAME    | EMAIL  | HASHEDPASSWORD                                   | SALT
+  1  | admin   | admin  | 44e0c0902fd515f49884c4fd9b78cbabfc7237586a7bc921 | a9d60a6a1734e06c5d76294404e536e8713369d877423d8e
+  2  | newUser | email  | null                                             | null
+  7  | user2   | email2 | 53e175f9ded19f065d7e483f44f540f7f8ca9c4026dd69dd | 72e2e2555df4a62c2d8ccb8fb295f7d19dc9373cfdf51772
+
+  
+  sql> delete from tc_users where id=2;
+  Error: org.h2.jdbc.JdbcSQLNonTransientException:
+  **** The database is read only ****
+  
+  
 
 => empty database schema in place
 

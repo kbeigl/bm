@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.2</version>
+        <version>1.1.3</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -49,7 +49,7 @@
         <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
         <maven-failsafe-plugin-version>3.5.3</maven-failsafe-plugin-version>
 
-        <!-- usually we pick the LTS versions -->
+        <!-- LTS versions preferred -->
         <camel-version>4.10.6</camel-version>
         <spring-boot-version>3.4.7</spring-boot-version>
 

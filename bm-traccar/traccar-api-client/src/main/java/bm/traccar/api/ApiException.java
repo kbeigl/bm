@@ -1,9 +1,9 @@
 package bm.traccar.api;
 
-//	unchecked Ex > usage error
-//  ApiException is a RuntimeException: The caller is not forced by the compiler to catch
-// ApiException.
-//	However, good practice dictates they should if they want to handle it.
+// unchecked Ex > usage error
+// ApiException is a RuntimeException:
+// The caller is not forced by the compiler to catch ApiException.
+// However, good practice dictates they should if they want to handle it.
 public class ApiException extends RuntimeException {
 
   // checked Ex > situational error
@@ -12,9 +12,16 @@ public class ApiException extends RuntimeException {
 
   private static final long serialVersionUID = -191972923538140025L;
 
+  /** Constants for errors that should be handled by client. */
   public static final String
-      APIEX_NO_CONNECTION = "Cannot connect to server!", // ResourceAccessException
-      APIEX_CLIENT_RESPONSE = "Exception with REST client!"; // RestClientResponseException
+      // ResourceAccessException > trigger server reconnect intervals
+      APIEX_NO_CONNECTION = "Cannot connect to server!",
+      // RestClientResponseException
+      APIEX_CLIENT_REST = "Exception with REST client!",
+      // could be a PK violation, if object already exists
+      APIEX_BAD_REQUEST = "Request returned error!",
+      // could be a PK violation, if object already exists
+      APIEX_UNAUTHORIZED = "Unauthorized: check credentials!";
 
   public ApiException(String message) {
     super(message);
