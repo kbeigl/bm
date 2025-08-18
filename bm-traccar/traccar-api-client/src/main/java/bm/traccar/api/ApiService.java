@@ -164,16 +164,27 @@ public class ApiService implements Api {
           return usersApi.usersPost(user);
         }
 
-        /** see {@link UsersApi#usersIdPut(Integer, User)} */
+        /**
+         * Due to API inconsistency the id is Long here, but Integer in the generated code. Therfor
+         * the developer has to provide a Long, which needs to be in the Integer range.
+         *
+         * <p>see {@link UsersApi#usersIdPut(Integer, User)}
+         */
         @Override
-        public User updateUser(Integer id, User user) {
-          return usersApi.usersIdPut(id, user);
+        public User updateUser(Long id, User user) {
+          Integer integerId = ApiHelper.toInt(id);
+          return usersApi.usersIdPut(integerId, user);
         }
 
-        /** see {@link UsersApi#usersIdDelete(Integer) */
+        /**
+         * Due to API inconsistency the id is Long here, but Integer in the generated code. Therfor
+         * the developer has to provide a Long, which needs to be in the Integer range.
+         *
+         * see {@link UsersApi#usersIdDelete(Integer) */
         @Override
-        public void deleteUser(Integer id) {
-          usersApi.usersIdDelete(id);
+        public void deleteUser(Long id) {
+          Integer integerId = ApiHelper.toInt(id);
+          usersApi.usersIdDelete(integerId);
         }
 
         /** see {@link UsersApi#usersGet(String)} */
@@ -224,14 +235,16 @@ public class ApiService implements Api {
 
         /** see {@link DevicesApi#devicesIdPut(Integer, Device)} */
         @Override
-        public Device updateDevice(int deviceId, Device device) {
-          return devicesApi.devicesIdPut(deviceId, device);
+        public Device updateDevice(Long deviceId, Device device) {
+          Integer integerId = ApiHelper.toInt(deviceId);
+          return devicesApi.devicesIdPut(integerId, device);
         }
 
         /** see {@link DevicesApi#devicesIdDelete(Integer)} */
         @Override
-        public void deleteDevice(int deviceId) {
-          devicesApi.devicesIdDelete(deviceId);
+        public void deleteDevice(Long deviceId) {
+          Integer integerId = ApiHelper.toInt(deviceId);
+          devicesApi.devicesIdDelete(integerId);
         }
 
         /** see {@link DevicesApi#devicesGet(Boolean, Integer, Integer, String)} */

@@ -48,7 +48,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
     assertEquals(deviceNr + 1, api.devices.getDevices(null).size());
 
     // returns the generated id (asserts not null)
-    int newDeviceId = newDevice.getId();
+    long newDeviceId = newDevice.getId();
     assertEquals("574322", newDevice.getUniqueId());
 
     // TODO update device
@@ -93,7 +93,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
     Device newDevice = api.devices.createDevice(device);
 
     // returns the generated id (asserts not null)
-    int newDeviceId = newDevice.getId();
+    long newDeviceId = newDevice.getId();
     assertEquals(virtualAdminId, newDevice.getUniqueId());
 
     assertEquals(0, api.devices.getDevices(null).size());

@@ -3,19 +3,22 @@
 
 = Repo
 
-This repository is the development envoironment of the `RealObject` 
-described in the book.
+This repository is the development environment of the `The RealObject Application Framework` 
+described in the 
+link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[book].
+
+link:releases.txt[Version History]
 
 == latest versions
 
 [source,text]
 -----------------
-[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations        --- 6.7.1
-[INFO] ..... traccar-api-camel 6.6 ........................
-[INFO] ..... traccar-openapitools-client 6.7.1 ............
-[INFO] ..... traccar-api-client 6.7.1-RC ..................
+[INFO] === blue marble simulations                === 1.1.4 
+[INFO] --- blue marble parameters                 --- 1.1.4 
+[INFO] ---- traccar client implementations        --- 6.8.0 
+[INFO] ..... traccar-openapitools-client 6.8.0 ............ 
+[INFO] ..... traccar-api-client 6.8.0 ..................... 
+[INFO] ..... traccar-api-camel 6.6 ........................ 
 -----------------
 
 == `/bm-parent`
@@ -60,17 +63,6 @@ Synchronize your employees with their cars and driver information without utiliz
 Pull driving reports for your sales team ... and much more ;) 
 
 link:./bm-traccar/traccar-api-client/readme.adoc[read more ...]
-
-=== `/traccar-ws-client`
-
-==== The Traccar WebSocket Client
-
-The `traccar-ws-client` is a Java Client Software to receive real time data 
-from your Traccar Server. While the `traccar-api-client` is based 
-on single requests and responses without any session handling, i.e. stateless,
-this client can create a Camel channel for each individual registered user.
-
-link:./bm-traccar/traccar-ws-client/readme.adoc[read more ...]
 
 === `/traccar-api-camel`
 

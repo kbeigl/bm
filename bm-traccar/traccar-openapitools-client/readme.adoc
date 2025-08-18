@@ -15,13 +15,13 @@ and produces a `traccar-api-generated-x.y.z.jar` (in two steps).
 
 == tl;dr
 
-This project is actually only holding the `openapi-traccar-x.y.z.yaml` file as source 
-and is used to generate a child project in the `target/` folder and 
+This project is actually only pointing to (or holding) the `openapi-traccar-x.y.z.yaml` file as source 
+and is used to generate a Maven child project in the `target/` folder and 
 run this child project to produce the `traccar-api-generated-x.y.z.jar`.
 
 In a `clean` state you can not see the child project and actually 
 there is no need to open this `traccar-openapitools-client` project
-nor the created child project in your IDE to avoid extra configuration (for a not existing project).
+nor the created child project in your IDE to avoid extra configuration (for a non existing project).
 Once the Java Client is created and stored in your `.m2` repository 
 it will be picked up by higher layer projects, i.e. the `traccar-api-client`.
 
@@ -35,40 +35,26 @@ Therefore our client development will not directly invoke the server calls on th
 The higher level `traccar-api-client` is wrapped around the generated client (hiding it!),
 yet abstracting the server invocations with the `bm.traccar.api.Api interface`.
 
-== download `openapi.yaml` file
+== `openapi.yaml` file
 
 The complete Traccar REST API is defined in a single `openapi.yaml` file 
 to be found in the root folder of every release.
 The `latest` version is available at the + 
-*(1)* 
-link:https://www.traccar.org/api-reference[Official Traccar API Reference] 
+*(1)* https://www.traccar.org/api-reference[Official Traccar API Reference] 
 by clicking the button "Download OpenAPI specification". +
-or *(2)* 
+*(2)* https://www.traccar.org/api-reference/openapi.yaml +
+*(3)* https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml 
 
-    https://www.traccar.org/api-reference/openapi.yaml
+*(4)* https://github.com/traccar/traccar/blob/v6.8.0/openapi.yaml +
+as part of the Traccar Software Distribution with each version. +
+In order to automate the versioning we will use this _versioned_ url
 
-or *(3)* 
+    <inputSpec>
+        https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml
+    </inputSpec>
+    
+for the API generation.
 
-    https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml
-
-or *(4)* for older versions you can use the version tag at github, i.e.
-
-    https://github.com/traccar/traccar/blob/v6.7.1/openapi.yaml
-
-For the time being we will download the specification to the project resources:
-
-    <inputSpec>${project.basedir}/src/main/resources/openapi-traccar-${traccar.version}.yaml</inputSpec>
-
-and to be on the safe side we rename the source to a specializing name
-
-    openapi-traccar-6.7.1.yaml
-    openapi-traccar-${traccar.version}.yaml
-
-to apply the `${traccar.version}` of the Maven `bm-traccar` branch 
-and to raise a fail fast for bad versioning. 
-
-TODO: This process could be automated. 
-i.e. download and parse `openapi.yaml` for actual values.
 
 == openapi-generator-maven-plugin
 
@@ -100,13 +86,19 @@ Basically we use the `java` generator with the `restclient` library
 [source,xml]
 ----
     <configuration>
-        <inputSpec>${project.basedir}/src/main/resources/ 
-                        openapi-traccar-${traccar.version}.yaml</inputSpec>
+        <inputSpec>path/to/${traccar.version}/openapi.yaml</inputSpec>
         <generatorName>java</generatorName>
             <configOptions>
                 <library>restclient</library>
             </configOptions>
 ----
+
+[quote, see www.baeldung.com/spring-boot-restclient]
+____
+RestClient is a synchronous HTTP client introduced in Spring Framework 6.1 M2 that supersedes RestTemplate.
+A synchronous HTTP client sends and receives HTTP requests and responses in a blocking manner,
+meaning it waits for each request to complete before proceeding to the next one.
+____
 
 and we define several package names to generate
                             
@@ -148,7 +140,9 @@ you can idenfify the processing in two steps.
   :
 [INFO] Processing operation null
 -----------------
-This is raised because the traccar yaml file does not provide `operationId` for endpoints. +
+This is raised because the traccar yaml file does not provide `operationId` for endpoints. 
+These will be provided by the generator as described below. 
+
 Then the *DTO* are created in the `target/generated-sources/openapi` folder:
 
 [source,text]
@@ -161,6 +155,8 @@ If you look into the *newly generated `openapi/` project* you will find a comple
 which you can not find in the original sources.
 The `openapi` project comes with a lengthy `pom.xml` 
 with the name and group we have defined earlier to define the final `jar` outputted.
+As a development guideline: we won't go into the generated project, 
+simply run it and use the output for subsequent projects.
 
 Then the generator creates an `operationId` for every endpoint:
 
@@ -171,7 +167,18 @@ Then the generator creates an `operationId` for every endpoint:
                                =======================
 -----------------
 
-These are used to create `api/` sources, tests and markdown docs 
+[quote, see redocly.com/blog/operationid-is-api-design]
+____
+Each endpoint and HTTP verb combination make an operation.
+____
+
+[quote, see swagger.io/docs/specification/v3_0/paths-and-operations/]
+____
+In OpenAPI terms, paths are endpoints (resources), such as /users or /reports/summary/, that your API exposes,
+and operations are the HTTP methods used to manipulate these paths, such as GET, POST or DELETE.
+____
+
+These `operationId` are used to create `api/` sources, tests and markdown docs 
 
 [source,text]
 -----------------
@@ -190,16 +197,10 @@ and finally the project generation is wrapped up with
 [INFO] writing file /openapi/src/main/java/bm/traccar/invoke/ServerConfiguration.java
 [INFO] writing file /openapi/src/main/java/bm/traccar/invoke/ServerVariable.java
   :
-[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/JavaTimeFormatter.java
-[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/StringUtil.java
 [INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/HttpBasicAuth.java
 [INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/HttpBearerAuth.java
 [INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/ApiKeyAuth.java
-  :
 [INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/Authentication.java
-[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/RFC3339DateFormat.java
-[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/RFC3339InstantDeserializer.java
-[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/RFC3339JavaTimeModule.java
   :
 -----------------
 
@@ -225,10 +226,10 @@ as there are no sources to process and test.
 
 === step 2 - traccar-api-generated
 
-So we have generated a new maven project `traccar-api-generated` +
+So we have generated a new Java Maven Project `traccar-api-generated` +
 in the `target/generated-sources/openapi` folder - and not a client software - yet.
 
-The newly generated project is not part of any predefined POM.
+The newly generated project is not related or part of any predefined POM.
 To handle this we add the `exec-maven-plugin` to execute a complete `mvn install`
 to provide the generated jar for further processing.
 The execution is bound to the `install` phase
@@ -303,16 +304,6 @@ for the Maven execution kicked off from the main lifecycle:
 [INFO] ------------------------------------------------------------------------
 -----------------
 
-=== RestClient
-
-[quote, see www.baeldung.com/spring-boot-restclient]
-____
-RestClient is a synchronous HTTP client introduced in Spring Framework 6.1 M2 that supersedes RestTemplate.
-A synchronous HTTP client sends and receives HTTP requests and responses in a blocking manner,
-meaning it waits for each request to complete before proceeding to the next one.
-____
-
-
 === javadocs
 
 *After* generating the `traccar-openapitools-client` you can access 
@@ -322,12 +313,155 @@ directly in the `generated-sources/` folder.
 Of course they will be lost again after a `mvn clean`, 
 but then you still have the `traccar-api-generated-6.7.1-javadoc.jar` in your `.m2`!
 
+== Inconsistent OpenAPI Specification
+
+Software is alive and the Traccar API, OpenAPI Specification 
+and API generators are changeing continuously.
+As you can read in the Traccar Forum
+https://www.traccar.org/forums/topic/api-documentation-inconsistencies/[API Documentation inconsistencies]
+can occur.
+
+=== Model vs. API Parameter Generation
+
+Let's look at an example and see how we can handle or patch inconsistencies.
+
+After the upgrade to Traccar `6.8.0` the tests ran into compile problems. 
+Now the maintainer of this project should not propagate new problems to the project users 
+and rather find a workaround for minimal code changes in the team.
+
+[source,text]
+-----------------
+[ERROR] UsersApiIT.java:[53,31] incompatible types: java.lang.Long cannot be converted to int
+[ERROR] UsersApiIT.java:[62,39] incompatible types: java.lang.Long cannot be converted to java.lang.Integer
+-----------------
+
+==== problem
+
+It turns out that there is an inconsistency between Model and Method generation. +
+The yaml specifies a User object with an id:
+
+[source,text]
+-----------------
+    User:
+      type: object
+      properties:
+        id: type: integer
+          format: int64
+-----------------
+
+which is generated by the *model generator* and _correctly_ maps the User class 
+and id of type `Long`:
+
+[source,java]
+----
+    public class User {
+      public static final String JSON_PROPERTY_ID = "id";
+      @jakarta.annotation.Nullable
+      private Long id;
+              =======
+----
+
+The API *method generator* is responsible for creating the UserApi interface. 
+When it processes the path parameter, such as `users/{id}`
+
+[source,text]
+-----------------
+  /users/{id}:
+    delete:
+      summary: Delete a User
+      tags:
+        - Users
+      parameters:
+        - name: id
+-----------------
+
+it generates the (simplified) java method:
+
+[source,java]
+----
+    public class UsersApi {
+      /** Delete a User */
+      private ResponseSpec usersIdDeleteRequestCreation(Integer id) { ..
+                                                        ==========
+----
+
+A Java Developer expects type safe API for a type safe programming language.
+The `int64` format in OpenAPI maps directly to a 64-bit integer, 
+which should be represented by a `long` (or `Long`) in Java. 
+The `Integer` class, on the other hand, corresponds to a 32-bit integer, 
+which is the correct mapping for `int32` format.
+
+The correct configuration for the `openapi-generator-maven-plugin`
+is described as 
+[source,xml]
+----
+    <configOptions>
+        <typeMappings>int64=Long</typeMappings>
+    </configOptions>
+----
+but it doesn't work for (or hurt) the current version.
+So let's just leave it there for coming releases.
+
+==== solution
+
+Still the maintainer has to come up with a suitable solution:
+Since large `Long` numbers don't fit in an `Integer` 
+we can add an explicit _narrowing_ cast in the higher level `traccar-api-client Api` 
+and catch a `NumberFormatException` or the like to create an `ApiException` 
+with a usefull error message.
+
+[IMPORTANT]
+====
+As of Traccar 6.8.0 we will restrict the User id range to `Integer`, +
+which should be sufficient for most Traccar servers and databases.
+====
+
+The idea is to define the `Api` interface as intended.
+Then we can hope for the impovement of the traccar `yaml` and / or OpenAPI Generator
+and easily remove the workaround.
+
+As we understand the intention of the widend value we will stick to the `User.id` type definition `Long`.
+Java does not allow to call a `method( Long value )` with an `Integer value`.
+There is no implicit (widening) casting and the `Long` and `Integer` objects are not related.
+The conversion must be explicit.
+
+In a first step the `Api interface` is changed to the _intended signature_
+
+[source,java]
+----
+  interface Users {
+    void deleteUser(Long id) throws ApiException;
+                    ====
+----
+
+and then we can sneak in a type conversion on the implementation side
+
+[source,java]
+----
+  Users users =
+      new Api.Users() {
+        @Override
+        public void deleteUser(Long id) {
+                               ====
+          Integer integerId = ApiHelper.toInt(id);
+          usersApi.usersIdDelete(integerId);
+                                 =======
+        }
+----
+
+The `ApiHelper` will take the `Long`, check if it fits into an `Integer` 
+and call the generated client method.
+The implicit type test is done with the `Math.toIntExact(longObj)`,
+which is the most reliable.
+If the cast fails due we have to through a meaningful exception message.
+
+
 == conclusion
 
 This project should be a closed shop in the best case.
 Meaning that it is used to invoke a fully automated generation +
-of a REST Client Software `traccar-api-generated-x.y.z.jar` +
-from the (renamed) traccar specification `openapi-traccar-x.y.z.yaml` file.
+of a REST Client Software `traccar-api-generated-x.y.z.jar` 
+from the traccar specification `openapi.yaml` file.
 
 Of course you can code on the basis of this `jar`,
 but it is recommended to use the higher level `traccar-api-client` project,

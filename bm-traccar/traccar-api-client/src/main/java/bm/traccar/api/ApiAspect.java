@@ -27,7 +27,7 @@ public class ApiAspect {
 
   private static final Logger logger = LoggerFactory.getLogger(ApiAspect.class);
 
-  // all public methods
+  // TODO: narrow to all public methods?
   // @Pointcut("execution(public * bm.traccar.generated.api.*Api.*(..))")
   // all join points (methods, constructors, etc.)
   @Around("within(bm.traccar.generated.api.*Api)")
@@ -136,7 +136,7 @@ public class ApiAspect {
     return "unknown status code; " + sc;
   }
 
-  //  add pointcuts for ApiClient and Service methods ?
+  //  add pointcuts for Api!, ApiClient and Service methods ?
   //  @Pointcut("execution(public * bm.traccar.invoke.ApiClient.*(..))")
   //  public void ApiClientMethods() {}
   //

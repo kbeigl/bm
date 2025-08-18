@@ -17,10 +17,15 @@ import java.util.List;
  */
 public interface Api {
 
+  // interface Auth {  ..
+
   // authentication methods
   void setBasicAuth(String mail, String password);
 
   void setBearerToken(String token);
+
+  // String whoAmI();
+  // 	return mail, if set
 
   // singular according to spec
   interface Session {
@@ -34,9 +39,9 @@ public interface Api {
 
     User createUser(User user) throws ApiException; // POST
 
-    User updateUser(Integer id, User user) throws ApiException; // PUT
+    User updateUser(Long id, User user) throws ApiException; // PUT
 
-    void deleteUser(Integer id) throws ApiException; // DELETE
+    void deleteUser(Long id) throws ApiException; // DELETE
 
     List<User> getUsers(String userId) throws ApiException; // GET
 
@@ -50,9 +55,9 @@ public interface Api {
 
     Device createDevice(Device device); // POST
 
-    Device updateDevice(int newDeviceId, Device newDevice); // PUT
+    Device updateDevice(Long deviceId, Device device); // PUT
 
-    void deleteDevice(int newDeviceId); // DELETE
+    void deleteDevice(Long deviceId); // DELETE
 
     List<Device> getDevices(String userId); // GET
 

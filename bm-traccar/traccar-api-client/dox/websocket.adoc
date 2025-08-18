@@ -3,8 +3,8 @@
 
 = The Traccar WebSocket Client
 
-The `traccar-ws-client` is a Java Client Software to receive real time data 
-from your Traccar Server. While the `traccar-api-client` is based 
+The `traccar-api-client` is a Java Client Software to receive real time data 
+from your Traccar Server. While the REST API is based 
 on single requests, i.e. REST calls and responses without any session handling, i.e. stateless,
 this client can create a Camel channel for each individual registered user.
 
@@ -52,14 +52,14 @@ Traccar's WebSocket API relies solely on a session cookie `JSESSIONID` for authe
 You cannot use Basic Auth or Bearer tokens directly with the WebSocket connection itself. 
 
 In order to create a ws session you need to authenticate (as in `traccar-api-client` or `traccar-api-camel`) 
-with a successful HTTP POST request to the Traccar `/api/session` endpoint to log in. +
+with a successful `HTTP POST` request to the Traccar `/api/session` endpoint to log in. +
 Then extract the `JSESSIONID` cookie from the response headers of this login request
 and use this `JSESSIONID` cookie when establishing the WebSocket connection.
 
 === WebSocket Component
 
-As this repository is based on Spring Boot and Camel integration, +
-we are building a *Camel Spring Boot WebSocket Client* for Traccar.
+As this repository is based on Spring Boot with Camel integration, +
+i.e. we are building a *Camel Spring Boot WebSocket Client* for Traccar.
 
 Besides Spring Boot and Camel we need to choose a websocket component. +
 Most popular choices are the link:https://vertx.io/[Eclipse Vert.x] and the 

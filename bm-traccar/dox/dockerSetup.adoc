@@ -7,7 +7,7 @@ The traccar project at Github provides instructions to fetch and install the Tra
 https://hub.docker.com/r/traccar/traccar[DockerHub image].
 This Maven Module leverages the
 https://github.com/fabric8io/docker-maven-plugin/blob/master/README.md[`fabric8io docker-maven-plugin`] 
-to control the Docker container phases to manage a Dockerized Traccar server 
+to control the Docker container phases to manage a dockerized Traccar server 
 for integration testing. 
 
 To avoid the `sudo` command you can create a docker group to enable non-root user access:
@@ -20,54 +20,56 @@ To avoid the `sudo` command you can create a docker group to enable non-root use
     groups
 -----------------
 
-[IMPORTANT]
-====
-Please note that this repository was set up with `Dockerfile.ubuntu`. + 
-You might want to swap with `Dockerfile.alpine` or `Dockerfile.debian`
-for your purposes.
-====
-
-== `docker:build`
+== `docker-maven-plugin`
 
 You can compare the parameters of the `docker-maven-plugin` 
 with the four point checklist at
-https://github.com/traccar/traccar-docker?tab=readme-ov-file#readme[Github]
+https://hub.docker.com/r/traccar/traccar#container-create-example[Container create example]
 and adopt them to your requirements and system.
 
 === `<build>`
 
-In the plugin configuration of the images `<build>` section
-you can find the traccar version, the dockerfile used
-and where to place it
+In the plugin `<configuration>` of the `<image>` and `<build>` section
+you can find the traccar version and target OS.
+Please note that this repository was set up with `Dockerfile.ubuntu`. 
+
+[source,xml]
+----
+    <traccar.version>6.8.0</traccar.version>
+    <docker.image.version>${traccar.version}</docker.image.version>
+    <docker.image.os>ubuntu</docker.image.os>
+----
+
+You might want to swap with `Dockerfile.alpine` or `Dockerfile.debian`
+for your purposes.
 
 [source,xml]
 ----
     <artifactId>docker-maven-plugin</artifactId>
-
+     ...
     <image>
         <alias>traccar</alias>
-        <name>traccar/traccar:${traccar.version}-ubuntu</name>
-        <build>
-            <dockerFile>Dockerfile.ubuntu</dockerFile>
-            <contextDir>${project.basedir}/src/main/docker</contextDir>
-            <noCache>true</noCache>
-        </build>
+        <name>traccar/traccar:${traccar.version}-${docker.image.os}</name>
 ----
 
-creates an image `traccar/traccar:6.7.1-ubuntu` 
+creates an image `traccar/traccar:6.8.0-ubuntu` 
 just like the command line
 
-    $ docker pull traccar/traccar:6.7.1-ubuntu
+    $ docker pull traccar/traccar:6.8.0-ubuntu
 
 Note that we distinguish `project-` and `${traccar.version}` 
-in order to apply patch versions, when required.
+in order patch versions, when required.
 
 
 ==== `<dockerFile>` 
 
-Download the `<dockerFile>` version and flavor for your purposes 
-https://github.com/traccar/traccar-docker/blob/master/Dockerfile.ubuntu[from here]
-to the project directory `<contextDir>`
+The Dockerfile is not part of this project and is directly referenced with its `${traccar.version}` 
+from the sources at github 
+[source,xml]
+----
+    <dockerFile>Dockerfile.${docker.image.os}</dockerFile>
+    <contextDir>https://github.com/traccar/traccar/blob/v${traccar.version}/docker</contextDir>
+----
 
 The docker file ...
 
@@ -75,73 +77,9 @@ The docker file ...
     - grabs the https://github.com/traccar/traccar/releases[traccar release] 
       from github and unzips
     - provides entry point, ie java cmdline
-    
-Now you should go to the modules main directory with its `pom.xml` file + 
-and *do _not_ run*  the command `docker run . . .` !!
-
-Note that the docker `<build>` section is set to skipping the build,
-since we only want to do it once and do not want to wait more than 30 seconds
-for every integration test.
-Therefor you should set 
-
-    <build>
-        <skip>true</skip>
-
-to `false` and pick up the above Maven Plugin configuration with the command
-
-    ~/repo/bm/bm-traccar/$ mvn docker:build
-
-and wait (less than) a minute to get your version `x.y.z`, i.e. `6.7.1`
-
-[source,text]
------------------
-[INFO] Building ---- traccar client implementations          --- x.y.z-RC [1/4]
-[INFO] --------------------------------[ pom ]---------------------------------
-[INFO] 
-[INFO] --- docker-maven-plugin:0.46.0:build (default-cli) @ bm-traccar ---
-[INFO] Building tar: /home/kbeigl/git/bm/bm-traccar/
-                      target/docker/traccar/traccar/x.y.z-ubuntu/tmp/docker-build.tar
-[INFO] DOCKER> [traccar/traccar:x.y.z-ubuntu] "traccar": 
-                      Created docker-build.tar in 22 milliseconds
-[INFO] DOCKER> Pulling from library/ubuntu
-                      d9d352c11bbd: Pull complete 
-[INFO] DOCKER> Digest: sha256:b59d21599a2b151e23eea5f6602f4af4d7d31c4e236d22bf0b62b86d2e386b8f
-[INFO] DOCKER> Status: Downloaded newer image for ubuntu:24.04
-[INFO] DOCKER> Pulled ubuntu:24.04 in 6 seconds 
-[INFO] DOCKER> [traccar/traccar:x.y.z-ubuntu] "traccar": 
-           Built image sha256:216787216abdf4cbcbdcc2c114178d82693d6858edd0b63b3aa41d876251d1f4
------------------
-
-==== `docker-build.tar` 
-
-As you can see in the output above a Docker tar archive `docker-build.tar` was created
-in the `/target/..` folder, 
-which is used as the artifact and which later can be used for building an image.
-It contains essentially a Dockerfile with supporting files.
-
-[NOTE]
-====
-Note that `mvn docker:build` is not configured to be part of the Maven Lifecycle Configuration! + 
-It only needs to be executed once - manually - for every traccar version. +
-Therfore you should set the `<build><skip>` back to `true` for fluent development.
-====
-
-
-_Now_ you can check your local system with docker command:
-
-[source,text]
------------------
-$ docker images -a
-    REPOSITORY        TAG          IMAGE ID       CREATED          SIZE
-    traccar/traccar   x.y.z-ubuntu 45ed780b9051   10 minutes ago   440MB
-    <none>            <none>       c93f2f999617   10 minutes ago   440MB
-    <none>            <none>       b74be2b18d35   10 minutes ago   440MB
-    <none>            <none>       92e9629b9af4   11 minutes ago   78.1MB
-    <none>            <none>       320478e81e3c   11 minutes ago   78.1MB
-    ubuntu            24.04        a04dc4851cbc   7 weeks ago      78.1MB
------------------
-
-
+    - *expects a* `WORKDIR /opt/traccar` *on your machine!* +
+      which we will provide next.
+   
 == `docker:run`
 
 Now we are almost ready create a container from the image and run it. + 
@@ -216,7 +154,7 @@ Set the external port to 80 simplify the http url of the traccar UI to `http://l
 [NOTE]
 ====
 Please note that this project is for OpenAPI development and the access is restricted
-to the main port (default 80). 
+to the port (default 80) of the UI. + 
 The Tracker Protocol TCP and UDP Ports 
 
     --publish 5000-5150:5000-5150 \
@@ -246,21 +184,6 @@ Wait for availabity of the container, before running tests.
 Once the container has started you can also access the traccar UI 
 in you local browser with `http://localhost` .
 ====
-
-The container start, wait, stop and remove should look someting like this
-
-[source,text]
------------------
-[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ bm-traccar ---
-[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": Start container d795a852db4c
-[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": 
-                        Waiting on url http://localhost with method HEAD for status 200..399.
-[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": Waited  on url http://localhost 5785 ms
-^C
-[INFO] DOCKER> [traccar/traccar:6.7.1-ubuntu] "traccar": Stop and removed container d795a852db4c after 0 ms
------------------
-
-and 6 seconds is a reasonable time span, even for a single Integration Test.
 
 ==== `<volumes>`
 
@@ -306,7 +229,7 @@ Note that the empty
 
     `<log><!-- do not remove --></log>` 
 
-section is required as described in
+section _is required_ as described in
 https://dmp.fabric8.io/#start-logging[5.2.10. Logging]:
 ____
 Logging is enabled by default if a `<log>` section is given!
@@ -315,23 +238,29 @@ ____
 This way you can always keep a console or editor open 
 to auto reload, i.e. `tail` the `tracker-server.log` file.
 
+
 === `mvn docker:run` 
 
-Now we can execute: `mvn docker:run` 
+Now we can execute: `mvn docker:run` and container start, wait, 
+stop and remove should look something like this:
 
 [source,text]
 -----------------
-$/bm/bm-traccar/traccar-api-client$ mvn docker:run
-[INFO] ----------------< org.roaf.traccar:traccar-api-client >-----------------
-[INFO] Building ... traccar-api-client 6.6
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] --- docker-maven-plugin:0.45.1:run (default-cli) @ traccar-api-client ---
-[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
-                Start container 4e24f3a4440b
-[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
-                Waiting on url http://localhost with method HEAD for status 200..399.
-[INFO] DOCKER> [traccar/traccar:6.6-ubuntu] "traccar": 
-                Waited  on url http://localhost 4941 ms
+~/git/bm/bm-traccar/traccar-api-camel$ mvn docker:run
+                                       ==============
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-camel ---
+[INFO] DOCKER> Pulling from traccar/traccar
+ b08e2ff4391e: Pull complete 
+ 0b823ac9e80a: Pull complete 
+ 66fe9131b572: Pull complete 
+ 4f4fb700ef54: Pull complete 
+[INFO] DOCKER> Digest: sha256:5bd7e3a8d059b1ca0e86004f747f6bebe9206f5b2da61b380f70c2a6285e59f5
+[INFO] DOCKER> Status: Downloaded newer image for traccar/traccar:6.8.0-ubuntu
+[INFO] DOCKER> Pulled traccar/traccar:6.8.0-ubuntu in 49 seconds 
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": Start container 7ad9a7c7a649
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": 
+               Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": Waited on url http://localhost 5900 ms
 -----------------
 
 Looks good: Container started and waited five seconds for the localhost.
@@ -341,13 +270,54 @@ with the familiar key combination `<Ctrl><c>` :
 [source,text]
 -----------------
 ^C
-[INFO] DOCKER> [traccar/traccar:x.y.z-ubuntu] "traccar": 
-                Stop and removed container ddc9dd7181ca after 0 ms
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": 
+               Stop and removed container 7ad9a7c7a649 after 0 ms
 -----------------
+
+_Now_ you can check your local system with docker command:
+
+[source,text]
+-----------------
+~/git/bm/bm-traccar/traccar-api-camel$ docker images -a
+                                       ================
+REPOSITORY        TAG            IMAGE ID       CREATED       SIZE
+traccar/traccar   6.8.0-ubuntu   5fdf770fa10b   6 weeks ago   298MB
+-----------------
+
 
 == validate development environment
 
 Let's check, if everything is in place.
+
+=== Traccar Frontend
+
+If you run `mvn docker:run` again (and over and over) the docker pull should not show
+as long as the docker image is on your machine. 
+After waiting for startup (5.69 seconds in this case) &#8230; 
+
+[source,text]
+-----------------
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-camel ---
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": Start container 6b39263a1f9c
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": 
+               Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER> [traccar/traccar:6.8.0-ubuntu] "traccar": Waited on url http://localhost 5690 ms
+-----------------
+
+&#8230; you can open the url in your browser.
+
+[TIP]
+====
+At the development time you can open a console, execute `mvn docker:run` and leave it open.
+This way you can execute Integration Tests (*IT) as Unit Tests against the Traccar Server in your IDE!
+As good practice each test should clean up the server for subsequent tests in random order.
+
+As an example you can debug a JUnit Test in your IDE, set a debug point after creating a new user
+and then log _as this user_ in on the Frontend. Then continue the test to clean up.
+
+Much more complex scenarios can be observed step by step in details.
+====
+
 
 === `tracker-server.log`
 

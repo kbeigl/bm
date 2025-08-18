@@ -25,11 +25,10 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>6.7.1</version>
+        <version>6.8.0</version>
     </parent>
 
     <artifactId>traccar-openapitools-client</artifactId>
-    <version>6.7.1</version>
 
     <name>..... traccar-openapitools-client</name>
     <description>remote control on your traccar server</description>
@@ -62,7 +61,8 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/openapi-traccar-${traccar.version}.yaml</inputSpec>
+                            <!-- set remoteInputSpec instead of inputSpec ? -->
+                            <inputSpec>https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml</inputSpec>
                             <generatorName>java</generatorName>
                             
                             <invokerPackage>bm.traccar.invoke</invokerPackage>
@@ -89,6 +89,8 @@
                                 <javaVersion>${jdk.version}</javaVersion>
                                 <library>restclient</library>
                                 <openApiNullable>false</openApiNullable>
+                                <!-- doesnt work for method generator -->
+                                <typeMappings>int64=Long</typeMappings>
                             </configOptions>
                         </configuration>
                     </execution>
@@ -115,23 +117,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- REMOVE
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <images>
-                        <image>
-                            <alias>traccar</alias>
-                            <name>traccar/traccar:${traccar.version}-ubuntu</name>
-                            <build>
-                                <skip>true</skip>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
-            </plugin>
-            -->
         </plugins>
     </build>
 </project>

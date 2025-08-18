@@ -47,8 +47,9 @@ public abstract class BaseIntegrationTest {
   protected String userMail;
 
   @Autowired protected ApiService api;
+  // protected Api api; // interface only
 
-  int userId, adminId;
+  Long userId, adminId;
 
   @BeforeAll
   public void setup() throws ApiException {

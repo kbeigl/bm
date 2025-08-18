@@ -24,36 +24,35 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.3</version>
+        <version>1.1.4</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-traccar</artifactId>
-    <version>6.7.1</version>
+    <version>6.8.0</version>
     <packaging>pom</packaging>
 
     <name>---- traccar client implementations        ---</name>
-
     <properties>
-        <!-- actual traccar vs project versions -->
-        <traccar.version>6.7.1</traccar.version>
+        <!-- actual traccar vs sub!project version !
+        <traccar.version>${project.version}</traccar.version> -->
+        <traccar.version>6.8.0</traccar.version>
 
         <docker.maven.plugin.version>0.46.0</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
         <docker.image.os>ubuntu</docker.image.os>
-        <!-- sufficient to build once when upgrading traccar-->
-        <docker.skip.build>true</docker.skip.build>
         <!-- simplify build on github and user pulls-->
         <docker.skip.tests>false</docker.skip.tests>
-        <integration.tests.skip>false</integration.tests.skip>
+        <integration.tests.skip>true</integration.tests.skip>
     </properties>
 
     <modules>
-        <module>traccar-api-camel</module>
         <module>traccar-openapitools-client</module>
         <module>traccar-api-client</module>
+        <!-- to be removed -->
+        <module>traccar-api-camel</module>
     </modules>
 
     <build>
@@ -90,11 +89,10 @@
                         <images>
                             <image>
                                 <alias>traccar</alias>
-                                <name>traccar/traccar:${traccar.version}-ubuntu</name>
+                                <name>traccar/traccar:${traccar.version}-${docker.image.os}</name>
                                 <build>
-                                    <skip>${docker.skip.build}</skip>
-                                    <dockerFile>Dockerfile.ubuntu</dockerFile>
-                                    <contextDir>${project.basedir}/docker</contextDir>
+                                    <dockerFile>Dockerfile.${docker.image.os}</dockerFile>
+                                    <contextDir>https://github.com/traccar/traccar/blob/v${traccar.version}/docker</contextDir>
                                     <noCache>true</noCache>
                                 </build>
                                 <run>
