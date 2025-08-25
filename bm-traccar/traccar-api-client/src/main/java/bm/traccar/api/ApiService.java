@@ -7,11 +7,9 @@ import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.User;
 import bm.traccar.invoke.ApiClient;
 import java.util.List;
-import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +17,10 @@ import org.springframework.stereotype.Service;
  * This ApiService class implements the actual REST calls and returns entities, actually DTOs. The
  * ApiService is wrapping the generated ApiClient acting as sender and receiver.
  *
- * <p>Currently this Service in invoking the simplest method for each endpoint. i.e. usersGet not
- * usersGetWithHttpInfo or usersGetWithResponseSpec. No special handling for blocking- or reactive
- * clients for traccar (?)
- *
  * <p>Aspect is applied for cross cutting handling of Service..
+ *
+ * <p>The Api and ApiService are pure REST clients and do not handle any WebSocket connections nor
+ * Camel Routing as these are separate concerns!
  */
 @Service // ("traccarApiService")
 public class ApiService implements Api {
@@ -33,7 +30,6 @@ public class ApiService implements Api {
   // analog to testing with ClientExceptionHandler
 
   @Autowired private ApiClient apiClient;
-  @Autowired protected ProducerTemplate producer;
 
   protected ApiClient getApiClient() {
     return this.apiClient;
@@ -64,94 +60,84 @@ public class ApiService implements Api {
 
   @Autowired private SessionApi sessionApi;
 
-  //  experimental see SessionIT ---------------
-  // currently testet in SessionIT, to be removed
-  @Deprecated
-  public ResponseEntity<User> createSessionPostWithHttpInfo(String mail, String password) {
-    return sessionApi.sessionPostWithHttpInfo(mail, password);
-  }
-
-  //  public ResponseSpec createSessionPostWithResponseSpec(String mail, String password) {
-  //    return sessionApi.sessionPostWithResponseSpec(mail, password);
-  //  }
-
   Session session =
       new Api.Session() {
+
+        // create session
         /**
-         * Use with care! <br>
-         * This method returns the User and creates, i.e. resets, the session and token with every
-         * invocation. (to be removed)
+         * This method always creates a new session for the user, i.e. resets the session, which
+         * plays a role, if the sessionId is passed to other consumers. In the simplest case the
+         * wscat command.
          *
          * <p>see {@link SessionApi#sessionPost(mail, password)}
          */
         @Override
-        @Deprecated
         public User createSession(String mail, String password) {
           return sessionApi.sessionPost(mail, password);
         }
 
-        /**
-         * This method returns the User (from the server) and creates a WebSocket session for him
-         * with the generated token. Note that the token value is not revealed and is immediately
-         * used to create a WebSocket connection.
-         *
-         * <p>This method always creates a new session for the user, i.e. resets the session, which
-         * plays a role, if the sessionId is passed to other consumers. In the simplest case the
-         * wscat command.
-         *
-         * <p>see {@link SessionApi#sessionPostWithHttpInfo(mail, password)}
-         */
+        /** see {@link SessionApi#sessionPostWithHttpInfo(mail, password)} */
         @Override
-        public User createAndOpenSession(String mail, String password) {
-          // ResponseEntity = body, headers, statusCode
+        public String createSessionGetJsessionId(String mail, String password) {
+          logger.debug(" create session for {}/{}", mail, password);
           ResponseEntity<User> response = sessionApi.sessionPostWithHttpInfo(mail, password);
-
-          if (checkHttpStatusCode(response.getStatusCode())) {
-            User sessionUser = response.getBody();
-            logger.info("creating session for user: {}", sessionUser.getEmail());
-            // optimistic
-            String setCookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-            String sessionId = setCookieHeader.split(";")[0].split("=")[1];
-            logger.info("received JSESSIONID: {}", sessionId);
-            // call route traccarWebSocketConnectionRoute
-
-            // WORK IN PROGRESS, Exception is caught and ignored to pass test
-
-            try {
-              producer.sendBodyAndHeader(
-                  "direct:connectTraccarWebSocket", null, "JSESSIONID", sessionId);
-            } catch (Exception e) {
-              logger.error("Failed to send WebSocket connection request: {}", e.getMessage());
-              // rethrow for the time being
-              // throw new RuntimeException("Failed to connect to WebSocket", e);
-              // How to fix:
-              // 1. Ensure the Camel context and the route (direct:connectTraccarWebSocket) are
-              //    started before calling sendBodyAndHeader.
-              // 2. Check your Camel thread pool configuration. Increase the pool size if needed.
-              // 3. Make sure the application is not shutting down or the route is not being stopped
-              //    when you call this method.
-            }
-            logger.info("WebSocket connection initiated with JSESSIONID: {}", sessionId);
+          String jSessionId = extractJsessionId(response);
+          if (jSessionId != null) {
+            logger.debug("received JSESSIONID: {}", jSessionId);
+            return jSessionId;
           } else {
-            logger.error("Failed to create session for user: " + mail);
+            logger.error("Failed to create session for user: {}", mail);
+            return null;
           }
-
-          return response.getBody();
         }
-      };
 
-  // cloned/moved to ApiAspect for improvement
-  private boolean checkHttpStatusCode(HttpStatusCode sc) {
-    if (sc.is2xxSuccessful() || sc.is3xxRedirection()) return true;
-    // TODO these two respones are not evaluated yet
-    else if (sc.is1xxInformational()) System.out.println("Informational response received: " + sc);
-    else if (sc.is3xxRedirection()) System.out.println("Redirection response received: " + sc);
-    // else Error > return false;
-    else if (sc.is4xxClientError()) System.out.println("Client error occurred: " + sc);
-    else if (sc.is5xxServerError()) System.out.println("Server error occurred: " + sc);
-    else System.out.println("Failed to create session: " + sc);
-    return false;
-  }
+        // fetch session
+        @Override
+        public User getSession(String token) {
+          return sessionApi.sessionGet(token);
+        }
+
+        @Override
+        public String getSessionGetJsessionId(String token) {
+
+          /* the current JSESSIONID should probably be sent in a Cookie header !!
+           *
+           * GET /api/session: This is the status check action.
+           * Its purpose is to retrieve information about the current, active session.
+           * For this request to be successful, you must already be authenticated
+           * and include a valid JSESSIONID in your request headers.
+           * The server will use the JSESSIONID you provided to look up your session details
+           * and return the user information. It does not generate a new JSESSIONID.
+           */
+
+          ResponseEntity<User> response = sessionApi.sessionGetWithHttpInfo(token);
+          String jSessionId = extractJsessionId(response);
+          if (jSessionId != null) {
+            logger.debug("received JSESSIONID: {}", jSessionId);
+            return jSessionId;
+          } else return null;
+        }
+
+        private String extractJsessionId(ResponseEntity<User> response) {
+          // optimistic
+          String setCookieHeader = response.getHeaders().get("Set-Cookie").get(0);
+          // maybe return setCookieHeader directly ?
+          String sessionId = setCookieHeader.split(";")[0].split("=")[1];
+          return sessionId;
+        }
+
+        // close session
+        @Override
+        public void deleteSession() {
+          sessionApi.sessionDelete();
+        }
+
+        // TODO, required ?
+        // @Override
+        // public void deleteSessionWithHttpInfo() {
+        //   ResponseEntity<Void> response = sessionApi.sessionDeleteWithHttpInfo();
+        // }
+      };
 
   @Autowired private UsersApi usersApi;
 
@@ -209,7 +195,10 @@ public class ApiService implements Api {
           //   return null; // or handle exception as needed
           // }
         }
-
+        /*
+         * add convenience methods for Entities User createUserWithCredentials(String usr, String pwd, String mail) { add
+         * ROLES Initial simple implementation. User getSuperUser()
+         */
         /*
          * add ROLES Initial simple implementation. Assuming that superAdmin is always first, i.e. check users.get(0)
          * against name from app.prop file.
@@ -253,9 +242,4 @@ public class ApiService implements Api {
           return devicesApi.devicesGet(null, null, null, userId);
         }
       };
-
-  /*
-   * add convenience methods for Entities User createUserWithCredentials(String usr, String pwd, String mail) { add
-   * ROLES Initial simple implementation. User getSuperUser()
-   */
 }

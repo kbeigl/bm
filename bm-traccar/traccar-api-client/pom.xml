@@ -40,6 +40,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-http-starter</artifactId>
+            <!-- to be removed, only HttpOperationFailedException used-->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-vertx-websocket-starter</artifactId>
         </dependency>
         <dependency>

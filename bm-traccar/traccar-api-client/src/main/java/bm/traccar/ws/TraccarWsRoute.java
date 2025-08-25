@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * 3. Processes incoming WebSocket messages. <br>
  */
 @Component
-public class TraccarWsClientRoute extends RouteBuilder {
+public class TraccarWsRoute extends RouteBuilder {
 
   @Value("${traccar.user.password}")
   private String password;

@@ -8,9 +8,9 @@ for integrating with the
 link:https://www.traccar.org/[Traccar GPS Tracking Platform].
 Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
 The System was thoroughly analyzed in the 
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc[Jeets Project]
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
 and
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[Jeets Book].
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book].
 
 This module provides a development environment with different database setups,
 different server instances: remote, local IDE, local service or 
@@ -49,9 +49,4 @@ link:./dox/testSetup.adoc[read more ...]
 
 This root module that defines the Traccar version for all submodules 
 
-        <traccar.version>6.7.1</traccar.version>
-
-..
-
-
-
+        <traccar.version>6.8.0</traccar.version>

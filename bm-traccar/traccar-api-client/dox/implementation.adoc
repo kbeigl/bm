@@ -1,9 +1,9 @@
 
 :toc:
 
-= `traccar-api-client` Implementation
+= `traccar-api-client` implementation
 
-This software is based on a generated *Java* REST client from the traccar specification.
+This software is based on a generated *Java Spring REST Client* from the traccar specification.
 The single package (`bm.traccar.api`) implementation wraps the Java client in a *Spring* @Service
 to be applied wherever feasible. The API client completely hides the REST intricities
 inside regular Java methods.
@@ -110,6 +110,44 @@ Of course you can always peek into the Traccar Database to check what's going on
 This is similar to DNA and RNA: +
 The DNA (ERM) is part of the _living_ organic System, +
 while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.
+
+
+== Traccar sub Api implementations
+
+This project is part of a larger software and therefor the Traccar Api Endpoints (`operationId`)
+are implemented in the order required by the main application.
+
+=== SessionApi
+
+We can find all generated sub APIs in the `bm.traccar.generated.api` package. 
+For example we use the `UsersApi` and `DevicesApi` by setting the authentication,
+sending a request and receive entities.
+The `ApiClient` class holds the username and password. 
+When you call an API method, it will automatically construct and add the Authorization header. 
+This works perfectly for APIs that are stateless and check the basic auth header on every request.
+
+The `SessionApi` is a special case as `REST` and `HTTP` are defined as a stateless protocols.
+A session makes sense, if we log into the browser and keep it open.
+For the `traccar-api-client` we don't need to establish a session for REST interactions.
+The sole purpose is to use the `SessionApi` to create a session 
+and retrieve a `JSESSIONID` (Java Session Id) to be used with a websocket connection.
+
+You can make a `POST` request to the `/api/session` endpoint with the user's email and password. 
+This will create a session and return a Session Cookie managed by Jetty. 
+This process is implemented in the `ApiService` and can be called with
+
+[source,java]
+----
+    String jSessionId = api.session.createSessionGetJsessionId(userMail, userPassword);
+----
+
+That's all we need from the `SessionApi` and we will move on to the websocket implementation
+with the returned `JSESSIONID` for the provided User.
+When you connect to websocket endpoint `/api/socket` (Not the REST endpoint `/api/session`!), 
+the server checks for the presence of a valid session cookie 
+to authorize _the real-time data stream_.
+
+
 
 == Traccar `ApiAspect` and `ApiException`
 

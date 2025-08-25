@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Base class for integration tests using Spring Boot. This class provides a common setup and
@@ -20,6 +23,10 @@ import org.springframework.boot.test.context.SpringBootTest;
  * have been executed for the next ITest.
  */
 @SpringBootTest
+// @EnableAutoConfiguration in subclasses
+@ContextConfiguration(classes = {ApiService.class})
+@TestPropertySource("classpath:application.properties")
+@Import(ApiConfig.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(BaseIntegrationTest.class);

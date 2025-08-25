@@ -37,13 +37,13 @@ and they communicate with “exchange messages”.
 For this repository Camel is used to glue independant Units together.
 
 
-=== Spring Boot application framework 
+=== Spring Framework and Spring Boot Application  
  
 Spring context, dependency injection, and application startup.
 
 https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html
 
-Spring Boot component also provides auto-configuration for Apache Camel. 
+Spring Boot component provides auto-configuration for Apache Camel. 
 Our opinionated auto-configuration of the Camel context 
 auto-detects Camel routes available in the Spring context 
 and registers the key Camel utilities 
@@ -124,8 +124,8 @@ It starts by running the `os-maven-plugin`
 [INFO] os.detected.classifier: linux-x86_64
 -----------------
 
-which provides Maven parameters, like `${os.detected.name}`, 
-to direct the build lifecycle as required.
+which provides Maven parameters, like `${os.detected.name}`, +
+to direct the build lifecycle as required for your targeted system.
 
 === project setup
 
@@ -156,8 +156,7 @@ The repository versioning of Java archives is defined by
 It is recommended to import Camel Spring Boot BOM before Spring Boot BOM
 to ensure Camel dependencies are using supported JARs from the release.
 
-compare jeets approach
-
+compare to JeeTS approach: +
 https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml
   
        <groupId>org.apache.camel.springboot</groupId>

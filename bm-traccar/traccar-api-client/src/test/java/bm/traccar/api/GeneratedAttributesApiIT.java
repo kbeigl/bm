@@ -21,7 +21,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 @ContextConfiguration(classes = {ApiService.class})
 @TestPropertySource("classpath:application.properties")
 @Import({ApiConfig.class, AttributesTestConfig.class})
-public class AttributesApiIT {
+public class GeneratedAttributesApiIT {
 
   @Autowired private AttributesApi attributesApi;
 

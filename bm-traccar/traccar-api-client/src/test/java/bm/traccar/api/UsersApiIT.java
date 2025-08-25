@@ -8,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -18,7 +17,6 @@ import org.springframework.test.context.TestPropertySource;
  * href="https://www.traccar.org/api-reference/#tag/Users">UsersApi</a> with ApiService. <br>
  * In database lingo create, update, delete User in traccar datamodel using generated entities.
  */
-@SpringBootTest
 @EnableAutoConfiguration
 @ContextConfiguration(classes = {ApiService.class})
 @TestPropertySource("classpath:application.properties")
@@ -97,10 +95,12 @@ public class UsersApiIT extends BaseIntegrationTest {
   @Test
   public void convertLongToInt() {
 
+    // positive test
     Long longVal = 12345L;
     Integer intVal = ApiHelper.toInt(longVal);
     assertEquals(longVal, 12345L);
 
+    // negative test
     longVal = Integer.MAX_VALUE + 1L;
     try {
       intVal = ApiHelper.toInt(longVal);

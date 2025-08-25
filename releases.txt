@@ -1,4 +1,11 @@
 
+[INFO] === blue marble simulations                === 1.1.5 
+[INFO] --- blue marble parameters                 --- 1.1.5 
+[INFO] ---- traccar client implementations        --- 6.8.0 
+[INFO] ..... traccar-openapitools-client 6.8.0 ............ 
+[INFO] ..... traccar-api-client 6.8.0 ..................... 
+[INFO] ..... traccar-api-camel 6.6 ........................ 
+
 [INFO] === blue marble simulations                === 1.1.4 
 [INFO] --- blue marble parameters                 --- 1.1.4 
 [INFO] ---- traccar client implementations        --- 6.8.0 

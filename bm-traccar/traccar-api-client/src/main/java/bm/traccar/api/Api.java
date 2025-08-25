@@ -9,7 +9,7 @@ import java.util.List;
  * implemented in the ApiService based on these platonic methods.
  *
  * <p>Java Developer friendly method names subdivided into sub-APIs. Hide REST implementation and
- * provide traccar entities for Client application. Nested interfaces mimic the API method call URL
+ * provide traccar entities for Client applications. Nested interfaces mimic the API method call URL
  * Every subAPI offers the existing methods of the http methods PUT, GET, POST, DELETE, etc. as
  * defined in the OpenAPI specification.
  *
@@ -18,21 +18,25 @@ import java.util.List;
 public interface Api {
 
   // interface Auth {  ..
-
-  // authentication methods
+  // authentication methods -------------------------------
   void setBasicAuth(String mail, String password);
 
   void setBearerToken(String token);
 
   // String whoAmI();
-  // 	return mail, if set
+  // 	return session with mail, if set
 
-  // singular according to spec
   interface Session {
-    @Deprecated
-    User createSession(String mail, String password);
 
-    User createAndOpenSession(String mail, String password); // POST
+    User createSession(String mail, String password); // POST
+
+    String createSessionGetJsessionId(String mail, String password); // POST
+
+    User getSession(String token); // GET
+
+    String getSessionGetJsessionId(String token); // GET
+
+    void deleteSession(); // DELETE
   }
 
   interface Users {

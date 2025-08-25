@@ -1,129 +1,86 @@
 package bm.traccar.api;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import bm.traccar.generated.model.dto.User;
-import bm.traccar.ws.PositionProcessor;
-import bm.traccar.ws.TraccarWsClientRoute;
-import java.util.List;
-import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 
-// @SpringBootTest
-@CamelSpringBootTest
-@EnableAutoConfiguration
-@ContextConfiguration(
-    classes = {ApiService.class, TraccarWsClientRoute.class, PositionProcessor.class})
-@TestPropertySource("classpath:application.properties")
-@Import(ApiConfig.class)
 public class SessionApiIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(SessionApiIT.class);
 
   @Test
-  public void createSessionForUser() {
+  public void getSessionGetJsessionIdTwice() {
 
-    // set BasAuth (who's logged in?)
+    // make sure no authentication is set
+    api.setBearerToken(null);
+    api.setBasicAuth(null, null);
 
-    List<User> users = api.users.getUsers(null); // check if user exists
-    User registeredUser = users.stream().filter(u -> u.getId() == userId).findFirst().orElse(null);
-    // upgrade user to admin for device creation
-    registeredUser.setAdministrator(true);
-    User updatedUser = api.users.updateUser(userId, registeredUser);
+    // always a new JSESSIONID is created
+    String jSession1 = api.session.getSessionGetJsessionId(virtualAdmin);
+    String jSession2 = api.session.getSessionGetJsessionId(virtualAdmin);
+    assertNotEquals(jSession1, jSession2);
 
-    // create Device
+    // org.springframework.web.client.HttpClientErrorException$BadRequest:
+    //    400 Bad Request
+    // api.session.getSessionGetJsessionId("invalidToken");
+  }
 
-    // ----------------------------------------------------
-    logger.info("create session for {}/{}", userMail, userPassword);
-    User sessionUser = api.session.createAndOpenSession(userMail, userPassword);
+  /**
+   * Creates a session for User and provide JSESSIONID for websocket connection.
+   *
+   * <p>As we know the User it is not extracted from the response. Only the JSESSIONID is returned
+   * and can be used to establish a WebSocket connection.
+   */
+  @Test
+  public void createSessionGetJsessionId() {
+    String jSessionId = api.session.createSessionGetJsessionId(userMail, userPassword);
+    logger.info("received JSESSIONID: {}", jSessionId);
+    assertEquals(true, jSessionId != null);
+  }
 
-    System.out.println("trigger event and observe live ...");
-    //    wait for five minutes to observe live events
-    //    try {
-    //      Thread.sleep(5 * 60 * 1000); // 5 minutes
-    //    } catch (InterruptedException e) {
-    //      Thread.currentThread().interrupt();
-    //      System.out.println("Thread interrupted while waiting for live events.");
-    //    }
+  /**
+   * Creates a session for User.
+   *
+   * <p>Note that this method does not provide JSESSIONID.
+   */
+  @Test
+  public void createSessionGetUser() {
+    User sessionUser = api.session.createSession(userMail, userPassword);
+    logger.info("get session for User: {}/{} ", sessionUser.getName(), sessionUser.getEmail());
+    assertEquals(userMail, sessionUser.getEmail());
+    assertEquals(userName, sessionUser.getName());
+  }
+
+  /*
+   * 'virtualAdmin' is a token. i.e. {traccar.web.serviceAccountToken}
+   * This works for virtual admin, but usage with (null) and (token) is yet unclear.
+   */
+  @Test
+  public void getSessionSuperUser() {
+    User sessionUser = api.session.getSession(virtualAdmin);
+    logger.info("get session for SuperUser: {}/{} ", sessionUser.getName(), sessionUser.getEmail());
+    assertEquals("Service Account", sessionUser.getName());
+    assertEquals("none", sessionUser.getEmail());
   }
 
   @Test
-  public void createSessionIdsForUser() {
-
-    System.out.println("create session for: " + userMail + "/" + userPassword);
-    ResponseEntity<User> response = api.createSessionPostWithHttpInfo(userMail, userPassword);
-    // System.out.println(response.getBody());
-
-    if (checkHttpStatusCode(response.getStatusCode())) {
-      System.out.println("Session created successfully for user: " + userMail);
-    } else {
-      System.out.println("Failed to create session for user: " + userMail);
-    }
-
-    String setCookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-    System.out.println("created session Set-Cookie: " + setCookieHeader);
-
-    // ------------------------------------------
-
-    System.out.println("create another session for: " + userMail + "/" + userPassword);
-    response = api.createSessionPostWithHttpInfo(userMail, userPassword);
-
-    if (checkHttpStatusCode(response.getStatusCode())) {
-      System.out.println("Session created successfully for user: " + userMail);
-    } else {
-      System.out.println("Failed to create session for user: " + userMail);
-    }
-
-    // extract !NEW! JSESSIONID
-    // response.getHeaders().get("Set-Cookie").forEach(System.out::println);
-    String setNewCookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-    System.out.println("created new session Set-Cookie: " + setNewCookieHeader);
-
-    assertNotEquals(
-        setCookieHeader,
-        setNewCookieHeader,
-        "The JSESSIONID should be different for each session created.");
-
-    // create api.session. method ..
-
+  public void getJsessionIdForSuperUser() {
+    String jSessionId = api.session.getSessionGetJsessionId(virtualAdmin);
+    logger.info("received JSESSIONID: {}", jSessionId);
+    assertEquals(true, jSessionId != null);
   }
 
-  /** Test platonic API methods from interface for User DTO */
   @Test
-  public void createUserAndSessionIdWithHttpInfo() {
+  public void createGetDeleteSuperUserSession() {
 
-    // .setBasicAuth(mail, password);
-    // User sessionUser = api.session.createSession(mail, password);
-    // System.out.println(sessionUser);
-    // ResponseSpec reponseSpec = api.createSessionPostWithResponseSpec(mail,
-    // password);
-    // System.out.println(reponseSpec.toString());
+    //	String jSessionId = api.session.createSessionGetJsessionId(virtualAdmin);
+    //	logger.debug("received JSESSIONID: {}", jSessionId);
+    //	assertEquals(true, jSessionId != null);
+    //	api.session.deleteSession();
+    //	logger.debug("deleted session for super user");
 
-    // create method via api.session without setting BasicAuth ...
-    ResponseEntity<User> response = api.createSessionPostWithHttpInfo(userMail, userPassword);
-    System.out.println("SessionPostWithHttpInfo - response headers: " + response.getHeaders());
-
-    // ----------------------------------------------------
-    // api.users.deleteUser(userId);
-  }
-
-  @Deprecated // see Aspect implementation
-  private boolean checkHttpStatusCode(HttpStatusCode sc) {
-    if (sc.is2xxSuccessful() || sc.is3xxRedirection()) return true;
-    // TODO these two respones are not considered yet
-    else if (sc.is1xxInformational()) System.out.println("Informational response received: " + sc);
-    else if (sc.is3xxRedirection()) System.out.println("Redirection response received: " + sc);
-    // else Error > return false;
-    else if (sc.is4xxClientError()) System.out.println("Client error occurred: " + sc);
-    else if (sc.is5xxServerError()) System.out.println("Server error occurred: " + sc);
-    else System.out.println("Failed to create session: " + sc);
-    return false;
   }
 }

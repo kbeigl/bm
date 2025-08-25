@@ -3,11 +3,12 @@
 
 = Repo
 
-This repository is the development environment of the `The RealObject Application Framework` 
-described in the 
+This repository serves as development environment of +
+the `The RealObject Application Framework` described in this 
 link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[book].
 
-link:releases.txt[Version History]
+For earlier versions check the 
+link:releases.txt[version history] .
 
 == latest versions
 

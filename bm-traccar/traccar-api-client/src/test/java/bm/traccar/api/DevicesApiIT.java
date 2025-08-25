@@ -6,7 +6,6 @@ import bm.traccar.generated.model.dto.Device;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -16,7 +15,6 @@ import org.springframework.test.context.TestPropertySource;
  * href="https://www.traccar.org/api-reference/#tag/Devices">DevicesApi</a> with ApiService. <br>
  * Create, update, delete Devices for Users in traccar datamodel.
  */
-@SpringBootTest
 @EnableAutoConfiguration
 @ContextConfiguration(classes = {ApiService.class})
 @TestPropertySource("classpath:application.properties")
@@ -56,15 +54,10 @@ public class DevicesApiIT extends BaseIntegrationTest {
     Device putDevice = api.devices.updateDevice(newDeviceId, newDevice);
     assertEquals(deviceNr + 1, api.devices.getDevices(null).size());
 
-    // delete user
-    api.devices.deleteDevice(newDeviceId);
-    assertEquals(deviceNr, api.devices.getDevices(null).size());
-
     // test delete user > what happens to the device?
 
-    // TODO delete device
-    // api.devices.deleteDevice(newDeviceId);
-    // assertEquals(deviceNr, api.devices.getDevices(null).size());
+    api.devices.deleteDevice(newDeviceId);
+    assertEquals(deviceNr, api.devices.getDevices(null).size());
   }
 
   @Test
@@ -82,7 +75,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
   public void createVirtualDevice() {
 
     api.setBearerToken(virtualAdmin);
-    String virtualAdminId = "9000000000000000000";
+    String virtualAdminId = "9000000000000000000"; // L?
     // get nr of devices, assert devices++, back to nr
     int deviceNr = api.devices.getDevices(null).size();
     // create / receive device

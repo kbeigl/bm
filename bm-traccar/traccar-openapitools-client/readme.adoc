@@ -45,16 +45,13 @@ by clicking the button "Download OpenAPI specification". +
 *(2)* https://www.traccar.org/api-reference/openapi.yaml +
 *(3)* https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml 
 
+In order to automate the versioning *we will use this _versioned_ url* for the API generation +
 *(4)* https://github.com/traccar/traccar/blob/v6.8.0/openapi.yaml +
-as part of the Traccar Software Distribution with each version. +
-In order to automate the versioning we will use this _versioned_ url
+which is part of the Traccar Software Distribution with each version. 
 
     <inputSpec>
         https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml
-    </inputSpec>
-    
-for the API generation.
-
+    </inputSpec>                                           ==================
 
 == openapi-generator-maven-plugin
 
@@ -174,8 +171,8 @@ ____
 
 [quote, see swagger.io/docs/specification/v3_0/paths-and-operations/]
 ____
-In OpenAPI terms, paths are endpoints (resources), such as /users or /reports/summary/, that your API exposes,
-and operations are the HTTP methods used to manipulate these paths, such as GET, POST or DELETE.
+In OpenAPI terms, paths are endpoints (resources), such as `/users` or `/reports/summary/`, that your API exposes,
+and operations are the `HTTP` methods used to manipulate these paths, such as `GET`, `POST` or `DELETE`.
 ____
 
 These `operationId` are used to create `api/` sources, tests and markdown docs 

@@ -1,6 +1,5 @@
 package bm.traccar.ws;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.junit.jupiter.api.Test;
@@ -21,29 +20,33 @@ import org.springframework.test.context.TestPropertySource;
       "traccar.host=http://localhost:8082",
       "traccar.websocket.url=ws://localhost:8082/api/socket"
     })
-@ContextConfiguration(classes = {TraccarWsClientRoute.class, PositionProcessor.class})
-class TraccarWsClientRouteUnitTest {
+@ContextConfiguration(classes = {TraccarWsClientRouteOld.class, PositionProcessor.class})
+class TraccarWsRoutesTest {
 
-  @Autowired private CamelContext camel;
+  // @Autowired private CamelContext camel;
   @Autowired private ProducerTemplate producer;
   @MockBean private PositionProcessor positionProcessor;
 
   @Test
-  void testProcessWebSocketMessage() {
-    // the first message via wscat comman
+  void testConnectTraccarWebSocketRoute() {
+    String sessionId = "testJSessionId";
+    producer.sendBodyAndHeader("direct:connectTraccarWebSocket", null, "JSESSIONID", sessionId);
+    System.out.println("done");
+  }
+
+  @Test
+  void testTraccarWebSocketMessageProcessingRoute_withValidMessage() {
     String jsonMessage = "{\"positions\":[]}";
     producer.sendBody("direct:traccarWebSocketMessages", jsonMessage);
-
-    // Then PositionProcessor should be called with a Map containing 'positions'
     Mockito.verify(positionProcessor, Mockito.timeout(1000))
         .processPositions(Mockito.argThat(map -> map != null && map.containsKey("positions")));
   }
 
   @Test
-  void testNullWebSocketMessage() {
-    // When sending a null message to the route
+  void testTraccarWebSocketMessageProcessingRoute_withNullMessage() {
+    // Send a null message to the second route
     producer.sendBody("direct:traccarWebSocketMessages", null);
-    // Then PositionProcessor should NOT be called
+    // Verify PositionProcessor is NOT called
     Mockito.verify(positionProcessor, Mockito.after(500).never()).processPositions(Mockito.any());
   }
 }

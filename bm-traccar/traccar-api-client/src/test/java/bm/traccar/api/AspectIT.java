@@ -11,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 
 /**
  * Demo Exception handling via AOP
@@ -22,12 +19,8 @@ import org.springframework.test.context.TestPropertySource;
  * <p>AOP is used to handle Exceptions in one place for generated ApiClient and actual *Api.methods
  * in ApiAspect class.
  */
-@SpringBootTest
 @EnableAutoConfiguration
-@ContextConfiguration(classes = {ApiService.class})
-@TestPropertySource("classpath:application.properties")
-// remove ApiAspect to remove AOP
-@Import({ApiConfig.class, ApiAspect.class})
+@Import(ApiAspect.class)
 // without !! ClientExceptionHandler.class
 public class AspectIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(AspectIT.class);
