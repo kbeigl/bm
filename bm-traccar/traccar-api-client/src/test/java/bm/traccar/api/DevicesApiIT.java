@@ -4,37 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bm.traccar.generated.model.dto.Device;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 
 /**
  * Test <code>api/devices</code> methods, @see <a
  * href="https://www.traccar.org/api-reference/#tag/Devices">DevicesApi</a> with ApiService. <br>
  * Create, update, delete Devices for Users in traccar datamodel.
  */
-@EnableAutoConfiguration
-@ContextConfiguration(classes = {ApiService.class})
-@TestPropertySource("classpath:application.properties")
-@Import(ApiConfig.class)
-@ExtendWith(ClientExceptionHandler.class)
 public class DevicesApiIT extends BaseIntegrationTest {
   // private static final Logger logger = LoggerFactory.getLogger(DevicesApiIT.class);
 
-  /*
-   * storyboard create device > who does it belong create user > create device for
-   * user access device as user and as admin/superuser
-   */
-
-  /** A new device always belongs to the authenticated user. <br> */
+  /* A new device always belongs to the authenticated user ? */
   @Test
   public void createUpdateDeleteDevice() {
 
     api.setBasicAuth(adminMail, adminPassword);
     // get nr of devices, assert devices++, back to nr
-    int deviceNr = api.devices.getDevices(null).size();
+    int deviceNr = api.getDevicesApi().getDevices(null).size();
 
     // create / receive device
     Device device = new Device();
@@ -42,8 +27,8 @@ public class DevicesApiIT extends BaseIntegrationTest {
     device.setName("Kristof Mobile");
     device.setUniqueId("574322");
 
-    Device newDevice = api.devices.createDevice(device);
-    assertEquals(deviceNr + 1, api.devices.getDevices(null).size());
+    Device newDevice = api.getDevicesApi().createDevice(device);
+    assertEquals(deviceNr + 1, api.getDevicesApi().getDevices(null).size());
 
     // returns the generated id (asserts not null)
     long newDeviceId = newDevice.getId();
@@ -51,20 +36,20 @@ public class DevicesApiIT extends BaseIntegrationTest {
 
     // TODO update device
     newDevice.setModel("Samsung A52");
-    Device putDevice = api.devices.updateDevice(newDeviceId, newDevice);
-    assertEquals(deviceNr + 1, api.devices.getDevices(null).size());
+    Device putDevice = api.getDevicesApi().updateDevice(newDeviceId, newDevice);
+    assertEquals(deviceNr + 1, api.getDevicesApi().getDevices(null).size());
 
     // test delete user > what happens to the device?
 
-    api.devices.deleteDevice(newDeviceId);
-    assertEquals(deviceNr, api.devices.getDevices(null).size());
+    api.getDevicesApi().deleteDevice(newDeviceId);
+    assertEquals(deviceNr, api.getDevicesApi().getDevices(null).size());
   }
 
   @Test
   public void getDevices() {
     api.setBearerToken(virtualAdmin);
     // List<Device> devices =
-    api.devices.getDevices(null);
+    api.getDevicesApi().getDevices(null);
   }
 
   /**
@@ -77,19 +62,19 @@ public class DevicesApiIT extends BaseIntegrationTest {
     api.setBearerToken(virtualAdmin);
     String virtualAdminId = "9000000000000000000"; // L?
     // get nr of devices, assert devices++, back to nr
-    int deviceNr = api.devices.getDevices(null).size();
+    int deviceNr = api.getDevicesApi().getDevices(null).size();
     // create / receive device
     Device device = new Device();
     device.setName("Virtual Admin");
     device.setUniqueId(virtualAdminId);
     // TODO check if it exists to avoid exception
-    Device newDevice = api.devices.createDevice(device);
+    Device newDevice = api.getDevicesApi().createDevice(device);
 
     // returns the generated id (asserts not null)
     long newDeviceId = newDevice.getId();
     assertEquals(virtualAdminId, newDevice.getUniqueId());
 
-    assertEquals(0, api.devices.getDevices(null).size());
-    api.devices.deleteDevice(newDeviceId);
+    assertEquals(0, api.getDevicesApi().getDevices(null).size());
+    api.getDevicesApi().deleteDevice(newDeviceId);
   }
 }

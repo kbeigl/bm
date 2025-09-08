@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -19,9 +18,9 @@ import org.springframework.context.annotation.Import;
  * <p>AOP is used to handle Exceptions in one place for generated ApiClient and actual *Api.methods
  * in ApiAspect class.
  */
-@EnableAutoConfiguration
+// move up to BaseIntegrationTest ?
+// -> different behavior for various ITests
 @Import(ApiAspect.class)
-// without !! ClientExceptionHandler.class
 public class AspectIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(AspectIT.class);
 
@@ -38,14 +37,14 @@ public class AspectIT extends BaseIntegrationTest {
     // api.getApiClient().setBasePath(host);
 
     api.setBasicAuth(userMail, userPassword);
-    List<User> users = api.users.getUsers(null);
+    List<User> users = api.getUsersApi().getUsers(null);
     // this only returns users as admin
     assertEquals(0, users.size());
 
     // bad password
     api.setBasicAuth(userMail, userPassword + "XXX");
     try {
-      users = api.users.getUsers(null);
+      users = api.getUsersApi().getUsers(null);
     } catch (ApiException e) {
       logger.error("caught ApiException: {}", e.getMessage());
       assertTrue(
@@ -59,14 +58,14 @@ public class AspectIT extends BaseIntegrationTest {
   @Test
   public void userLoginApiClient() {
 
-    // api.users.getUsers returns null instead of empty list !?
+    // api.getUsersApi().getUsers returns null instead of empty list !?
     // switch Auth method, login as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
-    List<User> users = api.users.getUsers(null);
+    List<User> users = api.getUsersApi().getUsers(null);
     // assertEquals(users.size(), 0);
 
     api.setBearerToken(virtualAdmin);
-    users = api.users.getUsers(null);
+    users = api.getUsersApi().getUsers(null);
     // assertEquals(users.size(), 1);
   }
 
@@ -82,7 +81,7 @@ public class AspectIT extends BaseIntegrationTest {
     // changeing the BasePath causes problems with the ApiClient
     // (in consecutive tests or BaseIntegrationTest @After)
     // teardown method throws HttpClientErrorException: 405 METHOD_NOT_ALLOWED
-    api.getApiClient().setBasePath(invalidHost);
+    api.setBasePath(invalidHost);
 
     // does this make sense without a valid host? move up?
     api.setBearerToken(virtualAdmin);
@@ -92,7 +91,7 @@ public class AspectIT extends BaseIntegrationTest {
             RuntimeException.class,
             () -> {
               // without catching ApiException
-              api.users.createUserWithCredentials(userName, userPassword, userMail, false);
+              api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
             });
     logger.error("caught ApiException: {}", exception.getMessage());
     assertTrue(exception instanceof ApiException, "exception is not an ApiException");
@@ -101,7 +100,7 @@ public class AspectIT extends BaseIntegrationTest {
         "ApiException sent wrong message");
 
     // reset host for consecutive tests
-    api.getApiClient().setBasePath(host);
+    api.setBasePath(host);
   }
 
   /** Explicit catch when server is not present */
@@ -111,12 +110,12 @@ public class AspectIT extends BaseIntegrationTest {
     // TODO
     // changeing the BasePath causes problems with the ApiClient
     // (in consecutive tests or BaseIntegrationTest @After)
-    api.getApiClient().setBasePath(invalidHost);
+    api.setBasePath(invalidHost);
 
     // does this make sense without a valid host? move up?
     api.setBearerToken(virtualAdmin);
     try {
-      api.users.createUserWithCredentials(userName, userPassword, userMail, false);
+      api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
     } catch (ApiException exception) {
       logger.error("caught ApiException: {}", exception.getMessage());
       assertTrue(
@@ -124,7 +123,7 @@ public class AspectIT extends BaseIntegrationTest {
           "ApiException sent wrong message");
     }
     // reset host for consecutive tests
-    api.getApiClient().setBasePath(host);
+    api.setBasePath(host);
   }
 
   /**
@@ -135,7 +134,7 @@ public class AspectIT extends BaseIntegrationTest {
   public void createExistingUser() {
 
     try { // .. to create existing user again
-      api.users.createUserWithCredentials(userName, userPassword, userMail, false);
+      api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
     } catch (ApiException e) {
       if (e.getMessage().equals(ApiException.APIEX_BAD_REQUEST)) {
         logger.error("ApiException caught: {}", e.getMessage());

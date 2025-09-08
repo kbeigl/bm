@@ -8,7 +8,7 @@ public class ApiHelper {
    *
    * <p>Maybe create Api Aspect to automatically check/cast all Long params to Integer as needed?
    */
-  static Integer toInt(Long longObj) {
+  public static Integer toInt(Long longObj) {
     if (longObj == null) return null;
 
     Integer integer;

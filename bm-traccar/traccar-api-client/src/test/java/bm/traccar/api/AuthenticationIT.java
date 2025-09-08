@@ -11,18 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 
-@EnableAutoConfiguration
-@ContextConfiguration(classes = {ApiService.class})
-@TestPropertySource("classpath:application.properties")
-@Import(ApiConfig.class)
-// test without AOP
-// @Import({ApiConfig.class, ApiAspect.class})
-// @ExtendWith(ClientExceptionHandler.class)
 public class AuthenticationIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(AuthenticationIT.class);
 
@@ -41,7 +30,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
     // 'login' as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
     showCredentials();
-    List<User> users = api.users.getUsers(null);
+    List<User> users = api.getUsersApi().getUsers(null);
     logger.info("admin users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
@@ -50,7 +39,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     // change back to SuperUserAccess
     api.setBearerToken(virtualAdmin);
-    users = api.users.getUsers(null);
+    users = api.getUsersApi().getUsers(null);
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }
@@ -77,7 +66,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     showCredentials();
 
-    List<User> users = api.users.getUsers(null);
+    List<User> users = api.getUsersApi().getUsers(null);
     logger.info("'user' users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
@@ -86,7 +75,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
     apiClient.setPassword(null);
     apiClient.setBearerToken(virtualAdmin);
 
-    users = api.users.getUsers(null);
+    users = api.getUsersApi().getUsers(null);
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }

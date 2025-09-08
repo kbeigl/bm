@@ -1,6 +1,7 @@
 package bm.traccar.api;
 
 import bm.traccar.generated.api.DevicesApi;
+import bm.traccar.generated.api.ServerApi;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
@@ -36,5 +37,10 @@ public class ApiConfig {
   @Bean
   DevicesApi devicesApi(ApiClient apiClient) {
     return new DevicesApi(apiClient);
+  }
+
+  @Bean
+  ServerApi serverApi(ApiClient apiClient) {
+    return new ServerApi(apiClient);
   }
 }

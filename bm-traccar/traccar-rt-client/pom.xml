@@ -28,16 +28,25 @@
         <version>1.1.6</version>
     </parent>
 
-    <artifactId>traccar-api-client</artifactId>
+    <artifactId>traccar-rt-client</artifactId>
         <version>6.8.0</version>
 
-    <name>..... traccar-api-client</name>
-    <description>based on generated API from OpenAPI generator</description>
+    <name>..... traccar-rt-client</name>
+    <description>traccar-real-time-client</description>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-http-starter</artifactId>
+            <!-- to be removed, only HttpOperationFailedException used-->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-vertx-websocket-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
@@ -49,8 +58,14 @@
         </dependency>
         <dependency>
             <groupId>bm</groupId>
-            <artifactId>traccar-api-generated</artifactId>
+            <artifactId>traccar-api-client</artifactId>
             <version>${traccar.version}</version>
+        </dependency>
+        <dependency>
+            <!-- only for 'IDE? move up ? used for scenatio.props -->
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-configuration-processor</artifactId>
+        	<optional>true</optional>
         </dependency>
     </dependencies>
 

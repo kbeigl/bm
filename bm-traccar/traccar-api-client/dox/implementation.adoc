@@ -186,13 +186,3 @@ invocation order
       invoke ApiClient.invokeAPI(..)                 |
     Exception in ApiMethod: **UsersApi.usersPost(..) **
 -----------------
-
-== Traccar WebSocket
-
-The `traccar-api-client` is a Java Client Software to receive real time data 
-from your Traccar Server. While the REST API is based 
-on single requests and responses without any session handling, i.e. stateless,
-this client can create a Camel channel for each individual registered user.
-
-link:./websocket.adoc[read more ...]
-

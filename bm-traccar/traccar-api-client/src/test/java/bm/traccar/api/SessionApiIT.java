@@ -19,13 +19,13 @@ public class SessionApiIT extends BaseIntegrationTest {
     api.setBasicAuth(null, null);
 
     // always a new JSESSIONID is created
-    String jSession1 = api.session.getSessionGetJsessionId(virtualAdmin);
-    String jSession2 = api.session.getSessionGetJsessionId(virtualAdmin);
+    String jSession1 = api.getSessionApi().getSessionGetJsessionId(virtualAdmin);
+    String jSession2 = api.getSessionApi().getSessionGetJsessionId(virtualAdmin);
     assertNotEquals(jSession1, jSession2);
 
     // org.springframework.web.client.HttpClientErrorException$BadRequest:
     //    400 Bad Request
-    // api.session.getSessionGetJsessionId("invalidToken");
+    // api.getSessionApi().getSessionGetJsessionId("invalidToken");
   }
 
   /**
@@ -36,7 +36,7 @@ public class SessionApiIT extends BaseIntegrationTest {
    */
   @Test
   public void createSessionGetJsessionId() {
-    String jSessionId = api.session.createSessionGetJsessionId(userMail, userPassword);
+    String jSessionId = api.getSessionApi().createSessionGetJsessionId(userMail, userPassword);
     logger.info("received JSESSIONID: {}", jSessionId);
     assertEquals(true, jSessionId != null);
   }
@@ -48,7 +48,7 @@ public class SessionApiIT extends BaseIntegrationTest {
    */
   @Test
   public void createSessionGetUser() {
-    User sessionUser = api.session.createSession(userMail, userPassword);
+    User sessionUser = api.getSessionApi().createSession(userMail, userPassword);
     logger.info("get session for User: {}/{} ", sessionUser.getName(), sessionUser.getEmail());
     assertEquals(userMail, sessionUser.getEmail());
     assertEquals(userName, sessionUser.getName());
@@ -60,7 +60,7 @@ public class SessionApiIT extends BaseIntegrationTest {
    */
   @Test
   public void getSessionSuperUser() {
-    User sessionUser = api.session.getSession(virtualAdmin);
+    User sessionUser = api.getSessionApi().getSession(virtualAdmin);
     logger.info("get session for SuperUser: {}/{} ", sessionUser.getName(), sessionUser.getEmail());
     assertEquals("Service Account", sessionUser.getName());
     assertEquals("none", sessionUser.getEmail());
@@ -68,18 +68,18 @@ public class SessionApiIT extends BaseIntegrationTest {
 
   @Test
   public void getJsessionIdForSuperUser() {
-    String jSessionId = api.session.getSessionGetJsessionId(virtualAdmin);
+    String jSessionId = api.getSessionApi().getSessionGetJsessionId(virtualAdmin);
     logger.info("received JSESSIONID: {}", jSessionId);
     assertEquals(true, jSessionId != null);
   }
 
-  @Test
+  // @Test
   public void createGetDeleteSuperUserSession() {
 
-    //	String jSessionId = api.session.createSessionGetJsessionId(virtualAdmin);
+    //	String jSessionId = api.getSessionApi().createSessionGetJsessionId(virtualAdmin);
     //	logger.debug("received JSESSIONID: {}", jSessionId);
     //	assertEquals(true, jSessionId != null);
-    //	api.session.deleteSession();
+    //	api.getSessionApi().deleteSession();
     //	logger.debug("deleted session for super user");
 
   }

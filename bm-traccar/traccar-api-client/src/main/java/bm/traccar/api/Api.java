@@ -17,14 +17,30 @@ import java.util.List;
  */
 public interface Api {
 
-  // interface Auth {  ..
-  // authentication methods -------------------------------
+  // interface Auth and conection handling
+  // authentication and other ApiClient methods
   void setBasicAuth(String mail, String password);
 
   void setBearerToken(String token);
 
-  // String whoAmI();
-  // 	return session with mail, if set
+  void setBasePath(String host);
+
+  // String whoAmI() {
+  //     apiClient.getAuthentication();
+  //     apiClient.getUsername(); // mail
+  //     apiClient.getPassword(); // password
+  //   return session with mail, if set
+
+  Api.Server getServerApi();
+
+  interface Server { // extends Api ?
+    bm.traccar.generated.model.dto.Server getServerInfo(); // GET
+
+    bm.traccar.generated.model.dto.Server updateServer(
+        bm.traccar.generated.model.dto.Server server); // PUT
+  }
+
+  Api.Session getSessionApi();
 
   interface Session {
 
@@ -39,6 +55,8 @@ public interface Api {
     void deleteSession(); // DELETE
   }
 
+  Api.Users getUsersApi();
+
   interface Users {
 
     User createUser(User user) throws ApiException; // POST
@@ -47,13 +65,18 @@ public interface Api {
 
     void deleteUser(Long id) throws ApiException; // DELETE
 
+    // TODO: use stricter type than String for userId
     List<User> getUsers(String userId) throws ApiException; // GET
+
+    // List<User> getUsers( /* no args */ ) throws ApiException; // GET
 
     // helper methods below based on generic calls above ------------
     // handle ApiException ?
 
     User createUserWithCredentials(String usr, String pwd, String mail, Boolean admin);
   }
+
+  Api.Devices getDevicesApi();
 
   interface Devices {
 

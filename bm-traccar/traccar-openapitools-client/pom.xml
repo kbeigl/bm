@@ -25,10 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>6.8.0</version>
+        <version>1.1.6</version>
     </parent>
 
     <artifactId>traccar-openapitools-client</artifactId>
+        <version>6.8.0</version>
 
     <name>..... traccar-openapitools-client</name>
     <description>remote control on your traccar server</description>

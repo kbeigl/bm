@@ -4,39 +4,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bm.traccar.generated.model.dto.User;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 
 /**
  * Test <code>api/users</code> methods, @see <a
  * href="https://www.traccar.org/api-reference/#tag/Users">UsersApi</a> with ApiService. <br>
  * In database lingo create, update, delete User in traccar datamodel using generated entities.
  */
-@EnableAutoConfiguration
-@ContextConfiguration(classes = {ApiService.class})
-@TestPropertySource("classpath:application.properties")
-@Import(ApiConfig.class)
-// without AOP !
-@ExtendWith(ClientExceptionHandler.class)
 public class UsersApiIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(UsersApiIT.class);
 
   /** Test platonic API methods from interface for User DTO */
-
-  // @Before/AfterAll from BaseIntegrationTest is not used
-
   @Test
   public void createUpdateDeleteUser() {
 
     api.setBearerToken(virtualAdmin);
 
     // get nr of users, assert users++, back to nr
-    int userNr = api.users.getUsers(null).size();
+    int userNr = api.getUsersApi().getUsers(null).size();
 
     // create / receive user
     User user = new User();
@@ -45,8 +31,9 @@ public class UsersApiIT extends BaseIntegrationTest {
     user.setEmail("email-1"); // email syntax is not validated !
     user.setPassword("pw-1"); // can't login UI without a password (useful!), backend can without
 
-    User newUser = api.users.createUser(user);
-    assertEquals(userNr + 1, api.users.getUsers(null).size());
+    User newUser = api.getUsersApi().createUser(user);
+    // matching method names !!
+    assertEquals(userNr + 1, api.getUsersApi().getUsers(null).size());
 
     // returns the generated id (asserts not null)
     Long userId = newUser.getId();
@@ -54,12 +41,12 @@ public class UsersApiIT extends BaseIntegrationTest {
     // update user
     newUser.setEmail("email-1-b");
 
-    User putUser = api.users.updateUser(userId, newUser);
-    assertEquals(userNr + 1, api.users.getUsers(null).size());
+    User putUser = api.getUsersApi().updateUser(userId, newUser);
+    assertEquals(userNr + 1, api.getUsersApi().getUsers(null).size());
 
     // delete user
-    api.users.deleteUser(putUser.getId());
-    assertEquals(userNr, api.users.getUsers(null).size());
+    api.getUsersApi().deleteUser(putUser.getId());
+    assertEquals(userNr, api.getUsersApi().getUsers(null).size());
   }
 
   /**
@@ -77,7 +64,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     // update user should fail without server call
     try {
-      api.users.updateUser(longUserId, user);
+      api.getUsersApi().updateUser(longUserId, user);
     } catch (ApiException e) {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }
@@ -85,7 +72,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     // delete user should fail without server call
     try {
-      api.users.deleteUser(longUserId);
+      api.getUsersApi().deleteUser(longUserId);
     } catch (ApiException e) {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }

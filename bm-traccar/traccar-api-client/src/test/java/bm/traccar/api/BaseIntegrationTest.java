@@ -22,11 +22,12 @@ import org.springframework.test.context.TestPropertySource;
  * ITests. The @AfterAll method is used to clean the Traccar database after all tests in the class
  * have been executed for the next ITest.
  */
-@SpringBootTest
-// @EnableAutoConfiguration in subclasses
+@SpringBootTest // implies @EnableAutoConfiguration
+// move/add ApiAspect.class from AspectIT and GeneratedSessionApiIT here
+// Tell Spring Boot to create a context containing ONLY these beans.
 @ContextConfiguration(classes = {ApiService.class})
+@Import(ApiConfig.class) // typically @Configuration classes
 @TestPropertySource("classpath:application.properties")
-@Import(ApiConfig.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(BaseIntegrationTest.class);
@@ -53,8 +54,7 @@ public abstract class BaseIntegrationTest {
   @Value("${traccar.user.email}")
   protected String userMail;
 
-  @Autowired protected ApiService api;
-  // protected Api api; // interface only
+  @Autowired protected Api api;
 
   Long userId, adminId;
 
@@ -62,10 +62,13 @@ public abstract class BaseIntegrationTest {
   public void setup() throws ApiException {
     api.setBearerToken(virtualAdmin);
     // dont use these User objects > get it from the database via API and *Id
-    User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
+    // User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
+    User user =
+        api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
     userId = user.getId();
     logger.info("Created User {} (id={})", userMail, userId);
-    User admin = api.users.createUserWithCredentials(adminName, adminPassword, adminMail, true);
+    User admin =
+        api.getUsersApi().createUserWithCredentials(adminName, adminPassword, adminMail, true);
     adminId = admin.getId();
     logger.info("Created Admin {} (id={})", adminMail, adminId);
   }
@@ -75,9 +78,9 @@ public abstract class BaseIntegrationTest {
     // api.setBearerToken(virtualAdmin);
     api.setBasicAuth(adminMail, adminPassword);
     // catch Execption in case user or admin have been deleted in a test
-    api.users.deleteUser(userId);
+    api.getUsersApi().deleteUser(userId);
     logger.info("Deleted User {} (id={})", userMail, userId);
-    api.users.deleteUser(adminId);
+    api.getUsersApi().deleteUser(adminId);
     logger.info("Deleted Admin {} (id={})", adminMail, adminId);
   }
 }
