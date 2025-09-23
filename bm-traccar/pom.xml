@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.6</version>
+        <version>1.1.7</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
@@ -42,8 +42,10 @@
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
         <docker.image.os>ubuntu</docker.image.os>
+        
         <!-- simplify build on github and user pulls-->
-        <docker.skip.tests>true</docker.skip.tests>
+        <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
+        <!-- ITs are skipped, but docker is starting if above is false -->
         <integration.tests.skip>true</integration.tests.skip>
     </properties>
 

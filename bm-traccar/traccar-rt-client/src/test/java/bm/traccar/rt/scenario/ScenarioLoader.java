@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * <p>This class takes care of getting the scenario properties via ScenarioProperties class and
  * creates the Test Scenario on the Traccar Server.
  */
-@Component
+@Component // @Singleton ?
 public class ScenarioLoader {
   private static final Logger logger = LoggerFactory.getLogger(ScenarioLoader.class);
 
@@ -29,11 +29,13 @@ public class ScenarioLoader {
   @Value("${traccar.server.registration}")
   protected boolean serverRegistration;
 
-  // protected Api api; // interface only
   @Autowired protected Api api;
   @Autowired private ScenarioProperties props;
 
-  User admin, manager, hide, seek;
+  public User admin;
+  User manager, hide, seek;
+
+  // setupScenario(adminMail, adminPassword);
 
   /** Each scenario must have an admin account with a view on all Traccar Objects. */
   public void setupScenario() {
@@ -50,6 +52,9 @@ public class ScenarioLoader {
     // create devices for users - as admin or user ?
     // one user could control all detective-devices
     createScenarioDevices();
+
+    // virtualAdmin is still authorized in extending tests!
+
   }
 
   // createDevicesForUser(..);
@@ -63,8 +68,7 @@ public class ScenarioLoader {
       Device createdDevice =
           api.getDevicesApi()
               .createDevice(new Device().name(d.name).uniqueId(d.uniqueId).model(d.model));
-      logger.info("Created Device {}: {}", i, createdDevice.getName());
-      // Optionally assign to fields if needed
+      logger.info("Created Device.id{}: {}", createdDevice.getId(), createdDevice.getName());
       switch (i) {
         case 0:
           adminDevice = createdDevice;
@@ -88,7 +92,7 @@ public class ScenarioLoader {
       ScenarioProperties.User u = props.getUser().get(i);
       User createdUser =
           api.getUsersApi().createUserWithCredentials(u.name, u.password, u.email, false);
-      logger.info("Created User {}: {}", i, createdUser.getName());
+      logger.info("Created User.id{}: {}", createdUser.getId(), createdUser.getName());
       // Optionally assign to fields if needed
       switch (i) {
         case 1:
@@ -116,12 +120,15 @@ public class ScenarioLoader {
     admin.setUserLimit(5);
     admin.setDeviceLimit(5);
     api.getUsersApi().updateUser(admin.getId(), admin);
-    logger.info("Created Admin User: {}", admin.getName());
+    logger.info("Created Admin User.id{}: {}", admin.getId(), admin.getName());
+    // for test purposes we will set the password
+    admin.setPassword(user.password);
     return admin;
   }
 
   /** This actually does not belong to the scenario itself, it's a prerequisite. */
   private void setupServer() {
+    logger.info("--- Setup scenario on server ---");
     Server server = api.getServerApi().getServerInfo();
     if (!server.getRegistration()) {
       server.setRegistration(true);
@@ -140,7 +147,7 @@ public class ScenarioLoader {
         for (Device device : api.getDevicesApi().getDevices(null)) {
           if (device.getUniqueId().equals(d.uniqueId)) {
             api.getDevicesApi().deleteDevice(device.getId());
-            logger.info("Deleted Device {}: {}", i, device.getName());
+            logger.info("Deleted Device.id{}: {}", device.getId(), device.getName());
             break;
           }
         }
@@ -156,7 +163,7 @@ public class ScenarioLoader {
         for (User user : api.getUsersApi().getUsers(null)) {
           if (user.getEmail().equals(u.email)) {
             api.getUsersApi().deleteUser(user.getId());
-            logger.info("Deleted User {}: {}", i, user.getEmail());
+            logger.info("Deleted User.id{}: {}", user.getId(), user.getEmail());
             break;
           }
         }
@@ -170,7 +177,7 @@ public class ScenarioLoader {
       for (User user : api.getUsersApi().getUsers(null)) {
         if (user.getEmail().equals(adminProp.email)) {
           api.getUsersApi().deleteUser(user.getId());
-          logger.info("Deleted Admin User: {}", user.getEmail());
+          logger.info("Deleted Admin User.id{}: {}", user.getId(), user.getEmail());
           break;
         }
       }

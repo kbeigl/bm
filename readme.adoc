@@ -14,12 +14,12 @@ link:releases.txt[version history] .
 
 [source,text]
 -----------------
-[INFO] === blue marble simulations                === 1.1.6 
-[INFO] --- blue marble parameters                 --- 1.1.6 
-[INFO] ---- traccar client implementations        --- 6.8.0 
+[INFO] === blue marble simulations                === 1.1.7 
+[INFO] --- blue marble parameters                 --- 1.1.7 
+[INFO] ---- traccar client implementations        --- 1.1.7 
 [INFO] ..... traccar-openapitools-client 6.8.0 ............ 
 [INFO] ..... traccar-api-client          6.8.0 ............ 
-[INFO] ..... traccar-rt -client          6.8.0 ............ 
+[INFO] ..... traccar-rt-client           6.8.0 ............ 
 -----------------
 
 == `/bm-parent`
@@ -65,14 +65,13 @@ Pull driving reports for your sales team ... and much more ;)
 
 link:./bm-traccar/traccar-api-client/readme.adoc[read more ...]
 
-=== `/traccar-api-camel`
+=== `/traccar-rt-client`
 
-==== Camel Example with OpenAPI
+==== The Traccar Real-Time Client
 
-An example to demonstrate how to utilize Camel to expose REST APIs 
-from the existing OpenAPI specification for Traccar.
-This is a good starting point to integrate Camel channels 
-with your administrativ software for full automation.
+The traccar-rt-client is a Java Client Software 
+to provide full (remote) control over and interact 
+via live surveillance of your Traccar Server Scenario. 
 
-link:./bm-traccar/traccar-api-camel/readme.adoc[read more ...]
+link:./bm-traccar/traccar-rt-client/readme.adoc[read more ...]
 

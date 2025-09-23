@@ -13,28 +13,24 @@ import java.util.stream.Collectors;
 
 /**
  * A thread-safe Singleton class to manage the real-time state of the Traccar client. It uses
- * ConcurrentHashMaps to allow safe updates from background threads (e.g., WebSocket listeners).
+ * ConcurrentHashMaps to allow safe updates from background webSocket threads.
  */
-public final class TraccarRealTime {
+public final class RealTimeManager {
 
-  private static final TraccarRealTime INSTANCE = new TraccarRealTime();
-
-  // Data is stored in maps for fast O(1) lookups by ID.
-  // ConcurrentHashMap is used for thread safety.
-  private final Map<Long, Device> devices = new ConcurrentHashMap<>();
-  private final Map<Long, Position> positions = new ConcurrentHashMap<>();
-  // You would add more maps here for Geofences, Events, etc.
+  private static final RealTimeManager INSTANCE = new RealTimeManager();
 
   private User currentUser;
   private volatile boolean isAuthenticated = false;
 
-  private TraccarRealTime() {
-    // Private constructor to prevent instantiation.
-  }
+  private RealTimeManager() {}
 
-  public static TraccarRealTime getInstance() {
+  public static RealTimeManager getInstance() {
     return INSTANCE;
   }
+
+  private final Map<Long, User> users = new ConcurrentHashMap<>();
+  private final Map<Long, Device> devices = new ConcurrentHashMap<>();
+  private final Map<Long, Position> positions = new ConcurrentHashMap<>();
 
   // --- State Modification Methods ---
 
@@ -45,20 +41,39 @@ public final class TraccarRealTime {
   }
 
   /** Clears all user data on logout. */
-  public void logout() {
+  public void logoutAndClear() {
     this.currentUser = null;
     this.isAuthenticated = false;
+    this.users.clear();
     this.devices.clear();
     this.positions.clear();
   }
 
-  /** Loads the initial list of devices from the REST API. */
+  /**
+   * Generic method to load initial entities into a ConcurrentHashMap by their ID.
+   *
+   * @param entityList List of entities to load
+   * @param map The map to populate
+   * @param idExtractor Function to extract the ID from the entity
+   * @param <T> Entity type
+   * @param <K> ID type
+   */
+  private <T, K> void loadInitialEntities(
+      List<T> entityList, Map<K, T> map, java.util.function.Function<T, K> idExtractor) {
+    map.clear();
+    Map<K, T> entityMap =
+        entityList.stream().collect(Collectors.toMap(idExtractor, Function.identity()));
+    map.putAll(entityMap);
+  }
+
+  /** Loads the initial list of users from server. */
+  public void loadInitialUsers(List<User> userList) {
+    loadInitialEntities(userList, users, User::getId);
+  }
+
+  /** Loads the initial list of devices from server. */
   public void loadInitialDevices(List<Device> deviceList) {
-    devices.clear();
-    // Convert the list to a map keyed by device ID
-    Map<Long, Device> deviceMap =
-        deviceList.stream().collect(Collectors.toMap(Device::getId, Function.identity()));
-    devices.putAll(deviceMap);
+    loadInitialEntities(deviceList, devices, Device::getId);
   }
 
   /**
@@ -84,6 +99,7 @@ public final class TraccarRealTime {
 
   /** Adds or updates a device from a WebSocket message. */
   public void addOrUpdateDevice(Device device) {
+    System.out.println("RTM addOrUpdateDevice: " + device);
     if (device == null) return;
     devices.put(device.getId(), device);
   }
@@ -98,6 +114,10 @@ public final class TraccarRealTime {
     return isAuthenticated;
   }
 
+  public Optional<User> getUserById(long id) {
+    return Optional.ofNullable(users.get(id));
+  }
+
   public Optional<Device> getDeviceById(long id) {
     return Optional.ofNullable(devices.get(id));
   }
@@ -106,11 +126,12 @@ public final class TraccarRealTime {
     return Optional.ofNullable(positions.get(id));
   }
 
-  /**
-   * Returns a copy of the list of all devices.
-   *
-   * @return A new List containing all current devices.
-   */
+  /** Returns a copy of the list of all users. */
+  public List<User> getAllUsers() {
+    return new ArrayList<>(users.values());
+  }
+
+  /** Returns a copy of the list of all devices. */
   public List<Device> getAllDevices() {
     return new ArrayList<>(devices.values());
   }

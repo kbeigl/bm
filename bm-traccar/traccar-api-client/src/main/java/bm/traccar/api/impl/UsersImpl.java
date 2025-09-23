@@ -35,6 +35,8 @@ public class UsersImpl implements Api.Users {
     return usersApi.usersGet(userId);
   }
 
+  // getCurrentUser()
+
   @Override
   public User createUserWithCredentials(String usr, String pwd, String mail, Boolean admin) {
     User user = new User();

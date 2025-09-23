@@ -1,6 +1,7 @@
 package bm.traccar.api;
 
 import bm.traccar.generated.model.dto.*;
+import bm.traccar.invoke.auth.HttpBasicAuth;
 import java.util.List;
 
 /**
@@ -21,11 +22,13 @@ public interface Api {
   // authentication and other ApiClient methods
   void setBasicAuth(String mail, String password);
 
+  // String whoAmI() - mail/name and password
+  HttpBasicAuth getBasicAuth();
+
   void setBearerToken(String token);
 
   void setBasePath(String host);
 
-  // String whoAmI() {
   //     apiClient.getAuthentication();
   //     apiClient.getUsername(); // mail
   //     apiClient.getPassword(); // password

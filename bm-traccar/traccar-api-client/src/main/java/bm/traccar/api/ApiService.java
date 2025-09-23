@@ -9,6 +9,7 @@ import bm.traccar.generated.api.ServerApi;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
+import bm.traccar.invoke.auth.HttpBasicAuth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,18 @@ public class ApiService implements Api {
     apiClient.setBearerToken(nul);
     apiClient.setUsername(mail);
     apiClient.setPassword(password);
+  }
+
+  /**
+   * Return current BasicAuth or null if not set. BasicAuth provides name/pw currently logged in.
+   */
+  @Override
+  public HttpBasicAuth getBasicAuth() { // getLoginUser()
+    HttpBasicAuth basicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
+    if (basicAuth != null) {
+      return basicAuth;
+    }
+    return null;
   }
 
   /**

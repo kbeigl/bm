@@ -51,8 +51,8 @@ public class ScenarioProperties {
   }
 
   public static class User {
-    String name, password, email;
-    boolean administrator;
+    public String name, password, email;
+    public boolean administrator;
 
     public void setAdministrator(boolean administrator) {
       this.administrator = administrator;
