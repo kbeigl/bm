@@ -1,0 +1,67 @@
+
+= Maven maintenance & release
+
+
+== upgrades and updates
+
+After releasing a repository version `v1,0`, `v1.1.1-SNAPSHOT` or `-RC` etc. 
+the major versions are upgraded. +
+The following steps cover the vital coordinates. 
+
+=== step 1 - maven versions  
+
+  mvn versions:display-plugin-updates
+
+=== step 2 - Camel and Spring versions  
+
+The above maven command does not check the BOM versions.
+Therefor they are incremented one by one until the repository
+is completly build with `mvn install`.
+
+        <camel-version>4.10.6</camel-version>
+  <spring-boot-version>3.4.7</spring-boot-version>
+
+We usually stick to the `LTS` versions provided.
+
+=== step 3 - Java and JDK versions
+
+Upgrading Java can be fine for the repository.
+Nevertheless we would like to keep a compromise between highest available 
+and lowest backward compatibility for users of the released jar files.
+
+        <jdk.version>21</jdk.version>
+
+=== step 4 - Tracar versions
+
+This step is more than just a change of pom coordinates.
+Traccar always has and still is evolving at a high pace and
+for this repository especially the REST API is vital.
+Therefor we go through this upgrade process, if there is time :(
+
+For your purposes check the API version and most REST calls 
+have been available for years and should be (backward) compatible
+to your Traccar Server Version.
+
+And the
+
+    org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -> 7.14.0
+
+should be updated with the Traccar Version.
+
+ 
+=== useful mvn commands
+
+Maven also provides 
+
+    dependency:analyze 
+    
+plugin goal for analyzing the dependencies:
+it helps making this best practice more achievable.
+
+Most Maven plugins have a help goal
+that prints a description of the plugin and its parameters and types. +
+For instance, to see help for the javadoc goal, type:
+
+      mvn javadoc:help -Ddetail -Dgoal=javadoc
+
+ 

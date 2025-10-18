@@ -1,0 +1,15 @@
+
+:toc: left
+:toclevels: 3
+:doctype: book
+
+include::client-development.adoc[]
+ 
+include::setup-docker.adoc[]
+ 
+include::test-database.adoc[]
+ 
+include::setup-tests.adoc[]
+
+include::setup-development.adoc[]
+ 

@@ -1,77 +1,44 @@
 
-:toc:
+= repository documentation
 
-= Repo
+The repository is documented in all layers of aggregate and regular modules.
+Documentation is written with `.adoc` files to use many of its features,
+basically from crosslinks to more complex things like integrating charts.
+You should be aware that `.adoc` files are actually source files
+to be compiled with `AsciiDoc` to a variety of presentation-rich output 
+formats, like a complete website or pdf.
 
-This repository serves as development environment of +
-the `The RealObject Application Framework` described in this 
-link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[book].
+[TIP]
+====
+At development time you should browse the `.adoc` files to edit, +
+while the `.html` files are produced for releases. +
+During development you can ignore the `.html` files in your commits. 
+====
 
-For earlier versions check the 
-link:releases.txt[version history] .
 
-== latest versions
+== what do you see now?
 
-[source,text]
------------------
-[INFO] === blue marble simulations                === 1.1.7 
-[INFO] --- blue marble parameters                 --- 1.1.7 
-[INFO] ---- traccar client implementations        --- 1.1.7 
-[INFO] ..... traccar-openapitools-client 6.8.0 ............ 
-[INFO] ..... traccar-api-client          6.8.0 ............ 
-[INFO] ..... traccar-rt-client           6.8.0 ............ 
------------------
+You are now looking at the main `readme.adoc` of this repository.
 
-== `/bm-parent`
+If you are viewing the file through `github` then the site 
+is rendering the links below and you can follow one of them.
 
-This `bm-sim` repository is a *Maven Multi Module* project.
-The Maven Reactor mechanism makes sure to collect all modules 
-and assert correct build order with every `mvn` command executed. 
-It assures that any project is build as required by another.  
+If you are looking at the same file on your local filesystem
+through a browser the links must not work, because it requires
+a preview extension to create them from `ascii` format.
+Then again you will not see the integrated charts in the documents
+as they also require a separate extension or online tool.
 
-link:./bm-parent/readme.adoc[read more ...]
+== choose your format
 
-== `/bm-traccar`
+We are using the `asciidoctor-maven-plugin` to convert 
+every `.adoc` file to a `.html` page, which does not require 
+any settings on your browser or elsewhere.
 
-The `bm-traccar` aggregator POM is the development environment 
-to code against the link:https://www.traccar.org/[Traccar GPS Tracking Platform].
-Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
-The System was thoroughly analyzed in the 
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc[Jeets Project]
-and
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[Jeets Book].
+The following links point to the repository parent `bm.adoc` or `bm.html`. +
+Choose your own entry point and format to navigate through the documentation.
 
-link:./bm-traccar/readme.adoc[read more to setup and adopt your development environment]
-
-=== `/traccar-openapitools-client`
-
-The Traccar REST API is defined in a single `openapi.yaml` file,
-which is processed with the  
-link:https://github.com/OpenAPITools/openapi-generator[OpenAPI Generator] 
-to generate a plain Java Client `traccar-api-generated-x.y.z.jar` from the 
-link:https://swagger.io/specification/[OpenAPI specification]. 
-
-link:./bm-traccar/traccar-openapitools-client/readme.adoc[read more ...]
-
-=== `/traccar-api-client`
-
-==== The Traccar OpenAPI Client
-
-The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
-And it can be used to integrate your Tracking with your company systems, 
-like Human Resources-, Sales- and Fleet Management Software.
-Synchronize your employees with their cars and driver information without utilizing the traccar UI.
-Pull driving reports for your sales team ... and much more ;) 
-
-link:./bm-traccar/traccar-api-client/readme.adoc[read more ...]
-
-=== `/traccar-rt-client`
-
-==== The Traccar Real-Time Client
-
-The traccar-rt-client is a Java Client Software 
-to provide full (remote) control over and interact 
-via live surveillance of your Traccar Server Scenario. 
-
-link:./bm-traccar/traccar-rt-client/readme.adoc[read more ...]
+bm repository documentation entry points: 
+link:./src/asciidoc/bm.adoc[adoc] or
+link:./src/asciidoc/bm.html[html] format
 

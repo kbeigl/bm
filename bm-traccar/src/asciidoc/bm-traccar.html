@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.23">
+<title>Traccar Client Development</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment the following line when using as a custom stylesheet */
+/* @import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700"; */
+html{font-family:sans-serif;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+b,strong{font-weight:bold}
+abbr{font-size:.9em}
+abbr[title]{cursor:help;border-bottom:1px dotted #dddddf;text-decoration:none}
+dfn{font-style:italic}
+hr{height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type=checkbox],input[type=radio]{padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,::before,::after{box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;line-height:1;position:relative;cursor:auto;-moz-tab-size:4;-o-tab-size:4;tab-size:4;word-wrap:anywhere;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:1px solid #dedede;word-wrap:normal}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre).nobreak{word-wrap:normal}
+:not(pre).nowrap{white-space:nowrap}
+:not(pre).pre-wrap{white-space:pre-wrap}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.2),inset 0 0 0 .1em #fff;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin:0 auto;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child{border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border:1px solid #e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:none;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:hsla(0,0%,100%,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details{margin-left:1.25rem}
+details>summary{cursor:pointer;display:block;position:relative;line-height:1.6;margin-bottom:.625rem;outline:none;-webkit-tap-highlight-color:transparent}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"";border:solid transparent;border-left:solid;border-width:.3em 0 .3em .5em;position:absolute;top:.5em;left:-1.25rem;transform:translateX(15%)}
+details[open]>summary::before{border:solid transparent;border-top:solid;border-width:.5em .3em 0;transform:translateY(15%)}
+details>summary::after{content:"";width:1.25rem;height:1em;position:absolute;top:.3em;left:-1.25rem}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class=paragraph]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6);word-wrap:anywhere}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border:1px solid #e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;border-radius:4px}
+.sidebarblock{border:1px solid #dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;border-radius:4px}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:first-child,.sidebarblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child,.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{border-radius:4px;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos,pre.pygments .linenos{border-right:1px solid;opacity:.35;padding-right:.5em;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+pre.pygments span.linenos{display:inline-block;margin-right:.75em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans-serif;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;font-size:.85rem;text-align:left;margin-right:0}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content{margin-bottom:1.25em;word-wrap:anywhere}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>*>tr>*{border-width:1px}
+table.grid-cols>*>tr>*{border-width:0 1px}
+table.grid-rows>*>tr>*{border-width:1px 0}
+table.frame-all{border-width:1px}
+table.frame-ends{border-width:1px 0}
+table.frame-sides{border-width:0 1px}
+table.frame-none>colgroup+*>:first-child>*,table.frame-sides>colgroup+*>:first-child>*{border-top-width:0}
+table.frame-none>:last-child>:last-child>*,table.frame-sides>:last-child>:last-child>*{border-bottom-width:0}
+table.frame-none>*>tr>:first-child,table.frame-ends>*>tr>:first-child{border-left-width:0}
+table.frame-none>*>tr>:last-child,table.frame-ends>*>tr>:last-child{border-right-width:0}
+table.stripes-all>*>tr,table.stripes-odd>*>tr:nth-of-type(odd),table.stripes-even>*>tr:nth-of-type(even),table.stripes-hover>*>tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+li>p:empty:only-child::before{content:"";display:inline-block}
+ul.checklist>li>p:first-child{margin-left:-1em}
+ul.checklist>li>p:first-child>.fa-square-o:first-child,ul.checklist>li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist>li>p:first-child>input[type=checkbox]:first-child{margin-right:.25em}
+ul.inline{display:flex;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+td.hdlist2{word-wrap:anywhere}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:4px solid #fff;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active,#footnotes .footnote a:first-of-type:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);border-radius:50%;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt,summary{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,td.hdlist1,span.alt,summary{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]{border-bottom:1px dotted}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#header,#content,#footnotes,#footer{max-width:none}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media amzn-kf8,print{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<h1>Traccar Client Development</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_dockerized_traccar_server">Dockerized Traccar Server</a>
+<ul class="sectlevel1">
+<li><a href="#_build_and_run_traccar_docker_container">build and run Traccar Docker Container</a></li>
+<li><a href="#_docker_maven_plugin"><code>docker-maven-plugin</code></a>
+<ul class="sectlevel2">
+<li><a href="#_build"><code>&lt;build&gt;</code></a>
+<ul class="sectlevel3">
+<li><a href="#_dockerfile"><code>&lt;dockerFile&gt;</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_dockerrun"><code>docker:run</code></a>
+<ul class="sectlevel2">
+<li><a href="#_create_work_directories">create work directories</a></li>
+<li><a href="#_cat_default_traccar_xml">cat default traccar.xml</a></li>
+<li><a href="#_create_container">create container</a></li>
+<li><a href="#_run"><code>&lt;run&gt;</code></a>
+<ul class="sectlevel3">
+<li><a href="#_port"><code>&lt;port&gt;</code></a></li>
+<li><a href="#_wait"><code>&lt;wait&gt;</code></a></li>
+<li><a href="#_volumes"><code>&lt;volumes&gt;</code></a></li>
+<li><a href="#_traccardata"><code>&lt;traccar/data&gt;</code></a></li>
+<li><a href="#_log"><code>&lt;log&gt;</code></a></li>
+</ul>
+</li>
+<li><a href="#_mvn_dockerrun"><code>mvn docker:run</code></a></li>
+</ul>
+</li>
+<li><a href="#_validate_development_environment">validate development environment</a>
+<ul class="sectlevel2">
+<li><a href="#_traccar_frontend">Traccar Frontend</a></li>
+<li><a href="#_tracker_server_log"><code>tracker-server.log</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_database_testing">Database Testing</a>
+<ul class="sectlevel1">
+<li><a href="#_database_introspection">database introspection</a></li>
+<li><a href="#_automate_adminadmin">automate admin/admin</a></li>
+<li><a href="#_sql_shell">sql shell</a>
+<ul class="sectlevel2">
+<li><a href="#_install_in_traccarh2">install in traccar/h2/</a></li>
+</ul>
+</li>
+<li><a href="#_database_available_locked">database available / locked</a></li>
+<li><a href="#_hashing_the_password">hashing the password</a></li>
+<li><a href="#_sql_with_maven">sql with Maven</a></li>
+</ul>
+</li>
+<li><a href="#_testing_with_traccar_server">Testing with Traccar Server</a>
+<ul class="sectlevel1">
+<li><a href="#_surefire_vs_failsafe_testing_with_docker">surefire vs failsafe testing with docker</a></li>
+<li><a href="#_docker_maven_plugin_2">docker-maven-plugin</a></li>
+<li><a href="#_maven_failsafe_plugin">maven-failsafe-plugin</a></li>
+</ul>
+</li>
+<li><a href="#_setup_development_environment">setup development environment</a>
+<ul class="sectlevel1">
+<li><a href="#_credentials">credentials</a></li>
+<li><a href="#_surefire_vs_failsafe">surefire vs failsafe</a></li>
+<li><a href="#_browser_ui">browser UI</a></li>
+<li><a href="#_run_integration_tests">run integration tests</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>bm-traccar</code> module, i.e. Maven subbranch, is the development environment
+for integrating with the
+<a href="https://www.traccar.org/">Traccar GPS Tracking Platform</a>.
+Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
+The System was thoroughly analyzed in the
+<a href="https://github.com/kbeigl/jeets/blob/master/README.adoc">JeeTS Project</a>
+and
+<a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">JeeTS Book</a>.</p>
+</div>
+<div class="paragraph">
+<p>This module provides a development environment with different database setups,
+different server instances: remote, local IDE, local service or
+dockerized for automated integration testing</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0nZmxvd2NoYXJ0LXYyJyBjbGFzcz0nZmxvd2NoYXJ0JyBoZWlnaHQ9JzQzMicgaWQ9J2NvbnRhaW5lcicgcHJlc2VydmVBc3BlY3RSYXRpbz0neE1pZFlNaWQgbWVldCcgcm9sZT0nZ3JhcGhpY3MtZG9jdW1lbnQgZG9jdW1lbnQnIHZpZXdCb3g9JzAgMCA3NzYuNzM0Mzc1IDQzMicgd2lkdGg9Jzc3Ni43MzQzNzUnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHN0eWxlPiNjb250YWluZXJ7Zm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxNnB4O2ZpbGw6IzMzMzt9QGtleWZyYW1lcyBlZGdlLWFuaW1hdGlvbi1mcmFtZXtmcm9te3N0cm9rZS1kYXNob2Zmc2V0OjA7fX1Aa2V5ZnJhbWVzIGRhc2h7dG97c3Ryb2tlLWRhc2hvZmZzZXQ6MDt9fSNjb250YWluZXIgLmVkZ2UtYW5pbWF0aW9uLXNsb3d7c3Ryb2tlLWRhc2hhcnJheTo5LDUhaW1wb3J0YW50O3N0cm9rZS1kYXNob2Zmc2V0OjkwMDthbmltYXRpb246ZGFzaCA1MHMgbGluZWFyIGluZmluaXRlO3N0cm9rZS1saW5lY2FwOnJvdW5kO30jY29udGFpbmVyIC5lZGdlLWFuaW1hdGlvbi1mYXN0e3N0cm9rZS1kYXNoYXJyYXk6OSw1IWltcG9ydGFudDtzdHJva2UtZGFzaG9mZnNldDo5MDA7YW5pbWF0aW9uOmRhc2ggMjBzIGxpbmVhciBpbmZpbml0ZTtzdHJva2UtbGluZWNhcDpyb3VuZDt9I2NvbnRhaW5lciAuZXJyb3ItaWNvbntmaWxsOiM1NTIyMjI7fSNjb250YWluZXIgLmVycm9yLXRleHR7ZmlsbDojNTUyMjIyO3N0cm9rZTojNTUyMjIyO30jY29udGFpbmVyIC5lZGdlLXRoaWNrbmVzcy1ub3JtYWx7c3Ryb2tlLXdpZHRoOjFweDt9I2NvbnRhaW5lciAuZWRnZS10aGlja25lc3MtdGhpY2t7c3Ryb2tlLXdpZHRoOjMuNXB4O30jY29udGFpbmVyIC5lZGdlLXBhdHRlcm4tc29saWR7c3Ryb2tlLWRhc2hhcnJheTowO30jY29udGFpbmVyIC5lZGdlLXRoaWNrbmVzcy1pbnZpc2libGV7c3Ryb2tlLXdpZHRoOjA7ZmlsbDpub25lO30jY29udGFpbmVyIC5lZGdlLXBhdHRlcm4tZGFzaGVke3N0cm9rZS1kYXNoYXJyYXk6Mzt9I2NvbnRhaW5lciAuZWRnZS1wYXR0ZXJuLWRvdHRlZHtzdHJva2UtZGFzaGFycmF5OjI7fSNjb250YWluZXIgLm1hcmtlcntmaWxsOiMzMzMzMzM7c3Ryb2tlOiMzMzMzMzM7fSNjb250YWluZXIgLm1hcmtlci5jcm9zc3tzdHJva2U6IzMzMzMzMzt9I2NvbnRhaW5lciBzdmd7Zm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO2ZvbnQtc2l6ZToxNnB4O30jY29udGFpbmVyIHB7bWFyZ2luOjA7fSNjb250YWluZXIgLmxhYmVse2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtjb2xvcjojMzMzO30jY29udGFpbmVyIC5jbHVzdGVyLWxhYmVsIHRleHR7ZmlsbDojMzMzO30jY29udGFpbmVyIC5jbHVzdGVyLWxhYmVsIHNwYW57Y29sb3I6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3Rlci1sYWJlbCBzcGFuIHB7YmFja2dyb3VuZC1jb2xvcjp0cmFuc3BhcmVudDt9I2NvbnRhaW5lciAubGFiZWwgdGV4dCwjY29udGFpbmVyIHNwYW57ZmlsbDojMzMzO2NvbG9yOiMzMzM7fSNjb250YWluZXIgLm5vZGUgcmVjdCwjY29udGFpbmVyIC5ub2RlIGNpcmNsZSwjY29udGFpbmVyIC5ub2RlIGVsbGlwc2UsI2NvbnRhaW5lciAubm9kZSBwb2x5Z29uLCNjb250YWluZXIgLm5vZGUgcGF0aHtmaWxsOiNFQ0VDRkY7c3Ryb2tlOiM5MzcwREI7c3Ryb2tlLXdpZHRoOjFweDt9I2NvbnRhaW5lciAucm91Z2gtbm9kZSAubGFiZWwgdGV4dCwjY29udGFpbmVyIC5ub2RlIC5sYWJlbCB0ZXh0LCNjb250YWluZXIgLmltYWdlLXNoYXBlIC5sYWJlbCwjY29udGFpbmVyIC5pY29uLXNoYXBlIC5sYWJlbHt0ZXh0LWFuY2hvcjptaWRkbGU7fSNjb250YWluZXIgLm5vZGUgLmthdGV4IHBhdGh7ZmlsbDojMDAwO3N0cm9rZTojMDAwO3N0cm9rZS13aWR0aDoxcHg7fSNjb250YWluZXIgLnJvdWdoLW5vZGUgLmxhYmVsLCNjb250YWluZXIgLm5vZGUgLmxhYmVsLCNjb250YWluZXIgLmltYWdlLXNoYXBlIC5sYWJlbCwjY29udGFpbmVyIC5pY29uLXNoYXBlIC5sYWJlbHt0ZXh0LWFsaWduOmNlbnRlcjt9I2NvbnRhaW5lciAubm9kZS5jbGlja2FibGV7Y3Vyc29yOnBvaW50ZXI7fSNjb250YWluZXIgLnJvb3QgLmFuY2hvciBwYXRoe2ZpbGw6IzMzMzMzMyFpbXBvcnRhbnQ7c3Ryb2tlLXdpZHRoOjA7c3Ryb2tlOiMzMzMzMzM7fSNjb250YWluZXIgLmFycm93aGVhZFBhdGh7ZmlsbDojMzMzMzMzO30jY29udGFpbmVyIC5lZGdlUGF0aCAucGF0aHtzdHJva2U6IzMzMzMzMztzdHJva2Utd2lkdGg6Mi4wcHg7fSNjb250YWluZXIgLmZsb3djaGFydC1saW5re3N0cm9rZTojMzMzMzMzO2ZpbGw6bm9uZTt9I2NvbnRhaW5lciAuZWRnZUxhYmVse2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt0ZXh0LWFsaWduOmNlbnRlcjt9I2NvbnRhaW5lciAuZWRnZUxhYmVsIHB7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jY29udGFpbmVyIC5lZGdlTGFiZWwgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7ZmlsbDpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jY29udGFpbmVyIC5sYWJlbEJrZ3tiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLCAyMzIsIDIzMiwgMC41KTt9I2NvbnRhaW5lciAuY2x1c3RlciByZWN0e2ZpbGw6I2ZmZmZkZTtzdHJva2U6I2FhYWEzMztzdHJva2Utd2lkdGg6MXB4O30jY29udGFpbmVyIC5jbHVzdGVyIHRleHR7ZmlsbDojMzMzO30jY29udGFpbmVyIC5jbHVzdGVyIHNwYW57Y29sb3I6IzMzMzt9I2NvbnRhaW5lciBkaXYubWVybWFpZFRvb2x0aXB7cG9zaXRpb246YWJzb2x1dGU7dGV4dC1hbGlnbjpjZW50ZXI7bWF4LXdpZHRoOjIwMHB4O3BhZGRpbmc6MnB4O2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtiYWNrZ3JvdW5kOmhzbCg4MCwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpO2JvcmRlcjoxcHggc29saWQgI2FhYWEzMztib3JkZXItcmFkaXVzOjJweDtwb2ludGVyLWV2ZW50czpub25lO3otaW5kZXg6MTAwO30jY29udGFpbmVyIC5mbG93Y2hhcnRUaXRsZVRleHR7dGV4dC1hbmNob3I6bWlkZGxlO2ZvbnQtc2l6ZToxOHB4O2ZpbGw6IzMzMzt9I2NvbnRhaW5lciByZWN0LnRleHR7ZmlsbDpub25lO3N0cm9rZS13aWR0aDowO30jY29udGFpbmVyIC5pY29uLXNoYXBlLCNjb250YWluZXIgLmltYWdlLXNoYXBle2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt0ZXh0LWFsaWduOmNlbnRlcjt9I2NvbnRhaW5lciAuaWNvbi1zaGFwZSBwLCNjb250YWluZXIgLmltYWdlLXNoYXBlIHB7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO3BhZGRpbmc6MnB4O30jY29udGFpbmVyIC5pY29uLXNoYXBlIHJlY3QsI2NvbnRhaW5lciAuaW1hZ2Utc2hhcGUgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7ZmlsbDpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jY29udGFpbmVyIDpyb290ey0tbWVybWFpZC1mb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7fTwvc3R5bGU+PGc+PG1hcmtlciBjbGFzcz0nbWFya2VyIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItcG9pbnRFbmQnIG1hcmtlckhlaWdodD0nOCcgbWFya2VyVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBtYXJrZXJXaWR0aD0nOCcgb3JpZW50PSdhdXRvJyByZWZYPSc1JyByZWZZPSc1JyB2aWV3Qm94PScwIDAgMTAgMTAnPjxwYXRoIGNsYXNzPSdhcnJvd01hcmtlclBhdGgnIGQ9J00gMCAwIEwgMTAgNSBMIDAgMTAgeicgc3R5bGU9J3N0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsnLz48L21hcmtlcj48bWFya2VyIGNsYXNzPSdtYXJrZXIgZmxvd2NoYXJ0LXYyJyBpZD0nY29udGFpbmVyX2Zsb3djaGFydC12Mi1wb2ludFN0YXJ0JyBtYXJrZXJIZWlnaHQ9JzgnIG1hcmtlclVuaXRzPSd1c2VyU3BhY2VPblVzZScgbWFya2VyV2lkdGg9JzgnIG9yaWVudD0nYXV0bycgcmVmWD0nNC41JyByZWZZPSc1JyB2aWV3Qm94PScwIDAgMTAgMTAnPjxwYXRoIGNsYXNzPSdhcnJvd01hcmtlclBhdGgnIGQ9J00gMCA1IEwgMTAgMTAgTCAxMCAwIHonIHN0eWxlPSdzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItY2lyY2xlRW5kJyBtYXJrZXJIZWlnaHQ9JzExJyBtYXJrZXJVbml0cz0ndXNlclNwYWNlT25Vc2UnIG1hcmtlcldpZHRoPScxMScgb3JpZW50PSdhdXRvJyByZWZYPScxMScgcmVmWT0nNScgdmlld0JveD0nMCAwIDEwIDEwJz48Y2lyY2xlIGNsYXNzPSdhcnJvd01hcmtlclBhdGgnIGN4PSc1JyBjeT0nNScgcj0nNScgc3R5bGU9J3N0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsnLz48L21hcmtlcj48bWFya2VyIGNsYXNzPSdtYXJrZXIgZmxvd2NoYXJ0LXYyJyBpZD0nY29udGFpbmVyX2Zsb3djaGFydC12Mi1jaXJjbGVTdGFydCcgbWFya2VySGVpZ2h0PScxMScgbWFya2VyVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBtYXJrZXJXaWR0aD0nMTEnIG9yaWVudD0nYXV0bycgcmVmWD0nLTEnIHJlZlk9JzUnIHZpZXdCb3g9JzAgMCAxMCAxMCc+PGNpcmNsZSBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBjeD0nNScgY3k9JzUnIHI9JzUnIHN0eWxlPSdzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGNyb3NzIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItY3Jvc3NFbmQnIG1hcmtlckhlaWdodD0nMTEnIG1hcmtlclVuaXRzPSd1c2VyU3BhY2VPblVzZScgbWFya2VyV2lkdGg9JzExJyBvcmllbnQ9J2F1dG8nIHJlZlg9JzEyJyByZWZZPSc1LjInIHZpZXdCb3g9JzAgMCAxMSAxMSc+PHBhdGggY2xhc3M9J2Fycm93TWFya2VyUGF0aCcgZD0nTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOScgc3R5bGU9J3N0cm9rZS13aWR0aDogMjsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsnLz48L21hcmtlcj48bWFya2VyIGNsYXNzPSdtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0LXYyJyBpZD0nY29udGFpbmVyX2Zsb3djaGFydC12Mi1jcm9zc1N0YXJ0JyBtYXJrZXJIZWlnaHQ9JzExJyBtYXJrZXJVbml0cz0ndXNlclNwYWNlT25Vc2UnIG1hcmtlcldpZHRoPScxMScgb3JpZW50PSdhdXRvJyByZWZYPSctMScgcmVmWT0nNS4yJyB2aWV3Qm94PScwIDAgMTEgMTEnPjxwYXRoIGNsYXNzPSdhcnJvd01hcmtlclBhdGgnIGQ9J00gMSwxIGwgOSw5IE0gMTAsMSBsIC05LDknIHN0eWxlPSdzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PGcgY2xhc3M9J3Jvb3QnPjxnIGNsYXNzPSdjbHVzdGVycyc+PGcgY2xhc3M9J2NsdXN0ZXInIGRhdGEtbG9vaz0nY2xhc3NpYycgaWQ9J3N1YkdyYXBoMCc+PHJlY3QgaGVpZ2h0PScyMDgnIHN0eWxlPScnIHdpZHRoPSc3NjAuNzM0Mzc1JyB4PSc4JyB5PSc4Jy8+PGcgY2xhc3M9J2NsdXN0ZXItbGFiZWwnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDM0My41MzEyNSwgOCknPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMjQnIHdpZHRoPSc4OS42NzE4NzUnPjxkaXYgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nbm9kZUxhYmVsJz48cD5yb290IG1vZHVsZTwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSdlZGdlUGF0aHMnPjxwYXRoIGNsYXNzPSdlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsnIGQ9J000MTIuOTE0LDg3TDQxMi45MTQsOTEuMTY3QzQxMi45MTQsOTUuMzMzLDQxMi45MTQsMTAzLjY2Nyw0MTIuOTE0LDExMS4zMzNDNDEyLjkxNCwxMTksNDEyLjkxNCwxMjYsNDEyLjkxNCwxMjkuNUw0MTIuOTE0LDEzMycgaWQ9J0xfYm0tdHJhY2Nhcl9kb2NrZXItaW50ZWdyYXRpb25fMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgc3R5bGU9JycvPjxwYXRoIGNsYXNzPSdlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsnIGQ9J00zNDMuMjE5LDc0LjAxNkwzMTEuNzM4LDgwLjM0NkMyODAuMjU4LDg2LjY3NywyMTcuMjk3LDk5LjMzOSwxODUuODE2LDEwOS4xNjlDMTU0LjMzNiwxMTksMTU0LjMzNiwxMjYsMTU0LjMzNiwxMjkuNUwxNTQuMzM2LDEzMycgaWQ9J0xfYm0tdHJhY2Nhcl90ZXN0aW5nLXNldHVwXzAnIG1hcmtlci1lbmQ9J3VybCgjY29udGFpbmVyX2Zsb3djaGFydC12Mi1wb2ludEVuZCknIHN0eWxlPScnLz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNNDgyLjYwOSw3NS40ODZMNTA5Ljk5OSw4MS41NzFDNTM3LjM4OCw4Ny42NTcsNTkyLjE2Nyw5OS44MjksNjE5LjU1NiwxMDkuNDE0QzY0Ni45NDUsMTE5LDY0Ni45NDUsMTI2LDY0Ni45NDUsMTI5LjVMNjQ2Ljk0NSwxMzMnIGlkPSdMX2JtLXRyYWNjYXJfZGF0YWJhc2UtaGFuZGxpbmdfMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgc3R5bGU9JycvPjxwYXRoIGNsYXNzPSdlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsnIGQ9J00xNTQuMzM2LDE5NUwxNTQuMzM2LDE5OC41QzE1NC4zMzYsMjAyLDE1NC4zMzYsMjA5LDE1NC4zMzYsMjE2LjY2N0MxNTQuMzM2LDIyNC4zMzMsMTU0LjMzNiwyMzIuNjY3LDE1NC4zMzYsMjQwLjMzM0MxNTQuMzM2LDI0OCwxNTQuMzM2LDI1NSwxNTQuMzM2LDI1OC41TDE1NC4zMzYsMjYyJyBpZD0nTF90ZXN0aW5nLXNldHVwX3RyYWNjYXItbW9kdWxlXzAnIG1hcmtlci1lbmQ9J3VybCgjY29udGFpbmVyX2Zsb3djaGFydC12Mi1wb2ludEVuZCknIG1hcmtlci1zdGFydD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50U3RhcnQpJyBzdHlsZT0nJy8+PHBhdGggY2xhc3M9J2VkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluaycgZD0nTTE1NC4zMzYsMzI0TDE1NC4zMzYsMzI3LjVDMTU0LjMzNiwzMzEsMTU0LjMzNiwzMzgsMTgzLjI0NywzNDcuMzE0QzIxMi4xNTksMzU2LjYyOCwyNjkuOTgyLDM2OC4yNTYsMjk4Ljg5NCwzNzQuMDcxTDMyNy44MDUsMzc5Ljg4NScgaWQ9J0xfdHJhY2Nhci1tb2R1bGVfdHJhY2Nhci1zZXJ2ZXJfMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgbWFya2VyLXN0YXJ0PSd1cmwoI2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItcG9pbnRTdGFydCknIHN0eWxlPScnLz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNNDEyLjkxNCwxOTFMNDEyLjkxNCwxOTUuMTY3QzQxMi45MTQsMTk5LjMzMyw0MTIuOTE0LDIwNy42NjcsNDEyLjkxNCwyMTZDNDEyLjkxNCwyMjQuMzMzLDQxMi45MTQsMjMyLjY2Nyw0MTIuOTE0LDI0NS41QzQxMi45MTQsMjU4LjMzMyw0MTIuOTE0LDI3NS42NjcsNDEyLjkxNCwyOTNDNDEyLjkxNCwzMTAuMzMzLDQxMi45MTQsMzI3LjY2Nyw0MTIuOTE0LDMzOS44MzNDNDEyLjkxNCwzNTIsNDEyLjkxNCwzNTksNDEyLjkxNCwzNjIuNUw0MTIuOTE0LDM2NicgaWQ9J0xfZG9ja2VyLWludGVncmF0aW9uX3RyYWNjYXItc2VydmVyXzAnIG1hcmtlci1lbmQ9J3VybCgjY29udGFpbmVyX2Zsb3djaGFydC12Mi1wb2ludEVuZCknIHN0eWxlPScnLz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNNjQ2Ljk0NSwxOTFMNjQ2Ljk0NSwxOTUuMTY3QzY0Ni45NDUsMTk5LjMzMyw2NDYuOTQ1LDIwNy42NjcsNjQ2Ljk0NSwyMTZDNjQ2Ljk0NSwyMjQuMzMzLDY0Ni45NDUsMjMyLjY2Nyw2NDYuOTQ1LDI0NS41QzY0Ni45NDUsMjU4LjMzMyw2NDYuOTQ1LDI3NS42NjcsNjQ2Ljk0NSwyOTNDNjQ2Ljk0NSwzMTAuMzMzLDY0Ni45NDUsMzI3LjY2Nyw2MjIuMTIyLDM0MS44NDlDNTk3LjI5OSwzNTYuMDMxLDU0Ny42NTMsMzY3LjA2Miw1MjIuODI5LDM3Mi41NzhMNDk4LjAwNiwzNzguMDkzJyBpZD0nTF9kYXRhYmFzZS1oYW5kbGluZ190cmFjY2FyLXNlcnZlcl8wJyBtYXJrZXItZW5kPSd1cmwoI2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItcG9pbnRFbmQpJyBzdHlsZT0nJy8+PC9nPjxnIGNsYXNzPSdlZGdlTGFiZWxzJz48ZyBjbGFzcz0nZWRnZUxhYmVsJz48ZyBjbGFzcz0nbGFiZWwnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDAsIDApJz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzAnIHdpZHRoPScwJz48ZGl2IGNsYXNzPSdsYWJlbEJrZycgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nZWRnZUxhYmVsJy8+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9J2VkZ2VMYWJlbCc+PGcgY2xhc3M9J2xhYmVsJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgwLCAwKSc+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScwJyB3aWR0aD0nMCc+PGRpdiBjbGFzcz0nbGFiZWxCa2cnIHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J2VkZ2VMYWJlbCcvPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdlZGdlTGFiZWwnPjxnIGNsYXNzPSdsYWJlbCcgdHJhbnNmb3JtPSd0cmFuc2xhdGUoMCwgMCknPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMCcgd2lkdGg9JzAnPjxkaXYgY2xhc3M9J2xhYmVsQmtnJyBzdHlsZT0nZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwnPjxzcGFuIGNsYXNzPSdlZGdlTGFiZWwnLz48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0nZWRnZUxhYmVsJz48ZyBjbGFzcz0nbGFiZWwnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDAsIDApJz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzAnIHdpZHRoPScwJz48ZGl2IGNsYXNzPSdsYWJlbEJrZycgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nZWRnZUxhYmVsJy8+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9J2VkZ2VMYWJlbCc+PGcgY2xhc3M9J2xhYmVsJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgwLCAwKSc+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScwJyB3aWR0aD0nMCc+PGRpdiBjbGFzcz0nbGFiZWxCa2cnIHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J2VkZ2VMYWJlbCcvPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdlZGdlTGFiZWwnPjxnIGNsYXNzPSdsYWJlbCcgdHJhbnNmb3JtPSd0cmFuc2xhdGUoMCwgMCknPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMCcgd2lkdGg9JzAnPjxkaXYgY2xhc3M9J2xhYmVsQmtnJyBzdHlsZT0nZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwnPjxzcGFuIGNsYXNzPSdlZGdlTGFiZWwnLz48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0nZWRnZUxhYmVsJz48ZyBjbGFzcz0nbGFiZWwnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDAsIDApJz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzAnIHdpZHRoPScwJz48ZGl2IGNsYXNzPSdsYWJlbEJrZycgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nZWRnZUxhYmVsJy8+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSdub2Rlcyc+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC1ibS10cmFjY2FyLTAnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDQxMi45MTQwNjI1LCA2MCknPjxyZWN0IGNsYXNzPSdiYXNpYyBsYWJlbC1jb250YWluZXInIGhlaWdodD0nNTQnIHN0eWxlPScnIHdpZHRoPScxMzkuMzkwNjI1JyB4PSctNjkuNjk1MzEyNScgeT0nLTI3Jy8+PGcgY2xhc3M9J2xhYmVsJyBzdHlsZT0nJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgtMzkuNjk1MzEyNSwgLTEyKSc+PHJlY3QvPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMjQnIHdpZHRoPSc3OS4zOTA2MjUnPjxkaXYgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nbm9kZUxhYmVsJz48cD5ibS10cmFjY2FyPC9wPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0nbm9kZSBkZWZhdWx0JyBpZD0nZmxvd2NoYXJ0LWRvY2tlci1pbnRlZ3JhdGlvbi0xJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSg0MTIuOTE0MDYyNSwgMTY0KSc+PHJlY3QgY2xhc3M9J2Jhc2ljIGxhYmVsLWNvbnRhaW5lcicgaGVpZ2h0PSc1NCcgc3R5bGU9Jycgd2lkdGg9JzE5NC40ODQzNzUnIHg9Jy05Ny4yNDIxODc1JyB5PSctMjcnLz48ZyBjbGFzcz0nbGFiZWwnIHN0eWxlPScnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKC02Ny4yNDIxODc1LCAtMTIpJz48cmVjdC8+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScyNCcgd2lkdGg9JzEzNC40ODQzNzUnPjxkaXYgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nbm9kZUxhYmVsJz48cD5Eb2NrZXIgSW50ZWdyYXRpb248L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdub2RlIGRlZmF1bHQnIGlkPSdmbG93Y2hhcnQtdGVzdGluZy1zZXR1cC0yJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgxNTQuMzM1OTM3NSwgMTY0KSc+PHJlY3QgY2xhc3M9J2Jhc2ljIGxhYmVsLWNvbnRhaW5lcicgaGVpZ2h0PSc1NCcgc3R5bGU9Jycgd2lkdGg9JzIyMi42NzE4NzUnIHg9Jy0xMTEuMzM1OTM3NScgeT0nLTI3Jy8+PGcgY2xhc3M9J2xhYmVsJyBzdHlsZT0nJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgtODEuMzM1OTM3NSwgLTEyKSc+PHJlY3QvPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMjQnIHdpZHRoPScxNjIuNjcxODc1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+KkludGVncmF0aW9uVGVzdCBTZXR1cDwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC1kYXRhYmFzZS1oYW5kbGluZy0zJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSg2NDYuOTQ1MzEyNSwgMTY0KSc+PHJlY3QgY2xhc3M9J2Jhc2ljIGxhYmVsLWNvbnRhaW5lcicgaGVpZ2h0PSc1NCcgc3R5bGU9Jycgd2lkdGg9JzE3My41NzgxMjUnIHg9Jy04Ni43ODkwNjI1JyB5PSctMjcnLz48ZyBjbGFzcz0nbGFiZWwnIHN0eWxlPScnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKC01Ni43ODkwNjI1LCAtMTIpJz48cmVjdC8+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScyNCcgd2lkdGg9JzExMy41NzgxMjUnPjxkaXYgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nbm9kZUxhYmVsJz48cD5EYXRhYmFzZSBTZXR1cDwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC10cmFjY2FyLW1vZHVsZS00JyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgxNTQuMzM1OTM3NSwgMjkzKSc+PHJlY3QgY2xhc3M9J2Jhc2ljIGxhYmVsLWNvbnRhaW5lcicgaGVpZ2h0PSc1NCcgc3R5bGU9Jycgd2lkdGg9JzE3MC4wNjI1JyB4PSctODUuMDMxMjUnIHk9Jy0yNycvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTU1LjAzMTI1LCAtMTIpJz48cmVjdC8+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScyNCcgd2lkdGg9JzExMC4wNjI1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+VHJhY2NhciBNb2R1bGU8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdub2RlIGRlZmF1bHQnIGlkPSdmbG93Y2hhcnQtdHJhY2Nhci1zZXJ2ZXItNScgdHJhbnNmb3JtPSd0cmFuc2xhdGUoNDEyLjkxNDA2MjUsIDM5NyknPjxyZWN0IGNsYXNzPSdiYXNpYyBsYWJlbC1jb250YWluZXInIGhlaWdodD0nNTQnIHN0eWxlPScnIHdpZHRoPScxNjIuMzc1JyB4PSctODEuMTg3NScgeT0nLTI3Jy8+PGcgY2xhc3M9J2xhYmVsJyBzdHlsZT0nJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgtNTEuMTg3NSwgLTEyKSc+PHJlY3QvPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMjQnIHdpZHRoPScxMDIuMzc1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+VHJhY2NhciBTZXJ2ZXI8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="Diagram" width="776" height="432">
+</div>
+</div>
+</div>
+</div>
+<h1 id="_dockerized_traccar_server" class="sect0">Dockerized Traccar Server</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The Traccar Client Software is developed with Integration Tests against a Docker Traccar Server.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_build_and_run_traccar_docker_container">build and run Traccar Docker Container</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The traccar project at Github provides instructions to fetch and install the Traccar
+<a href="https://hub.docker.com/r/traccar/traccar">DockerHub image</a>.
+This Maven Module leverages the
+<a href="https://github.com/fabric8io/docker-maven-plugin/blob/master/README.md"><code>fabric8io docker-maven-plugin</code></a>
+to control the Docker container phases to manage a dockerized Traccar server
+for integration testing.</p>
+</div>
+<div class="paragraph">
+<p>To avoid the <code>sudo</code> command you can create a docker group to enable non-root user access:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">    sudo groupadd -f docker
+    sudo usermod -aG docker $USER
+    newgrp docker
+    groups</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_docker_maven_plugin"><code>docker-maven-plugin</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can compare the parameters of the <code>docker-maven-plugin</code>
+with the four point checklist at
+<a href="https://hub.docker.com/r/traccar/traccar#container-create-example">Container create example</a>
+and adopt them to your requirements and system.</p>
+</div>
+<div class="sect2">
+<h3 id="_build"><code>&lt;build&gt;</code></h3>
+<div class="paragraph">
+<p>In the plugin <code>&lt;configuration&gt;</code> of the <code>&lt;image&gt;</code> and <code>&lt;build&gt;</code> section
+you can find the traccar version and target OS.
+Please note that this repository was set up with <code>Dockerfile.ubuntu</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;traccar.version&gt;6.8.0&lt;/traccar.version&gt;
+    &lt;docker.image.version&gt;${traccar.version}&lt;/docker.image.version&gt;
+    &lt;docker.image.os&gt;ubuntu&lt;/docker.image.os&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You might want to swap with <code>Dockerfile.alpine</code> or <code>Dockerfile.debian</code>
+for your purposes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;artifactId&gt;docker-maven-plugin&lt;/artifactId&gt;
+     ...
+    &lt;image&gt;
+        &lt;alias&gt;traccar&lt;/alias&gt;
+        &lt;name&gt;traccar/traccar:${traccar.version}-${docker.image.os}&lt;/name&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>creates an image <code>traccar/traccar:6.8.0-ubuntu</code>
+just like the command line</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ docker pull traccar/traccar:6.8.0-ubuntu</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that we distinguish <code>project-</code> and <code>${traccar.version}</code>
+in order patch versions, when required.</p>
+</div>
+<div class="sect3">
+<h4 id="_dockerfile"><code>&lt;dockerFile&gt;</code></h4>
+<div class="paragraph">
+<p>The Dockerfile is not part of this project and is directly referenced with its <code>${traccar.version}</code>
+from the sources at github</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;dockerFile&gt;Dockerfile.${docker.image.os}&lt;/dockerFile&gt;
+    &lt;contextDir&gt;https://github.com/traccar/traccar/blob/v${traccar.version}/docker&lt;/contextDir&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The docker file &#8230;&#8203;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>defines os version image, ie ubuntu:24:04</p>
+</li>
+<li>
+<p>grabs the <a href="https://github.com/traccar/traccar/releases">traccar release</a>
+from github and unzips</p>
+</li>
+<li>
+<p>provides entry point, ie java cmdline</p>
+</li>
+<li>
+<p><strong>expects a</strong> <code>WORKDIR /opt/traccar</code> <strong>on your machine!</strong><br>
+which we will provide next.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dockerrun"><code>docker:run</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now we are almost ready create a container from the image and run it.<br>
+Back to the traccar instructions we are asked to create workdirectories
+and <code>chmod</code> as you like.</p>
+</div>
+<div class="sect2">
+<h3 id="_create_work_directories">create work directories</h3>
+<div class="paragraph">
+<p>&#8230; and set permissions according to your policies.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sudo mkdir -p /opt/traccar/
+sudo chmod 777 traccar</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cat_default_traccar_xml">cat default traccar.xml</h3>
+<div class="paragraph">
+<p><strong>cat</strong> the <code>traccar.xml</code> file to your local file system.<br>
+Make sure you pick the correct name, version and flavor for <code>traccar/traccar:6.6-ubuntu</code> .<br>
+<em>This time we are directly applying</em> the <code>docker run</code> command without <code>mvn</code> !</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ docker run --rm --entrypoint cat traccar/traccar:x.y.z-ubuntu \
+   /opt/traccar/conf/traccar.xml &gt; /opt/traccar/traccar.xml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you should find the <code>traccar.xml</code> file as specified.
+As an experienced traccar admin you can now configure traccar
+according to your production server.
+Keep in mind that <em>this project</em> does not require Tracker information
+nor opening the ports as described in <code>&lt;port&gt;</code> below.</p>
+</div>
+<div class="paragraph">
+<p>The focus <em>of this project</em> is on interacting with the
+<a href="https://www.traccar.org/api-reference">Traccar API</a>
+in the Traccar container.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_container">create container</h3>
+<div class="paragraph">
+<p>The last step creating the traccar container on the traccar Github page
+is to run direcly with docker <code>docker run</code>.
+We do not want to run docker via command line,
+we want to start and stop the container for integration testing.
+So we will use <code>mvn docker:run</code> to make sure everything is in place.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_run"><code>&lt;run&gt;</code></h3>
+<div class="paragraph">
+<p>Next you should check the parameters of the <code>&lt;run&gt;</code> section for your personal preferences</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">        &lt;run&gt;
+            &lt;hostname&gt;traccar&lt;/hostname&gt;
+            &lt;ports&gt;
+                &lt;port&gt;80:8082&lt;/port&gt;
+            &lt;/ports&gt;
+            &lt;volumes&gt;
+                &lt;bind&gt;
+                    &lt;volume&gt;/opt/traccar/logs:/opt/traccar/logs:rw&lt;/volume&gt;
+                    &lt;volume&gt;/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro&lt;/volume&gt;
+                    &lt;volume&gt;/opt/traccar/data:/opt/traccar/data:rw&lt;/volume&gt;
+                &lt;/bind&gt;
+            &lt;/volumes&gt;
+            &lt;log&gt;&lt;!-- do not remove --&gt;&lt;/log&gt;
+            &lt;wait&gt;
+                &lt;http&gt;
+                    &lt;url&gt;http://localhost&lt;/url&gt;
+                &lt;/http&gt;
+            &lt;/wait&gt;
+        &lt;/run&gt;</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_port"><code>&lt;port&gt;</code></h4>
+<div class="paragraph">
+<p>Set the external port to 80 simplify the http url of the traccar UI to <code><a href="http://localhost" class="bare">http://localhost</a></code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Please note that this project is for OpenAPI development and the access is restricted
+to the port (default 80) of the UI.<br>
+The Tracker Protocol TCP and UDP Ports</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>--publish 5000-5150:5000-5150 \
+--publish 5000-5150:5000-5150/udp \</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>are not required <em>nor configured</em> for API testing <em>in this project</em>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In order to test your Traccar Server in Docker with an Android or iPhone Traccar Client
+you can open the relevant port with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;ports&gt;
+    &lt;port&gt;80:8082&lt;/port&gt;
+    &lt;port&gt;5055:5055&lt;/port&gt;
+&lt;/ports&gt;</pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_wait"><code>&lt;wait&gt;</code></h4>
+<div class="paragraph">
+<p>Wait for availabity of the container, before running tests.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Once the container has started you can also access the traccar UI
+in you local browser with <code><a href="http://localhost" class="bare">http://localhost</a></code> .</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_volumes"><code>&lt;volumes&gt;</code></h4>
+<div class="paragraph">
+<p>The volumes define the mapped traccar folders on your local system.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>we want to <code>tail</code> the logfile to see what&#8217;s going on on server side.</p>
+</li>
+<li>
+<p>we want to configure the <code>traccar.xml</code> analog to the production server.</p>
+</li>
+<li>
+<p>we want to see what&#8217;s going on in the database.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>These volumes represent the standard installation of traccar
+and <code>&lt;traccar/data&gt;</code> was added for development support.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_traccardata"><code>&lt;traccar/data&gt;</code></h4>
+<div class="paragraph">
+<p>In the <code>&lt;volumes&gt;</code> section above you will find an additional volume</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;volume&gt;/opt/traccar/data:/opt/traccar/data:rw&lt;/volume&gt;</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This way developers can always peak into traccar&#8217;s data model.<br>
+Different options to work with the Database are explained
+<a href="./databaseTest.adoc">here</a></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Also note the <code>Database</code> heading at the bottom of</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>https://hub.docker.com/r/traccar/traccar</pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>The default when executing the above docker run command is an internal H2 database.
+ The docker run command also doesn&#8217;t create a mount point on the host for the data folder
+ which will cause the database to be lost when the container is recreated.
+ This point can be mitigated by adding the line</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-v /var/docker/traccar/data:/opt/traccar/data:rw \</pre>
+</div>
+</div>
+</blockquote>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_log"><code>&lt;log&gt;</code></h4>
+<div class="paragraph">
+<p>Note that the empty</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>`&lt;log&gt;&lt;!-- do not remove --&gt;&lt;/log&gt;`</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>section <em>is required</em> as described in
+<a href="https://dmp.fabric8.io/#start-logging">5.2.10. Logging</a>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Logging is enabled by default if a <code>&lt;log&gt;</code> section is given!</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>This way you can always keep a console or editor open
+to auto reload, i.e. <code>tail</code> the <code>tracker-server.log</code> file.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mvn_dockerrun"><code>mvn docker:run</code></h3>
+<div class="paragraph">
+<p>Now we can execute: <code>mvn docker:run</code> and container start, wait,
+stop and remove should look something like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">~/git/bm/bm-traccar/traccar-api-camel$ mvn docker:run
+                                       ==============
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-camel ---
+[INFO] DOCKER&gt; Pulling from traccar/traccar
+ b08e2ff4391e: Pull complete
+ 0b823ac9e80a: Pull complete
+ 66fe9131b572: Pull complete
+ 4f4fb700ef54: Pull complete
+[INFO] DOCKER&gt; Digest: sha256:5bd7e3a8d059b1ca0e86004f747f6bebe9206f5b2da61b380f70c2a6285e59f5
+[INFO] DOCKER&gt; Status: Downloaded newer image for traccar/traccar:6.8.0-ubuntu
+[INFO] DOCKER&gt; Pulled traccar/traccar:6.8.0-ubuntu in 49 seconds
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Start container 7ad9a7c7a649
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar":
+               Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Waited on url http://localhost 5900 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Looks good: Container started and waited five seconds for the localhost.
+We have manually started <code>mvn docker:run</code>, now we can manually stop the container
+with the familiar key combination <code>&lt;Ctrl&gt;&lt;c&gt;</code> :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">^C
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar":
+               Stop and removed container 7ad9a7c7a649 after 0 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><em>Now</em> you can check your local system with docker command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">~/git/bm/bm-traccar/traccar-api-camel$ docker images -a
+                                       ================
+REPOSITORY        TAG            IMAGE ID       CREATED       SIZE
+traccar/traccar   6.8.0-ubuntu   5fdf770fa10b   6 weeks ago   298MB</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_validate_development_environment">validate development environment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let&#8217;s check, if everything is in place.</p>
+</div>
+<div class="sect2">
+<h3 id="_traccar_frontend">Traccar Frontend</h3>
+<div class="paragraph">
+<p>If you run <code>mvn docker:run</code> again (and over and over) the docker pull should not show
+as long as the docker image is on your machine.
+After waiting for startup (5.69 seconds in this case) &#8230;</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-camel ---
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Start container 6b39263a1f9c
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar":
+               Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Waited on url http://localhost 5690 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>&#8230; you can open the url in your browser.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>At the development time you can open a console, execute <code>mvn docker:run</code> and leave it open.
+This way you can execute Integration Tests (*IT) as Unit Tests against the Traccar Server in your IDE!
+As good practice each test should clean up the server for subsequent tests in random order.</p>
+</div>
+<div class="paragraph">
+<p>As an example you can debug a JUnit Test in your IDE, set a debug point after creating a new user
+and then log <em>as this user</em> in on the Frontend. Then continue the test to clean up.</p>
+</div>
+<div class="paragraph">
+<p>Much more complex scenarios can be observed step by step in details.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tracker_server_log"><code>tracker-server.log</code></h3>
+<div class="paragraph">
+<p>In your local folder you should find the logfile</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/opt/traccar/logs/tracker-server.log</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There you should see the server start and the database setup by liquibase.<br></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">INFO: Operating system name: Linux version: 6.11.0-109019-tuxedo architecture: amd64
+INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Ubuntu version: 17.0.14+7-Ubuntu-124.04
+INFO: Memory limit heap: 1024mb non-heap: 0mb
+INFO: Character encoding: US-ASCII
+INFO: Version: 6.6
+INFO: Starting server...
+INFO: HikariPool-1 - Starting...
+
+INFO: Set default schema name to PUBLIC
+INFO: Creating database history table with name: PUBLIC.DATABASECHANGELOG
+
+INFO: Table tc_attributes created
+
+INFO: Foreign key constraint added to tc_device_command (deviceid)
+
+INFO: New row inserted into tc_servers
+INFO: ChangeSet changelog-4.0-clean::changelog-4.0-clean::author ran successfully in 214ms
+
+INFO: Index user_device_user_id created
+
+INFO: Column tc_orders.toAddress renamed to toaddresstmp
+
+INFO: UPDATE SUMMARY
+INFO: Run:                         50
+INFO: Previously run:               0
+INFO: Filtered out:                 0
+INFO: -------------------------------
+INFO: Total change sets:           50
+
+INFO: Update summary generated
+
+INFO: Started Server@c18dcc4{STARTING}[11.0.24,sto=0] @4926ms
+
+INFO: Stopping server...
+
+INFO: Version: 6.6
+INFO: Starting server...
+
+INFO: UPDATE SUMMARY
+INFO: Run:                          0
+INFO: Previously run:              50
+INFO: Filtered out:                 0
+INFO: -------------------------------
+INFO: Total change sets:           50</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the second start is faster, since the database is already there -
+which is exactely what we wanted.</p>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_database_testing" class="sect0">Database Testing</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>After setting up the Traccar Docker Container there are different options to set up the database
+according to your development focus. The Database (ERM) can be perceived as the backdoor
+through which you can peek into the data and analyze the actions of your integration tests.</p>
+</div>
+<div class="paragraph">
+<p>Multiple options for handling the H2 database are scribbled here,
+including mounting external volumes, direct SQL shell access,
+and automation scripts for admin user setup.<br>
+The documentation outlines different database introspection approaches
+for development and testing.</p>
+</div>
+<div class="paragraph">
+<p>options</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>create external volume for h2 database
+   delete to create new one
+   admin/admin hen and egg problem
+   create admin/admin for template
+   apply web.serviceAccountToken on truncated db</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>do not access database as backdoor: Entities vs DTOs</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>work with Traccar Frontend with running docker</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The [DatabaseTest] setup we will look at different options to develop
+with database introspection &#8230;&#8203;</p>
+</div>
+<div class="paragraph">
+<p>You can always inspect <code>h2</code> through its console,
+as a back door directly the database model.<br>
+The default h2 database is ideal, i.e. made for testing.
+Developers can login to the traccar data base, explore the schema
+and inspect data with <code>plain SQL</code>, reset to scratch .. whatever.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_database_introspection">database introspection</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The recommended traccar docker installation is to leave the database inside the container.
+By mounting the <code>/data</code> folder we can look inside the data, which stays persistent
+after the container has stopped.<br>
+Note that the H2 database is locked as long the traccar container is working.<br>
+Find database management and manipulation
+<a href="../databaseTest.adoc">here</a> .</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_automate_adminadmin">automate admin/admin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>insert initial admin user in Dockerfile</p>
+</div>
+<div class="paragraph">
+<p>gemini:<br>
+API: While Traccar has a REST API, using it for initial user setup
+might be tricky since the API itself requires authentication.
+Directly database manipulation or configuration file manipulation
+is more reliable for initial setup.</p>
+</div>
+<div class="paragraph">
+<p>problem: schema is only created with first start of traccar-server.jar</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>root@d3b6ba0d8261:~# pwd
+/root
+root@d3b6ba0d8261:~# java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell
+                          -url jdbc:h2:/opt/traccar/data/database
+                          -user sa</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Welcome to H2 Shell 2.3.232 (2024-08-11)
+Exit with Ctrl+C</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; select * from tc_users
+...&gt; ;
+Error: org.h2.jdbc.JdbcSQLSyntaxErrorException:
+       Table "TC_USERS" not found (this database is empty);</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>possible solution: add schema/createadmin.xml if admin doesn&#8217;t exist</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sql_shell">sql shell</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://www.baeldung.com/java-h2-db-execute-sql-file" class="bare">https://www.baeldung.com/java-h2-db-execute-sql-file</a></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>java -cp /path/to/h2/jar/h2-version.jar org.h2.tools.RunScript
+     -url jdbc:h2:db/server/url
+     -user sa -password password
+     -script script.sql
+     -showResults</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell
+     -url jdbc:h2:/opt/traccar/data/database
+     -user sa</pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_install_in_traccarh2">install in traccar/h2/</h3>
+<div class="literalblock">
+<div class="content">
+<pre>$ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell
+       -url jdbc:h2:/opt/traccar/data/database
+       -user sa</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Welcome to H2 Shell 2.3.232 (2024-08-11)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; select * from tc_users;
+ID | NAME | EMAIL | HASHEDPASSWORD | SALT | READONLY | ADMINISTRATOR | MAP | LATITUDE | LONGITUDE | ZOOM |
+ATTRIBUTES | COORDINATEFORMAT | DISABLED | EXPIRATIONTIME | DEVICELIMIT | USERLIMIT | DEVICEREADONLY |
+PHONE | LIMITCOMMANDS | LOGIN | POILAYER | DISABLEREPORTS | FIXEDEMAIL | TOTPKEY | TEMPORARY
+(0 rows, 1 ms)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR
+  from tc_users;
+(0 rows, 1 ms)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; select id, name, email, hashedpassword, salt from tc_users;</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>ID | NAME    | EMAIL  | HASHEDPASSWORD                                   | SALT
+1  | admin   | admin  | 44e0c0902fd515f49884c4fd9b78cbabfc7237586a7bc921 | a9d60a6a1734e06c5d76294404e536e8713369d877423d8e
+2  | newUser | email  | null                                             | null
+7  | user2   | email2 | 53e175f9ded19f065d7e483f44f540f7f8ca9c4026dd69dd | 72e2e2555df4a62c2d8ccb8fb295f7d19dc9373cfdf51772</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; delete from tc_users where id=2;
+Error: org.h2.jdbc.JdbcSQLNonTransientException:
+**** The database is read only ****</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>&#8658; empty database schema in place</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_database_available_locked">database available / locked</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre>docker:run</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell -url jdbc:h2:/opt/traccar/data/database -user sa
+Exception in thread "main" org.h2.jdbc.JdbcSQLNonTransientConnectionException:
+  Database may be already in use: "/opt/traccar/data/database.mv.db".
+  Possible solutions: close all other connection(s); use the server mode [90020-232]
+Caused by: org.h2.mvstore.MVStoreException:
+  The file is locked: /opt/traccar/data/database.mv.db [2.3.232/7]</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>localhost/register -&gt; admin/admin admin@domain.org</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>stop container</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR from tc_users;
+NAME             | EMAIL | HASHEDPASSWORD                                   | SALT                                             |
+admin@domain.com | admin | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca |</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>READONLY | ADMINISTRATOR
+FALSE    | TRUE
+(1 row, 20 ms)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>docker run -&gt; user is available -&gt; hash &amp; salt vary !!</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>| HASHEDPASSWORD                                   | SALT
+| 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca
+| 42d4bf701495e2105dddfd66e3989919c218a6d7b99c623d | d3e47507a6fdcc624b8bd3bc85ce96bab195c335b76044a6</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>let&#8217;s see:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; delete from tc_users;
+Error: org.h2.jdbc.JdbcSQLNonTransientException:
+The database is read only; SQL statement: delete from tc_users [90097-232]</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-&gt; change access to database* files
+$ sudo chmod 777 database*
+=&gt; works :)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>prepare statement to createAdminUser.sql
+INSERT INTO tc_users (name, email, hashedpassword, salt, administrator)
+VALUES ('admin', 'admin@domain.com', '3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30', 'd4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca', true);</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; INSERT INTO tc_users (name, email, hashedpassword, salt, administrator)
+VALUES ('admin', 'admin@domain.com', '3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30', 'd4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca', true);
+(Update count: 1, 5 ms)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; select * from tc_users;
+ID | NAME  | EMAIL            | HASHEDPASSWORD | SALT                                                                               | READONLY | ADMINISTRATOR
+2  | admin | admin@domain.com | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca | FALSE    | TRUE</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note ID++ in new db! &#8594; only apply ids after semantic lookup !</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-&gt; mvn docker run
+   localhost/login appears :)
+   login: email: admin@domain.com pw:admind</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>I want login name/pw ..
+delete database* files
+mvn docker:run creates new database* files with empty schema</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>statement to createAdminUser.sql without email !!
+NULL not allowed for column "EMAIL";</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-&gt; insert above again
+   mvn docker run
+   localhost/login appears :)
+   login: email: admin@domain.com pw:admind</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sql&gt; select * from tc_users;
+    ID | NAME  | EMAIL
+    2  | admin | admin@domain.com</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hashing_the_password">hashing the password</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://www.traccar.org/forums/topic/hashing-the-password/" class="bare">https://www.traccar.org/forums/topic/hashing-the-password/</a></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># generate a random salt
+salt="$(dd if=/dev/urandom bs=24 count=1 status=none | xxd -p)"</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># generate the password hash from the contents of the "password" variable (which you've to set yourself to the new cleartext password)
+hash="$(openssl-3.0.1 kdf -keylen 24 -binary -kdfopt digest:sha1 -kdfopt "pass:$password" -kdfopt "hexsalt:$salt" -kdfopt iter:1000 pbkdf2 | xxd -p)"</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># uncomment the following line to print out both the salt and the password hash (if you want to)
+#echo -e "salt: $salt\nhash: $hash"</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># set the value of "tchome" to the path of the Traccar directory
+tchome="/opt/traccar"</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># and finally update the password (and salt) of the default "admin" user
+java -cp "$tchome/lib/h2-"*".jar" org.h2.tools.Shell -url "jdbc:h2:$tchome/data/database" -user sa -sql "update tc_users set hashedpassword='$hash', salt='$salt' where email = 'admin';"</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sql_with_maven">sql with Maven</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre>https://github.com/kbeigl/jeets/blob/master/jeets-models/pom.xml</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;version&gt;${h2database-version}&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.dbunit&lt;/groupId&gt;
+    &lt;artifactId&gt;dbunit&lt;/artifactId&gt;
+    &lt;version&gt;${dbunit-version}&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</pre>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_testing_with_traccar_server" class="sect0">Testing with Traccar Server</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The Traccar Clients are basically an interface between REST and Java passing Entities.
+Therefor there is no need for cumbersom JUnit test setups
+to test the technology we rely on.
+The functionality is achieved by wiring diffent technology components
+together, configure and run them.</p>
+</div>
+<div class="paragraph">
+<p>The Traccar Client is <em>not</em> a software with complex implementations of Java Units.
+Actually it is merely an interface between REST and Java passing Entities.
+Therefor there is no need for cumbersom JUnit test setups
+to test the technology we rely on.
+The functionality is achieved by wiring diffent technology components
+together, configure and run them.</p>
+</div>
+<div class="paragraph">
+<p>For example the Camel <code>RestOpenApiComponent</code>
+is already being tested with each Camel build. These tests should not be repeated.
+see
+<a href="https://github.com/apache/camel/tree/main/components/camel-rest-openapi/src/test/java/org/apache/camel/component/rest/openapi">RestOpenApiComponent JUnit tests</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_surefire_vs_failsafe_testing_with_docker">surefire vs failsafe testing with docker</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The aim of this project is to remote control a Traccar Server
+by reacting to live information.<br>
+So we can take a broader approach to testing by setting up a Traccar Server for tests.
+This makes the actual build of the Traccar Client software faster.
+We use the Maven lifecycle to start a traccar docker container
+and apply failsafe to make sure the container is stoped after testing:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] --- docker-maven-plugin:0.46.0:stop (stop) @ traccar-api-client ---
+[INFO] DOCKER&gt; [traccar/traccar:6.7.1-ubuntu] "traccar":
+                Stop and removed container 7ef24f3a8f58 after 0 ms</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To speed up test development the traccar container can be started via command line
+and the Integration Tests (<strong>*IT</strong>) can be run as JUnit Tests against a running server.
+The developer can login to the Traccar Frontend to inspect test results and more.</p>
+</div>
+<div class="paragraph">
+<p>The botton line is that emphasis is placed on integration testing
+using Maven’s Failsafe plugin in combination with Docker.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_docker_maven_plugin_2">docker-maven-plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Requirements to docker are dead simple:
+We need a traccar container out of the box, configure it to our needs,
+introspect the logs at runtime and finally using the traccar UI
+to visualize what&#8217;s going on!</p>
+</div>
+<div class="paragraph">
+<p>Since the project does not dockerize anything,
+the plugin should not be to fancy about docker, kubernetes, cloud etc.
+After setting up the project once, the focus is on using Spring Test framework
+and Camel&#8217;s testing utilities to <code>mvn verify</code> integration logic and not unit-level.</p>
+</div>
+<div class="paragraph">
+<p>There is no need to integrate Docker into the source code with
+<a href="https://camel.apache.org/components/4.8.x/docker-component.html">Docker :: Apache Camel</a>
+or the like, since this is not a docker project.</p>
+</div>
+<div class="paragraph">
+<p>The choice is fabric8&#8217;s <code>docker-maven-plugin</code></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>This is a Maven plugin for managing Docker images and containers.<br>
+It focuses on two major aspects for a Docker build integration:<br>
+Building Images and  Running Containers.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; fabric8io/docker-maven-plugin
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_failsafe_plugin">maven-failsafe-plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>specifically for integration testing, focusing on lifecycle and reporting for integration tests.</p>
+</div>
+<div class="paragraph">
+<p>Run Docker containers during the integration test phase to manage container lifecycle.</p>
+</div>
+<div class="paragraph">
+<p>Failsafe and Docker Integration: Combining Failsafe plugin with Docker management
+to execute tests within a Dockerized environment and ensure proper test lifecycle.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://maven.apache.org/surefire/maven-failsafe-plugin/" class="bare">https://maven.apache.org/surefire/maven-failsafe-plugin/</a><br>
+<a href="https://maven.apache.org/surefire/maven-failsafe-plugin/usage.html" class="bare">https://maven.apache.org/surefire/maven-failsafe-plugin/usage.html</a></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-&gt; Usage in multi-module projects
+  &lt;pluginManagement&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-failsafe-plugin&lt;/artifactId&gt;</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-&gt; Reporting integration test results   LATER
+  &lt;reporting&gt;
+  &lt;plugins&gt;
+    &lt;plugin&gt;
+      &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+      &lt;artifactId&gt;maven-surefire-report-plugin&lt;/artifactId&gt;</pre>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_setup_development_environment" class="sect0">setup development environment</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> defines an interface between a Java Client and a Traccar Server REST API.
+In order to test the remote invocation, development requires a running traccar server.
+This is acquired by using a traccar docker container managed in the Maven lifecycle.
+The only system requirement to the environment is a <code>docker</code> command line and
+adequat permissions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_credentials">credentials</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The integration tests are only required for development.<br>
+The <code>traccar-api-client</code> can be build without executing tests.</p>
+</div>
+<div class="paragraph">
+<p>If you want to develop additional functionality the integration tests can be run
+against <em>any</em> traccar server. If you set your server host, port and credentials
+in the <code>application.properties</code> file</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">    traccar.host=http[s]://traccar-host:port
+    traccar.user.name=admin
+    traccar.user.password=admin</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Option 2 is to apply the <code>web.serviceAccountToken</code> by restarting the Traccar Service.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_surefire_vs_failsafe">surefire vs failsafe</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can 'turn off' the docker management in the project by removing
+the executions of the pre- and post-integration phases:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;executions&gt;
+        ...
+        &lt;phase&gt;pre-integration-test&lt;/phase&gt;
+        ...
+        &lt;phase&gt;post-integration-test&lt;/phase&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can simply start the traccar server from the project folder</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">/bm/bm-traccar/traccar-api-client$ mvn docker:run
+
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-client ---
+[INFO] DOCKER&gt; [traccar/traccar:6.6-ubuntu] "traccar": Start container 839381eec187
+[INFO] DOCKER&gt; [traccar/traccar:6.6-ubuntu] "traccar":
+               Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER&gt; [traccar/traccar:6.6-ubuntu] "traccar":
+               Waited on url http://localhost 5183 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the server running you can switch the testing modes in
+<code>/bm-sim/bm-traccar/pom.xml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+        &lt;configuration&gt;
+            &lt;includes&gt;
+                &lt;include&gt;**/*IT.java&lt;/include&gt;
+            &lt;/includes&gt;
+        &lt;/configuration&gt;
+
+    &lt;artifactId&gt;maven-failsafe-plugin&lt;/artifactId&gt;
+        &lt;configuration&gt;
+            &lt;excludes&gt;
+                &lt;exclude&gt;**/*IT.java&lt;/exclude&gt;
+            &lt;/excludes&gt;
+        &lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then you can simply run the IntegrationTests in JUnit during development time.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The developer should be aware of the Traccar Frontend on localhost (see below).<br>
+Very helpful to compare changes before/after testing.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Don&#8217;t forget the good old <code>uncheckout</code> of these <em>temporary developer changes</em>
+after development,<br>
+i.e. set the repo back to production.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_browser_ui">browser UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now there is one last thing to do, before running the ITests:
+We need to create the admin user for traccar.
+Traccar used to be shipped with an <code>admin/admin</code> user, but not anymore:<br>
+First registered user automatically becomes an admin !!</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s a little tricky to automate the insertion of the admin user.
+We have to run the container once to create the data model,
+before we could insert the user &#8230;&#8203; TODO</p>
+</div>
+<div class="paragraph">
+<p>Anyhow you should check the prop file</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/bm-sim/bm-traccar/traccar-api-client/src/main/resources/application.properties</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>for the configured credentials</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">    traccar.host=http://localhost
+    traccar.user.name=admin
+    traccar.user.password=admin</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Execute <code>mvn docker:run</code> again.</p>
+</li>
+<li>
+<p>check log tail</p>
+<div class="literalblock">
+<div class="content">
+<pre>INFO: Started Server@649534a4{STARTING}[11.0.24,sto=0] @4954ms</pre>
+</div>
+</div>
+</li>
+<li>
+<p>open <code><a href="http://localhost" class="bare">http://localhost</a></code> in your browser<br>
+since there is no user configured it yould jump to <code><a href="http://localhost/register" class="bare">http://localhost/register</a></code><br>
+enter <code>admin</code> for name, password and email (works without valid email syntax)<br>
+login with the new credentials</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>done</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_run_integration_tests">run integration tests</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now the repository is setup for development
+and you can use the familiar Maven commands</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>mvn clean</code> to make sure there are no conflicts</p>
+</li>
+<li>
+<p><code>mvn verify</code> to make run the integration tests</p>
+</li>
+<li>
+<p><code>mvn install</code> to build, run integration tests and install the <code>jar</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Hopefully with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] BUILD SUCCESS</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2025-10-23 23:08:29 +0200
+</div>
+</div>
+</body>
+</html>

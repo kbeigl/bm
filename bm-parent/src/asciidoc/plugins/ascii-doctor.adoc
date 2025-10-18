@@ -1,0 +1,211 @@
+
+== Asciidoctor 
+
+=== Installation
+
+Since we want to create output formats directly from and into our repository 
+we can use the 
+link:https://docs.asciidoctor.org/maven-tools/latest[Asciidoctor Maven Tools].
+
+We are still in the prototyping phase of the project and the first step was to write `.adoc` files. 
+So we want to link the files accross the whole project and keep it simple.
+Therefore we will use the 
+link:https://docs.asciidoctor.org/maven-tools/latest/plugin/introduction/[asciidoctor-maven-plugin]
+
+[quote, see https://docs.asciidoctor.org/maven-tools/latest/plugin/introduction/]
+____
+The Asciidoctor Maven Plugin is used to convert AsciiDoc documents using Asciidoctor. 
+The plugin offers a comprehensive way to configure a conversion process using AsciidoctorJ in a declarative way.
+____
+
+=== Introduction
+
+As of `v1.1.8` this repository is in prototyping mode.
+Usually developers do a lot of research, trial and error 
+or even switch the strategy when discovering a wrong approach.
+This important information - mostly for developer him/herself -
+and usually scribbled in some (paper) notebook.
+
+We have started out to add a `readme.adoc` on the top level of each project.
+The next step is to add graphs for a faster perception of the software.
+Also, we want to provide a browsing experience for people interested.
+Therefor we picked a modern word processor to gather documents for different output formats.
+
+On the other hand we do not want to create an isolated website for this repository.
+The develpment process should remain as straight forward as possible.
+That is why we want each projects documentation (sources) in the project 
+for the developer to scribble his approaches, progress and finally the result.
+
+One advantage of a multi module project is
+that you can open each project separaretly in the IDE
+and we want to enable developers to type whenever they feel like it.
+This can be done with the adoc files.
+
+Then again you can never be sure _how_ you are looking at the files 
+and _where_ they actually reside in the build process.
+An asciidoc viewer can be installed in a browser or the IDE etc.
+Or the website, like github, already provides the conversion.
+
+To reduce the confusion the `asciidoctor-maven-plugin` is configured 
+for the complete build process from reactor to sub/sub .. projects.
+
+=== Configuration
+
+Note that the plugin is defined in the reactor- and not the parent pom.xml! +
+
+[source,xml]
+----
+<groupId>org.asciidoctor</groupId>
+<artifactId>asciidoctor-maven-plugin</artifactId>
+<version>3.1.1</version>
+<executions>
+    <execution>
+        <id>generate-html-docs</id>
+        <phase>generate-resources</phase>  // maybe use 'prepare-package'
+        <goals>
+            <goal>process-asciidoc</goal>
+        </goals>
+        <configuration>
+            <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
+            <outputDirectory>${project.basedir}/src/asciidoc</outputDirectory>
+            <backend>html5</backend>
+            ...
+        </configuration>
+    </execution>
+</executions>
+----
+
+The reason we placed the plugin on top level
+is that we also want to create documentation on this level.
+Note that we have hard coded `html5` as output format.
+This can be changed or widend to pdf and more as required.
+
+Note that a project with `<packaging>pom</packaging>` fetches content from other modules,
+but does not compile sources nor create a primary artifact, like a `jar`.
+Anyhow it can execute plugins and can create secondary artifacts 
+like a `subproject-a-1.1.8-asciidoc.zip`.
+
+In order to find the documentation at the same place in each project
+we have defined a general source folder with 
+
+    <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
+
+For an isolated run you can run
+
+    mvn clean package
+
+
+=== ! antipattern !
+
+You might have seen the configuration of identical folders for source and output
+
+[source,xml]
+----
+        <configuration>
+            <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
+            <outputDirectory>${project.basedir}/src/asciidoc</outputDirectory>
+----
+
+We have done this for simplicity to generate the `html` output right next to the `adoc` source file
+in order to conserve the links in the documentation.
+Note that we do not use `link` but the `xref` macro to reference documents!
+This ensures that you can navigate through  `html` and `adoc` file independantly,
+while the developer can change the suffix in the browser url to switch.
+
+
+[WARNING]
+====
+While possible, generating output files directly into your source directory (src/) 
+is considered a strong anti-pattern in Maven and software development 
+for several critical reasons:
+
+- Mixing Sources and Generated Files: 
+Your src directory should only contain human-written source code and resources.
+
+- Version Control Pollution: 
+You will have to constantly update your .gitignore file to exclude all generated .html files.
+
+- Build Lifecycle Issues: 
+The mvn clean command is designed to delete the target directory. 
+It will not touch your src folder. 
+This means old, stale HTML files will be left behind, leading to confusion 
+and potential errors unless you delete them manually every time.
+====
+
+Therefor you should .gitignore all html files 
+in the folders `${project.basedir}/src/asciidoc` for the time being.
+If you don't touch the documentation there is no need to commit the changed html files.
+
+The final section of the `<configuration>` makes sure that sources are adoc 
+and output is html without causing confusion:
+
+[source,xml]
+----
+        <configuration>
+            ...
+            <sourceDocumentExtensions>
+                <sourceDocumentExtension>adoc</sourceDocumentExtension>
+            </sourceDocumentExtensions>
+            <resources>
+                <resource>
+                    <directory>${project.basedir}/src/asciidoc</directory>
+                    <excludes>
+                        <exclude>**/*.html</exclude>
+                    </excludes>
+                </resource>
+            </resources>
+        </configuration>
+----
+
+==== `<attributes>`
+
+For the time being we have not attributed the ascii documents globally from Maven:
+
+    <attributes>
+        <doctype>book</doctype>
+        <toc>left</toc>
+        <source-highlighter>coderay</source-highlighter>
+    </attributes>
+
+but we are experimenting directly in some adocs:
+
+    :doctype: book
+    :toc: left
+    :toclevels: 3
+
+
+=== outlook
+
+For the time being we can type into the adocs as we want.
+At a later stage we might introduce a
+
+    <module>bm-documentation<module> 
+
+project at the end of the build.
+This follows the idea of an aggregator module (standard Maven best practice for complex builds) 
+that can pull previously zipped (`maven-assembly-plugin`) documents
+from all projects, assemble them to one structure (`maven-dependency-plugin`)
+and finally process them to a full site or single pdf etc.
+
+As we learn to know AsciiDoc we add more features and head towards this finalization.
+Hava a look at the `bm-parent.adoc` how to create a single page with toc 
+and check the output `bm-parent.html` file .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

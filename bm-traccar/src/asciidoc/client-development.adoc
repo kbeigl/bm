@@ -1,0 +1,44 @@
+
+= Traccar Client Development
+
+The `bm-traccar` module, i.e. Maven subbranch, is the development environment 
+for integrating with the  
+link:https://www.traccar.org/[Traccar GPS Tracking Platform].
+Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
+The System was thoroughly analyzed in the 
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
+and
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book].
+
+This module provides a development environment with different database setups,
+different server instances: remote, local IDE, local service or 
+dockerized for automated integration testing
+
+// image::svg/bm-traccar-flow.svg[Static]
+
+
+[mermaid]
+....
+flowchart TD
+    subgraph root module
+        bm-traccar["bm-traccar"] 
+        docker-integration["Docker Integration"]
+        testing-setup["*IntegrationTest Setup"]
+        database-handling["Database Setup"]
+    end
+  
+    traccar-module["Traccar Module"]
+    traccar-server["Traccar Server"]
+
+    bm-traccar --> docker-integration
+    bm-traccar --> testing-setup
+    bm-traccar --> database-handling
+
+    testing-setup <--> traccar-module
+    traccar-module <--> traccar-server
+
+    docker-integration --> traccar-server
+    database-handling --> traccar-server
+....
+
+

@@ -1,7 +1,11 @@
 
 = Testing with Traccar Server
 
-[toc]
+The Traccar Clients are basically an interface between REST and Java passing Entities. 
+Therefor there is no need for cumbersom JUnit test setups
+to test the technology we rely on.
+The functionality is achieved by wiring diffent technology components
+together, configure and run them.
 
 The Traccar Client is _not_ a software with complex implementations of Java Units.
 Actually it is merely an interface between REST and Java passing Entities. 

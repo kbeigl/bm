@@ -1,7 +1,9 @@
 
-:toc:
+= Dockerized Traccar Server
 
-= build and run Traccar Docker Container
+The Traccar Client Software is developed with Integration Tests against a Docker Traccar Server.
+
+== build and run Traccar Docker Container
 
 The traccar project at Github provides instructions to fetch and install the Traccar
 https://hub.docker.com/r/traccar/traccar[DockerHub image].

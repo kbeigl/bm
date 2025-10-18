@@ -1,7 +1,9 @@
 
-:toc:
-
 = Database Testing
+
+After setting up the Traccar Docker Container there are different options to set up the database
+according to your development focus. The Database (ERM) can be perceived as the backdoor
+through which you can peek into the data and analyze the actions of your integration tests.
 
 Multiple options for handling the H2 database are scribbled here, 
 including mounting external volumes, direct SQL shell access, 
@@ -31,7 +33,7 @@ The default h2 database is ideal, i.e. made for testing.
 Developers can login to the traccar data base, explore the schema 
 and inspect data with `plain SQL`, reset to scratch .. whatever.
 
-=== database introspection
+== database introspection
 
 The recommended traccar docker installation is to leave the database inside the container.
 By mounting the `/data` folder we can look inside the data, which stays persistent

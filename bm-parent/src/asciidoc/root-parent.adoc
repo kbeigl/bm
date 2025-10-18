@@ -1,0 +1,139 @@
+
+= Multi Module projects structure
+
+A 
+link:https://maven.apache.org/guides/mini/guide-multiple-modules.html[Maven Multiple Module] 
+Project supports project aggregation in addition to project inheritance. 
+The mechanism in Maven that handles multi-module projects is referred to as _the Reactor_. 
+
+The Reactor or root pom ..
+
+- Collects all the available modules to build
+- Sorts the projects into the correct build order
+- Builds the selected projects in order
+- Should contain: `<modules>` section listing all submodules (bm-parent, bm-traccar, etc.).
+- Should NOT contain dependencies or build plugins that are meant to be inherited by modules.
+- Basic project metadata (groupId, artifactId, version, packaging=pom).
+- Common properties (if needed).
+- Plugin management (optional, but usually placed in parent).
+
+
+and simply is a POM that refers to other Maven projects. 
+
+Note the output line at the beginning of every Maven Build
+
+    [INFO] Reactor Build Order:
+
+The Parent pom defines common `<dependencies>` and `<plugins>` (and `<pluginManagement>`) 
+inherited by all submodules and does not create a JAR or a WAR.
+
+The `bm-parent/pom.xml` ..
+
+- Serves as the parent for all submodules (bm-traccar, etc.).
+- Should contain: `<dependencyManagement>` for shared dependency versions. +
+        `<build>` section for shared plugins (like asciidoctor-maven-plugin, compiler plugin, surefire, etc.).
+- Should NOT contain `<modules>` (that’s for the aggregator/root pom).
+- Shared properties (Java version, encoding, etc.).
+
+For a quick overview on the complete project you can always run `mvn clean`
+to see the processing order.
+
+
+== root project `bm-sim` 
+
+The Maven Bill of Materials (BOM) is collected the root `pom.xml` file, i.e. _aggregator POM_ 
+that defines common dependencies, versions, properties and other dependent Maven Projects.
+It is considered good development practice to run `mvn clean install` 
+in the repository root directory in order to create all artifacts in the local `.m2/repository`.
+This substitutes a Nexus Server usually providing released artifacts. 
+After that the developer can exclusively focus on the project s/he is assigned to. 
+
+see 
+link:https://docs.microfocus.com/doc/205/saas/bestpracticesmavenprojects[structuring Maven projects and modules]
+
+For team development you should work with the `-SNAPSHOT` tag and a central (Nexus) Server 
+over your personal `.m2` repo.
+This way all team members are accessing the same (continuously changeing) artifact 
+and the complete build process can be reduced to the module and artifact in focus.
+
+
+=== `<modules>`
+
+This approach reduces duplication and allows to share configurations between modules.
+Practically the parent pom can be seen as the cover sheet with project information
+and most important - the list of submodules.
+
+compare to 
+link:https://github.com/kbeigl/jeets/blob/master/pom.xml[JeeTS repository]
+
+[source,xml]
+----
+    <modules>
+        <module>bm-parent</module>
+        <module>bm-traccar</module>
+                ...
+    </modules
+----
+
+== `bm-parent` project
+
+The parent project is the first module called in the build process. +
+It starts by running the `os-maven-plugin` (actually a Maven `<extension>`)
+
+[source,text]
+-----------------
+[INFO] Scanning for projects...
+[INFO] ---------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ---------------------------------------------------
+[INFO] os.detected.name: linux
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 6.11
+[INFO] os.detected.version.major: 6
+[INFO] os.detected.version.minor: 11
+[INFO] os.detected.release: tuxedo
+[INFO] os.detected.release.version: 22.04
+[INFO] os.detected.release.like.tuxedo: true
+[INFO] os.detected.release.like.ubuntu: true
+[INFO] os.detected.release.like.debian: true
+[INFO] os.detected.classifier: linux-x86_64
+-----------------
+
+which provides Maven parameters, like `${os.detected.name}`, +
+to direct the build lifecycle as required for your targeted system.
+
+=== project setup
+
+==== `<properties>`
+
+The properties of the parent project are applied to the full repo.
+Here the main parameters for Java, JDK, Maven with components and plugins,
+the driving Camel version in conjunction with spring boot.
+
+
+==== `<dependencyMgm>` and top level BOM
+
+The repository versioning of Java archives is defined by 
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-spring-boot-bom</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+It is recommended to import Camel Spring Boot BOM before Spring Boot BOM
+to ensure Camel dependencies are using supported JARs from the release.
+
+compare to 
+https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml[JeeTS repository]
+  
+       <groupId>org.apache.camel.springboot</groupId>
+    <artifactId>camel-spring-boot-dependencies</artifactId>

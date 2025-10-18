@@ -23,7 +23,7 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations                ===</name>
@@ -47,11 +47,111 @@
         </license>
     </licenses>
 
+    <!-- 
+    <properties>
+        <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root>
+    </properties> -->
+
     <modules>
         <module>bm-parent</module>
         <module>bm-traccar</module>
     </modules>
-    
-    <!-- move PluginMgm and Profiling here from parent pom -->
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <!-- define in properties -->
+                <version>3.1.1</version>
+                <!-- https://github.com/asciidoctor/asciidoctor-maven-examples/blob/main/asciidoctor-diagram-example/pom.xml
+                differnet config in 3.2.0 > upgrade Maven first -->
+
+                <dependencies>
+                    <!-- Explicitly include AsciidoctorJ
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj</artifactId>
+                        <version>3.0.0</version> 
+                        Compatible with plugin 3.1.1
+                    </dependency>
+                    AsciidoctorJ Diagram for Mermaid support -->
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj-diagram</artifactId>
+                        <version>3.0.1</version>
+                    </dependency>
+                    <!-- JRuby for running Ruby-based extensions
+                    <dependency>
+                        <groupId>org.jruby</groupId>
+                        <artifactId>jruby-complete</artifactId>
+                        <version>9.4.8.0</version>
+                    </dependency> -->
+                </dependencies>
+
+                <executions>
+                    <execution>
+                        <id>generate-html-docs</id>
+                        <phase>generate-resources</phase>
+                        <!--    prepare-package ? -->
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <standalone>true</standalone>
+                            <sourceDirectory>
+                                ${project.basedir}/src/asciidoc</sourceDirectory>
+                            <outputDirectory>
+                                ${project.basedir}/src/asciidoc</outputDirectory>
+                            <backend>html5</backend>
+                            <requires>
+                                <!-- Enable diagram module -->
+                                <require>asciidoctor-diagram</require>
+                                <!-- <require>kroki</require> -->
+                            </requires>
+                            <attributes>
+                                <diagram-server-type>kroki_io</diagram-server-type>
+                                <diagram-server-url>https://kroki.io</diagram-server-url>
+                                <kroki-server-url>https://kroki.io</kroki-server-url>
+                                <allow-uri-read />
+                                <data-uri />
+                                <asciidoctor-diagram-verbose>true</asciidoctor-diagram-verbose>
+                                <!-- Enable diagram module
+                                <requires>asciidoctor-diagram</requires> -->
+                                <!-- Specify output format for diagrams -->
+                                <diagram-format>svg</diagram-format>
+                                <!-- Corrected from diagrams-format -->
+                                <diagram-output-dir>svg</diagram-output-dir> <!--
+                                Corrected from diagrams-dir -->
+                                <!-- <diagram-svg-inline>true</diagram-svg-inline> -->
+                                <!-- Explicitly enable embedded Mermaid rendering -->
+                                <mermaid-initialize>true</mermaid-initialize>
+                                <!-- Explicitly disable external Mermaid CLI -->
+                                <mermaid-command>none</mermaid-command>
+                                <!-- Optional: Specify Mermaid version for
+                                embedded renderer
+                                <mermaid-version>10.9.1</mermaid-version> -->
+                                <mermaid-format>svg</mermaid-format> 
+                            </attributes>
+                            <!-- relativeBaseDir>true -->
+                            <sourceDocumentExtensions>
+                                <sourceDocumentExtension>adoc</sourceDocumentExtension>
+                            </sourceDocumentExtensions>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/asciidoc</directory>
+                                    <excludes>
+                                        <exclude>**/*.html</exclude>
+                                        <exclude>**/*.svg</exclude>
+                                        <exclude>**/*.svg.cache</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

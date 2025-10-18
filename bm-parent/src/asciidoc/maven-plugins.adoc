@@ -1,0 +1,48 @@
+
+= Maven `<plugins>`
+
+Each section provides a short introduction to each tool 
+with links to lookup and learn more details.
+
+== Asciidoctor 
+
+=== Documentation
+
+The complete project is documented in _AsciiDoc_ or `.adoc` files.
+This is the broader approach to technical documents than `markdown`
+and you can find everything in the 
+link:https://docs.asciidoctor.org/asciidoc/latest[AsciiDoc Language Documentation]:
+
+[quote, see https://docs.asciidoctor.org/asciidoc/latest]
+____
+AsciiDoc is a lightweight and semantic markup language primarily designed for writing technical documentation. 
+The language can be used to produce a variety of presentation-rich output formats, such as HTML, PDF, EPUB3, man(ual) page, or DocBook. 
+This capability enables it to be used in static site generators, IDEs, git tools and services, CI/CD systems, and other software.
+____
+
+It is important to understand that `.adoc` files are source files 
+that should be processed to some target format.
+This processor is called the _Asciidoctor_ and described in the
+link:https://docs.asciidoctor.org/asciidoctor/latest[AsciiDoctor Documentation]:
+
+[quote, see https://docs.asciidoctor.org/asciidoctor/latest]
+____
+Asciidoctor is a fast text processor for parsing AsciiDoc into a document model, then converting it to output formats.
+____
+
+Goto projects xref:./plugins/ascii-doctor.adoc [AsciiDoctor implementation and usage]
+
+
+== Google Code Style
+
+There are many code formatters and formats out there.
+Just like in the `jeets` project we chose the   
+https://github.com/spotify/fmt-maven-plugin[fmt-maven-plugin]
+
+       <groupId>com.coveo</groupId>
+    <artifactId>fmt-maven-plugin</artifactId>
+
+The choice is based on simplicity and the most common code style with 
+link:https://google.github.io/styleguide/javaguide.html[Google Java Style]. +
+The plugin is strict about styling, cannot be configured by design 
+and automatically formats the code before compilation.

@@ -1,0 +1,6 @@
+
+= Traccar Server Upgrade
+
+This root module that defines the Traccar version for all submodules 
+
+        <traccar.version>6.8.0</traccar.version>
