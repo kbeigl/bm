@@ -11,7 +11,7 @@ The Reactor or root pom ..
 - Collects all the available modules to build
 - Sorts the projects into the correct build order
 - Builds the selected projects in order
-- Should contain: `<modules>` section listing all submodules (bm-parent, bm-traccar, etc.).
+- Should contain: `<modules>` section listing all submodules (`bm-parent`, `bm-traccar`, etc.).
 - Should NOT contain dependencies or build plugins that are meant to be inherited by modules.
 - Basic project metadata (groupId, artifactId, version, packaging=pom).
 - Common properties (if needed).
@@ -29,7 +29,7 @@ inherited by all submodules and does not create a JAR or a WAR.
 
 The `bm-parent/pom.xml` ..
 
-- Serves as the parent for all submodules (bm-traccar, etc.).
+- Serves as the parent for all submodules (`bm-traccar`, etc.).
 - Should contain: `<dependencyManagement>` for shared dependency versions. +
         `<build>` section for shared plugins (like asciidoctor-maven-plugin, compiler plugin, surefire, etc.).
 - Should NOT contain `<modules>` (that’s for the aggregator/root pom).

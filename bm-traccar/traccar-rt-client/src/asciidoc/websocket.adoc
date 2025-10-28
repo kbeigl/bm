@@ -3,10 +3,13 @@
 
 = The Traccar WebSocket Client
 
-The `traccar-api-client` is a Java Client Software to receive real time data 
-from your Traccar Server. While the REST API is based 
-on single requests, i.e. REST calls and responses without any session handling, i.e. stateless,
-this client can create a Camel channel for each individual registered user.
+
+The `traccar-api-client` is a Java Client Software to _request_ real time data 
+from your Traccar Server. While the REST API is based on single requests, 
+i.e. REST calls and responses without any session handling, i.e. stateless.
+
+Therefor this *WebSocket Route/Session Manager* can create a Camel channel 
+for each individual registered user to manage WebSocket connections and event routing.
 
 On a higher level different websocket channels can report live events 
 in a given _Scenario_. For example you could direct different vehicles 
@@ -115,7 +118,7 @@ Anyhow we can combine the two in a higher level `traccar-java-client`.
 == Implementation with Camel Routes 
 
 The core of this `traccar-ws-client` is the 
-link:./src/main/java/bm/traccar/ws/TraccarWsClientRoute.java[TraccarWsClientRoute]. +
+link:../../main/java/bm/traccar/ws/TraccarWsClientRoute.java[TraccarWsClientRoute]. +
 Here is a rough outline with three routes:
 
 [source,java]

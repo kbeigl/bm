@@ -91,8 +91,9 @@ public final class RealTimeManager {
     if (device != null) {
       device.setPositionId(position.getId());
       device.setLastUpdate(position.getServerTime());
-      // You might also update the device status based on the position data
+      // update device stati based on position data
       // e.g., if position.getAttributes().get("ignition") is true/false.
+      // raise events ...
       device.setStatus("online");
     }
   }

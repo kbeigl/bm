@@ -1,44 +1,72 @@
 
 = repository documentation
 
-The repository is documented in all layers of aggregate and regular modules.
+The repository is documented over all layers of aggregate and regular modules.
 Documentation is written with `.adoc` files to use many of its features,
-basically from crosslinks to more complex things like integrating charts.
-You should be aware that `.adoc` files are actually source files
+basically from crosslinks to more complex things like integrating `mermaid` charts.
+You should be aware that `.adoc` files are actually source files in plain text 
 to be compiled with `AsciiDoc` to a variety of presentation-rich output 
-formats, like a complete website or pdf.
+formats, like a complete website or a pdf document.
+
+== tl;dr
 
 [TIP]
 ====
-At development time you should browse the `.adoc` files to edit, +
-while the `.html` files are produced for releases. +
-During development you can ignore the `.html` files in your commits. 
+- for plain reading go to the 
+link:https://kbeigl.github.io/bm/src/asciidoc/bm.html[*Github Pages*] 
+of this repository.
+
+- at development time you should browse the `.adoc` files to _edit_, +
+while the `.html` files are produced via  `mvn package` 
+and checked in for releases.
+ 
+- during development you can ignore (or assume unchanged) + 
+the `.html` files in commits. 
 ====
+
+The final resort for the documentation is published with every release 
+via *Github Pages*.
 
 
 == what do you see now?
 
-You are now looking at the main `readme.adoc` of this repository.
+_You are now looking_ at the main `readme.adoc` of this repository.
 
-If you are viewing the file through `github` then the site 
-is rendering the links below and you can follow one of them.
+If you are viewing the file on `github` then the site 
+is rendering the `.adoc` links below and you can follow them. +
+On the other hand `github` presents `.html` files in _raw_ format without rendering. +
+link:https://docs.github.com/en/pages[*Github Pages*] provides hosting
+of the `.html` files and you can use the link above to get the entry page.
 
-If you are looking at the same file on your local filesystem
-through a browser the links must not work, because it requires
-a preview extension to create them from `ascii` format.
-Then again you will not see the integrated charts in the documents
-as they also require a separate extension or online tool.
+If you are looking at `.adoc` files on your local filesystem
+through a browser or the IDE, the links must not necessarily work, 
+because it requires a preview extension to create them from `asciidoc` format. +
+Then again you might not see the integrated charts in the documents
+as they also require a separate extension or online tool. +
+On the other hand you can view the local `.html` files in your browser.
+
 
 == choose your format
 
 We are using the `asciidoctor-maven-plugin` to convert 
-every `.adoc` file to a `.html` page, which does not require 
-any settings on your browser or elsewhere.
+all `.adoc` files in all `src/asciidoc` folders  to a `.html` page.
+We are currently using `mermaid` charts for documentation,
+which are converted to `svg` format
+by the external `kroki` service.
 
-The following links point to the repository parent `bm.adoc` or `bm.html`. +
-Choose your own entry point and format to navigate through the documentation.
+These conversions should spare the interested to developer from 
+different processing and viewing of `adoc/mermaid` sources
+in a user friendy output format `html/svg`,
+which does not require any settings on your browser or elsewhere.
 
-bm repository documentation entry points: 
-link:./src/asciidoc/bm.adoc[adoc] or
-link:./src/asciidoc/bm.html[html] format
+The following links point to the repository parent 
+link:./src/asciidoc/bm.adoc[`bm.adoc`] 
+or 
+link:./src/asciidoc/bm.html[`bm.html`]. +
+Choose your own entry point and format to navigate through the documentation
+depending on your environment.
+
+Or browse the 
+https://kbeigl.github.io/bm/src/asciidoc/bm.html[*bm Github Pages*]
+for a smooth reading experience.
 

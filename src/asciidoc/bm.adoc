@@ -12,12 +12,12 @@ link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-eboo
 
 [source,text]
 -----------------
-[INFO] === blue marble simulations                === 1.1.8 
-[INFO] --- blue marble parameters                 --- 1.1.8 
-[INFO] ---- traccar client implementations        --- 1.1.8 
-[INFO] ..... traccar-openapitools-client    6.8.0 ......... 
-[INFO] ..... traccar-api-client             6.8.0 ......... 
-[INFO] ..... traccar-rt-client              6.8.0 ......... 
+[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
+[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
+[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
+[INFO] ..... traccar-openapitools-client     6.8.0 ........ 
+[INFO] ..... traccar-api-client              6.8.0 ........ 
+[INFO] ..... traccar-rt-client               6.8.0 ........ 
 -----------------
 
 For earlier versions check the 
@@ -30,7 +30,7 @@ The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every `mvn` command executed. 
 It assures that any project is build as required by another.  
 
-xref:../../bm-parent/src/asciidoc/bm-parent.adoc[read more ...]
+xref:../../bm-parent/src/asciidoc/bm-parent.adoc[details ...]
 
 
 == `/bm-traccar`
@@ -43,14 +43,13 @@ link:https://github.com/kbeigl/jeets/blob/master/README.adoc[Jeets Project]
 and
 link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[Jeets Book].
 
-As of `v1.1.8` we are developing three cascaded 
-and yet independent artifacts
+xref:../../bm-traccar/src/asciidoc/bm-traccar.adoc[read more to setup and adopt your development environment]
 
-1. asd
+As of `v1.1.8` we are developing the following three 
+cascaded and yet independent artifacts:
 
-link:./bm-traccar/readme.adoc[read more to setup and adopt your development environment]
 
-=== `/traccar-openapitools-client`
+=== 1. `traccar-openapitools-client`
 
 The Traccar REST API is defined in a single `openapi.yaml` file,
 which is processed with the  
@@ -58,9 +57,9 @@ link:https://github.com/OpenAPITools/openapi-generator[OpenAPI Generator]
 to generate a plain Java Client `traccar-api-generated-x.y.z.jar` from the 
 link:https://swagger.io/specification/[OpenAPI specification]. 
 
-link:./bm-traccar/traccar-openapitools-client/readme.adoc[read more ...]
+xref:../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.adoc[details ...]
 
-=== `/traccar-api-client`
+=== 2. `traccar-api-client`
 
 ==== The Traccar OpenAPI Client
 
@@ -70,9 +69,9 @@ like Human Resources-, Sales- and Fleet Management Software.
 Synchronize your employees with their cars and driver information without utilizing the traccar UI.
 Pull driving reports for your sales team ... and much more ;) 
 
-link:./bm-traccar/traccar-api-client/readme.adoc[read more ...]
+xref:../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.adoc[details ...]
 
-=== `/traccar-rt-client`
+=== 3. `traccar-rt-client`
 
 ==== The Traccar Real-Time Client
 
@@ -80,5 +79,5 @@ The traccar-rt-client is a Java Client Software
 to provide full (remote) control over and interact 
 via live surveillance of your Traccar Server Scenario. 
 
-link:./bm-traccar/traccar-rt-client/readme.adoc[read more ...]
+xref:../../bm-traccar/traccar-rt-client/src/asciidoc/traccar-rt-client.adoc[details ...]
 

@@ -3,6 +3,7 @@ package bm.traccar.rt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import bm.traccar.RealTimeClient;
 import bm.traccar.api.Api;
 import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.Position;
@@ -15,9 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-class RealTimeModelIT extends BaseReaTimeScenarioTest {
-  private static final Logger logger = LoggerFactory.getLogger(RealTimeModelIT.class);
+class RealTimeManagerIT extends BaseReaTimeScenarioTest {
+  private static final Logger logger = LoggerFactory.getLogger(RealTimeManagerIT.class);
+
+  @MockBean private RealTimeClient mockRealTimeClient;
 
   // pre development for RTController with an RTModel instance
   @Autowired protected Api api;
@@ -62,13 +66,13 @@ class RealTimeModelIT extends BaseReaTimeScenarioTest {
     List<Long> stateManagerDeviceIds =
         stateManager.getAllDevices().stream().map(Device::getId).sorted().toList();
     assertEquals(
-        initialDeviceIds, stateManagerDeviceIds, "User lists do not match after initial load");
+        initialDeviceIds, stateManagerDeviceIds, "Device lists do not match after initial load");
 
     // Check the latest position (should be empty right now)
     //    logger.info("Latest position for device XXX: "
     //	+ stateManager.getLatestPositionForDevice(XXX).orElse(null));
 
-    // 3. SIMULATE LIVE UPDATE (from WebSocket)
+    // 3. SIMULATE LIVE UPDATE (from WebSocket for example)
     logger.info("--- WebSocket message received: New Position ---");
     Position newPosition = new Position();
     newPosition.setId(5001l);
@@ -91,7 +95,6 @@ class RealTimeModelIT extends BaseReaTimeScenarioTest {
         d -> {
           logger.info("Updated Device Details: " + d);
           logger.info("  - Status: " + d.getStatus());
-          // logger.info("  - Last Update Time: " + d.getLastUpdate());
           logger.info("  - Current Position ID: " + d.getPositionId());
         });
 

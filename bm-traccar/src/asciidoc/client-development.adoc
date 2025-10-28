@@ -16,14 +16,13 @@ dockerized for automated integration testing
 
 // image::svg/bm-traccar-flow.svg[Static]
 
-
 [mermaid]
 ....
 flowchart TD
     subgraph root module
         bm-traccar["bm-traccar"] 
         docker-integration["Docker Integration"]
-        testing-setup["*IntegrationTest Setup"]
+        testing-setup["IntegrationTest Setup"]
         database-handling["Database Setup"]
     end
   
@@ -40,5 +39,3 @@ flowchart TD
     docker-integration --> traccar-server
     database-handling --> traccar-server
 ....
-
-

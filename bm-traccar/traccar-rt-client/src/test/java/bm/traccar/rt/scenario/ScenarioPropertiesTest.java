@@ -18,7 +18,7 @@ public class ScenarioPropertiesTest {
 
   @Test
   void propertiesDevicesShouldBeLoadedAndMapped() {
-    assertNotNull(props.getDevice().get(0), "User0 object should not be null");
+    assertNotNull(props.getDevice().get(0), "Device0 object should not be null");
   }
 
   @Test

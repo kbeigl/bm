@@ -1,10 +1,14 @@
 
+:doctype: book
+:toc: left
+:toclevels: 3
+
 == Asciidoctor 
 
 === Installation
 
-Since we want to create output formats directly from and into our repository 
-we can use the 
+Since we want to create output formats directly from 
+and into our repository we can use the 
 link:https://docs.asciidoctor.org/maven-tools/latest[Asciidoctor Maven Tools].
 
 We are still in the prototyping phase of the project and the first step was to write `.adoc` files. 
@@ -22,7 +26,7 @@ ____
 
 As of `v1.1.8` this repository is in prototyping mode.
 Usually developers do a lot of research, trial and error 
-or even switch the strategy when discovering a wrong approach.
+or even switch the strategy when realizing a wrong approach.
 This important information - mostly for developer him/herself -
 and usually scribbled in some (paper) notebook.
 
@@ -31,20 +35,28 @@ The next step is to add graphs for a faster perception of the software.
 Also, we want to provide a browsing experience for people interested.
 Therefor we picked a modern word processor to gather documents for different output formats.
 
-On the other hand we do not want to create an isolated website for this repository.
+On the other hand we _do not_ want to create an isolated website for this repository.
 The develpment process should remain as straight forward as possible.
 That is why we want each projects documentation (sources) in the project 
-for the developer to scribble his approaches, progress and finally the result.
+for the developer to scribble his approaches, progress 
+and finally the cleaned result.
 
 One advantage of a multi module project is
 that you can open each project separaretly in the IDE
-and we want to enable developers to type whenever they feel like it.
+and we want to enable developers to type whenever they feel like it,
+or want to get it out of their heads.
 This can be done with the adoc files.
 
 Then again you can never be sure _how_ you are looking at the files 
 and _where_ they actually reside in the build process.
 An asciidoc viewer can be installed in a browser or the IDE etc.
 Or the website, like github, already provides the conversion.
+
+This ambiguation is described in the main 
+link:../../../../readme.adoc[`readme.adoc`] 
+file, where the reader can make a choice between raw/rendered `adoc`,
+and between raw/hosted `html` files.
+ 
 
 To reduce the confusion the `asciidoctor-maven-plugin` is configured 
 for the complete build process from reactor to sub/sub .. projects.
@@ -81,8 +93,8 @@ Note that we have hard coded `html5` as output format.
 This can be changed or widend to pdf and more as required.
 
 Note that a project with `<packaging>pom</packaging>` fetches content from other modules,
-but does not compile sources nor create a primary artifact, like a `jar`.
-Anyhow it can execute plugins and can create secondary artifacts 
+but does not compile sources nor create a _primary_ artifact, like a `jar`.
+Anyhow it can execute plugins and can create _secondary_ artifacts 
 like a `subproject-a-1.1.8-asciidoc.zip`.
 
 In order to find the documentation at the same place in each project
@@ -95,9 +107,9 @@ For an isolated run you can run
     mvn clean package
 
 
-=== ! antipattern !
+==== ! antipattern !
 
-You might have seen the configuration of identical folders for source and output
+You might have noted the configuration of identical folders for source and output
 
 [source,xml]
 ----
@@ -119,20 +131,20 @@ While possible, generating output files directly into your source directory (src
 is considered a strong anti-pattern in Maven and software development 
 for several critical reasons:
 
-- Mixing Sources and Generated Files: 
+- Mixing Sources and Generated Files: +
 Your src directory should only contain human-written source code and resources.
 
-- Version Control Pollution: 
+- Version Control Pollution: +
 You will have to constantly update your .gitignore file to exclude all generated .html files.
 
-- Build Lifecycle Issues: 
+- Build Lifecycle Issues: +
 The mvn clean command is designed to delete the target directory. 
 It will not touch your src folder. 
 This means old, stale HTML files will be left behind, leading to confusion 
 and potential errors unless you delete them manually every time.
 ====
 
-Therefor you should .gitignore all html files 
+Therefor you should `.gitignore` all html files (or mark 'assume unchanged')
 in the folders `${project.basedir}/src/asciidoc` for the time being.
 If you don't touch the documentation there is no need to commit the changed html files.
 
@@ -167,16 +179,76 @@ For the time being we have not attributed the ascii documents globally from Mave
         <source-highlighter>coderay</source-highlighter>
     </attributes>
 
-but we are experimenting directly in some adocs:
+but we are experimenting directly in selected adocs:
 
     :doctype: book
     :toc: left
     :toclevels: 3
 
 
+=== external mermaid rendering
+
+We are creating mermaid graphs and placing them directly in the `adoc`.
+Then we are applying `asciidoctor-diagram` supported by `asciidoctorj-diagram`
+in Maven to create `html/svg` output.
+
+For a smooth start into a new software the Maven Project should be self contained 
+and build successful without external dependencies. 
+This works fine for `[ditaa]` diagrams, since it is written in Java.
+
+For `[mermaid]` diagrams an external converter is required 
+and you can observe this in debug mode
+
+    [INFO] asciidoctor: DEBUG: Finding 'mmdc' in attributes
+    [INFO] asciidoctor: DEBUG: Finding 'mmdc' in environment
+    [INFO] asciidoctor: DEBUG: Found '/usr/local/bin/mmdc' in environment
+
+We don't want users to install `sudo` stuff in whatever system the software is build.
+It simply doesn't make a good impression to distribute software 
+that fails creating the documentation and requires system changes. 
+Distributors can't predict each CD/CI environment 
+in which the software will be composed.
+
+For a self-contained environment the conversion could be achieved with 
+https://github.com/asciidoctor/docker-asciidoctor[docker-asciidoctor].
+
+If we do accept an external dependency to the internat at build time
+we might as well use the https://kroki.io/[Kroki Diagram Server/Service]
+as described in 
+https://docs.asciidoctor.org/browser-extension/diagrams-extension-option[Use Kroki via the diagrams extension].
+
+[quote, see https://kroki.io]
+____
+Kroki creates diagrams from textual descriptions! +
+Kroki provides a unified API with support for BlockDiag (.. Mermaid ..). +
+Kroki provides a unified API for all the diagram libraries. 
+____
+
+Let's use kroki for simplicity
+
+    <diagram-server-type>kroki_io</diagram-server-type>
+    <diagram-server-url>https://kroki.io</diagram-server-url>
+      <kroki-server-url>https://kroki.io</kroki-server-url>
+
+As kroki is a free service you might experince server problems in you build
+
+    [INFO] --- asciidoctor-maven-plugin:3.1.1:process-asciidoc (generate-html-docs) @ bm-traccar ---
+    [INFO] Converted /home/kbeigl/git/bm/bm-traccar/src/asciidoc/setup-tests.adoc
+    [INFO] asciidoctor: ERROR: bm-traccar-arc.adoc: line 25: 
+                        Failed to generate image: 400 "Bad Request"
+                        
+Simply try again another time and make sure images are present
+before checking in the latest html set.
+
+Now we have created a cyclic compilation of documents 
+which does not interrupt the build, can override existing source files
+and allows developers to type and free their minds.
+
+
 === outlook
 
-For the time being we can type into the adocs as we want.
+For the time being we can type into the adocs as we please. +
+This is the top priority for a software creation process. +
 At a later stage we might introduce a
 
     <module>bm-documentation<module> 
@@ -189,7 +261,7 @@ and finally process them to a full site or single pdf etc.
 
 As we learn to know AsciiDoc we add more features and head towards this finalization.
 Hava a look at the `bm-parent.adoc` how to create a single page with toc 
-and check the output `bm-parent.html` file .
+and counter check the output `bm-parent.html` file .
 
 
 

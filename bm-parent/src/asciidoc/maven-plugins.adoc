@@ -30,7 +30,50 @@ ____
 Asciidoctor is a fast text processor for parsing AsciiDoc into a document model, then converting it to output formats.
 ____
 
-Goto projects xref:./plugins/ascii-doctor.adoc [AsciiDoctor implementation and usage]
+Goto projects 
+xref:./plugins/ascii-doctor.adoc [AsciiDoctor implementation and usage]
+
+
+== Mermaid Chart 
+
+[quote, see https://docs.mermaidchart.com/mermaid-oss/intro/index.html#about-mermaid]
+____
+Mermaid lets you create diagrams and visualizations using text and code.
+____
+
+that's about all there is to say about this software.
+
+Find more at https://github.com/mermaid-js/mermaid#readme[github]
+
+The idea is to _describe_ charts with the mermaid syntax
+
+[source,xml]
+----
+    flowchart TD
+            A(["Start"])
+            A --> B{"Decision"}
+            B --> C["Option A"]
+            B --> D["Option B"]
+----
+
+and our Maven Plugin combination of AsciiDoc and Mermaid 
+will generate html pages with SVG graphics on the fly:
+
+[mermaid]
+....
+flowchart TD
+        A(["Start"])
+        A --> B{"Decision"}
+        B --> C["Option A"]
+        B --> D["Option B"]
+....
+
+There is also a 
+link:https://mermaid.live[live editor] for interactive chart creation.
+
+The Maven Installation is part of the Maven AsciiDoc installation 
+and details can be found in its description
+xref:./plugins/ascii-doctor.adoc [AsciiDoctor implementation and usage].
 
 
 == Google Code Style

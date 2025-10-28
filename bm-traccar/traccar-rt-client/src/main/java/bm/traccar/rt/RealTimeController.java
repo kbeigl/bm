@@ -25,10 +25,6 @@ public class RealTimeController {
 
   private final RealTimeManager stateManager = RealTimeManager.getInstance();
 
-  // private final HttpClient httpClient;
-  // private final Gson gson;
-  // private WebSocket webSocket;
-
   @Autowired protected Api api;
   @Autowired private TraccarWebSocketRoute traccarLiveConnection;
 

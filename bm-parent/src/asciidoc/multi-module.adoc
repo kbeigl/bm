@@ -18,7 +18,7 @@ is defined by the major components:
 Implies major versioning, dependency management, plugin configuration, 
 build lifecycle and finally release management.
 If available and feasible external tools, i.e. plugins, like the 
-link:../bm-traccar/traccar-openapitools-client/readme.adoc[OpenAPI Generator]
+xref:../../../bm-traccar/traccar-openapitools-client/readme.adoc[OpenAPI Generator]
 are integrated into the lifecycle to generate code for subsequent modules.
 
 

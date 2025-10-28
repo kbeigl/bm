@@ -139,6 +139,7 @@ public class ScenarioLoader {
   /** Remove all scenario users and devices from the server. */
   // delete users > imply devices and relations?
   public void teardownScenario() {
+    logger.info("--- tear down scenario on server ---");
     // Remove devices
     for (int i = 0; i < props.getDevice().size(); i++) {
       ScenarioProperties.Device d = props.getDevice().get(i);

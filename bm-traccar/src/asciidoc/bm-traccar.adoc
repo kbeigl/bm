@@ -5,6 +5,8 @@
 
 include::client-development.adoc[]
  
+include::bm-traccar-arc.adoc[]
+ 
 include::setup-docker.adoc[]
  
 include::test-database.adoc[]

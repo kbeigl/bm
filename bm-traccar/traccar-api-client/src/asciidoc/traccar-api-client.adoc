@@ -1,0 +1,210 @@
+
+:toc:
+
+= The Traccar OpenAPI Client
+
+The `traccar-api-client` is a Java Client Software 
+to provide full (remote) control over your Traccar Server. 
+
+It can be used to integrate your Tracking with your company systems, 
+like Human Resources-, Sales- and Fleet Management Software.
+Synchronize your employees with their cars and driver information without utilizing the Traccar UI.
+Pull driving reports for your sales team ... and much more ;)
+
+== Architectural Characteristics
+
+- **Separation of Concerns** +
+  The architecture separates generated API code in `traccar-openapitools-client` + 
+  from business logic via `Api interface` in  `traccar-api-client`.
+- **Generated API Layer** +
+  All REST API models and client classes are generated from the Traccar OpenAPI spec (`yaml`) +
+  and maintained in `traccar-openapitools-client`.
+- **Extensible Client** +
+  `traccar-api-client` wraps and extends the generated API, + 
+  providing a stable interface for application developers.
+
+
+=== Component Interaction
+
+This sequence diagram illustrates how components interact at runtime for REST API calls:
+
+[mermaid]
+....
+sequenceDiagram
+    participant BusinessApp
+    box bm-traccar
+        participant ApiClient as traccar-api-client <br/> Api.java interface
+        participant OpenApi as traccar-openapitools-client <br/> ApiClient.java
+    end
+    participant TraccarServer
+
+    BusinessApp->>ApiClient: Call business method
+    ApiClient->>OpenApi: Use generated REST client
+    OpenApi->>TraccarServer: HTTP Request
+    TraccarServer-->>OpenApi: HTTP Response
+    OpenApi-->>ApiClient: API Model/DTO
+    ApiClient-->>BusinessApp: Result/DTO
+....
+
+The deployment diagram shows how the components are deployed and interact with the Traccar server:
+
+[mermaid]
+....
+flowchart LR
+    subgraph Client Host
+        A1[User Application]
+        A2[traccar-api-client]
+        A3[traccar-openapitools-client]
+    end
+
+    subgraph Server Host
+        B1[Traccar Server]
+    end
+
+    A1-->|API Calls|A2
+    A2-->|Uses|A3
+    A3-->|HTTP|B1
+....
+
+
+== The Traccar API
+
+The Traccar OpenAPI Client wraps the Traccar API in a Spring @Service -- simple as that. +
+You can always counter check against the latest 
+link:https://www.traccar.org/api-reference[Official Traccar API Reference].
+
+=== usage
+
+After adding the jar to your software or build system 
+the API can easily be added to any Springboot Application as a @Service in your code
+
+      @Autowired private ApiService api;
+
+=== authentication
+
+Then you can set your credentials via bearer token or basic authentication
+
+    // use your token generated from your Traccar server
+    api.setBearerToken(YOUR_TRACCAR_TOKEN);
+    // switch auth method
+    api.setBasicAuth(mail, password);
+    // switch for every REST call as needed
+
+or switch users with different access to different user, devices etc.
+directly in your code. +
+see `package bm.traccar.invoke.auth`
+
+=== usage example
+
+Here's a simple example code to demo how to add the Traccar API Service 
+to your company software. +
+First you need these prerequesites: 
+
+* Add the `traccar-api-client-x.y.z.jar` to your application. +
+Or add it to your `.m2` repo or nexus server, then to _your_ `pom`.
+
+* Add your Traccar Server URL and credentials to your `application.properties` file. +
+i.e. `host, user.name, user.password, user.email (, accountToken)`. +
+Or provide these values in a way that meets your security strategy (secrets etc.)
+
+and then the coding is straight forward:
+
+[source,java]
+----
+package your.company.app...;
+
+import bm.traccar.api.ApiService            // <1>
+
+public class TraccarUsers {
+
+    @Autowired
+    private ApiService api;                 // <1>
+
+    public static void main(String[] args) { 
+    
+        api.setBasicAuth(mail, password);   // <2>
+//      api.setBearerToken(token);
+        
+        User user = new User();             // <3>
+        user.setName("user-1");
+        user.setEmail("email-1");
+        user.setPassword("pw-1");
+        
+        User userOnServer = api.users.createUser(user);     // <4>
+        
+    }
+}
+----
+<1> add the `ApiService`, being a Spring `@Service class`
+
+<2> choose and set your authentication +
+and can change it any time in the program flow.
+
+<3> create a `new User` (DTO) in your software for your employees 
+
+<4> create a `new User` (Entity) in your Traccar Server +
+The new User (DTO) is returned with a unique ID from the server.  
+
+=== mimic URL syntax
+
+Note how the Java invokation mimics a REST call
+
+    // <server>/api/users?user_Id=11
+    User user = api.users.getUsers(userId);
+
+And that is all you need to create users, devices etc.
+and manage them in your code! +
+For more examples check the integration tests, i.e. `UsersIT` and others.
+
+As you can see the above expression is similar the URL
+
+    http://{host}:{port}/api/users/{id}
+    User userOUT =       api.users.createUser(user);
+
+    https://demo3.traccar.org/api/devices?id=3
+    Device[] devices =        api.devices.getById(3);
+
+
+=== configuration
+
+For convenience you can use the `application.properties` file 
+and grab the `@Value` in your source code, depending on your security concepts.
+Check the `*.*IT` integration test files for demo code.
+
+==== application.properties
+
+  # traccar.host=https://demo3.traccar.org
+  traccar.host=http://localhost
+  traccar.user.name=admin
+  traccar.user.password=admin
+  traccar.user.email=admin@domain.com
+
+your implementation (compare ITests)
+
+  @Value("${traccar.user.name}")     private String name;
+  @Value("${traccar.user.password}") private String password;
+  @Value("${traccar.user.email}")    private String mail;
+
+
+==== fixed docker authentication
+
+For integration testing with docker we apply a fixed `serviceAccountToken`
+to gain (virtual) administration over the complete server.
+
+  traccar.web.serviceAccountToken=VIRTUAL_ADMIN_ACCESS
+  
+  @Value("${traccar.web.serviceAccountToken}") private String virtualAdmin;
+
+[IMPORTANT]
+====
+You have to prepare your docker version of traccar via `traccar.xml` file +
+by adding the service account token (with its risks):
+
+   <entry key='web.serviceAccountToken'>VIRTUAL_ADMIN_ACCESS</entry>
+====
+
+
+== implementation
+
+If you are interested in the implementation read on 
+xref:./implementation.adoc[here]

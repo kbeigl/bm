@@ -1,3 +1,11 @@
+
+    [INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
+    [INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
+    [INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
+    [INFO] ..... traccar-openapitools-client     6.8.0 ........ 
+    [INFO] ..... traccar-api-client              6.8.0 ........ 
+    [INFO] ..... traccar-rt-client               6.8.0 ........ 
+
     [INFO] === blue marble simulations                === 1.1.8 
     [INFO] --- blue marble parameters                 --- 1.1.8 
     [INFO] ---- traccar client implementations        --- 1.1.8 

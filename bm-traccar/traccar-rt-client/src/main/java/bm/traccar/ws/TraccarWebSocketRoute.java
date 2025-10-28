@@ -5,6 +5,8 @@ import bm.traccar.rt.RealTimeManager;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.ProducerTemplate;
@@ -30,8 +32,8 @@ public class TraccarWebSocketRoute extends RouteBuilder {
   @Value("${traccar.host}")
   private String host;
 
-  @Value("${traccar.websocket.url}")
-  private String traccarWebSocketUrl;
+  //  @Value("${traccar.websocket.url}")
+  //  private String traccarWebSocketUrl;
 
   // no REST API involved !
   @Autowired private TraccarSessionManager sessionManager;
@@ -61,13 +63,13 @@ public class TraccarWebSocketRoute extends RouteBuilder {
         .handled(true)
         .log(LoggingLevel.WARN, "Invalid JSON ignored: ${exception.message}");
 
-    // internal Excepption
+    // internal Exception
     configureLoginAndConnectRoute();
 
     // CBR to process incoming WebSocket messages ---
     from("direct:start-websocket-connection")
         .routeId("traccarWebSocketMessageProcessingRoute")
-        // LoggingLevel.DEBUG
+        // set to LoggingLevel.DEBUG
         .log("Process WebSocket raw  message: ${body}")
         .unmarshal() // convert body to ..
         .json() // .. LinkedHashMap Map<String, Object>
@@ -121,27 +123,15 @@ public class TraccarWebSocketRoute extends RouteBuilder {
 
               if (sessionManager.getJsessionidCookie() != null) {
                 log.info("Obtained JSESSIONID: {}", sessionManager.getJsessionidCookie());
-                // Dynamically add a new route for the WebSocket connection with the session cookie
                 String wsRouteId = "traccarWebSocketDynamicRoute";
                 if (getContext().getRouteController().getRouteStatus(wsRouteId) != null) {
                   getContext().getRouteController().stopRoute(wsRouteId);
                   getContext().removeRoute(wsRouteId);
                 }
-                // Construct the WebSocket URL from the base API URL
-                // URI httpUri = new URI(traccarApiUrl);
-                // String scheme = "ws";
-                // if ("https".equalsIgnoreCase(httpUri.getScheme())) { scheme = "wss"; }
-                // String wsUrl = String.format( "%s://%s:%d/api/socket",
-                // scheme, httpUri.getHost(),
-                //   httpUri.getPort() > 0
-                // ? httpUri.getPort()
-                // : ("wss".equals(scheme) ? 443 : 80));
-                // traccarWebSocketUrl = wsUrl;
 
-                String wsUri =
-                    traccarWebSocketUrl
-                        + "&handshake.Cookie=JSESSIONID="
-                        + sessionManager.getJsessionidCookie();
+                String wsUri = deriveWsFromUrl(host, sessionManager.getJsessionidCookie());
+                log.info("Connecting to Traccar WebSocket at: {}", wsUri);
+
                 getContext()
                     .addRoutes(
                         new RouteBuilder() {
@@ -155,12 +145,27 @@ public class TraccarWebSocketRoute extends RouteBuilder {
                         });
               } else {
                 log.error("Failed to obtain JSESSIONID from Traccar login response.");
-                // Handle login failure, e.g., retry or send alert
+                // handle login failure, retry or send alert
               }
             })
         .onException(HttpOperationFailedException.class)
         .handled(true)
         .log("Traccar login failed: ${exception.message}")
         .end();
+  }
+
+  /** Construct the WebSocket URL from the base API URL */
+  private String deriveWsFromUrl(String traccarUrl, String jSessionid) throws URISyntaxException {
+    URI httpUri = new URI(traccarUrl);
+    String traccarWsUrl =
+        (httpUri.getScheme().equalsIgnoreCase("https") ? "wss://" : "ws://")
+            + httpUri.getHost()
+            + (httpUri.getPort() > 0 ? ":" + httpUri.getPort() : "")
+            + "/api/socket?consumeAsClient=true"
+            // : ("wss".equals(scheme) ? 443 : 80));
+            + "&handshake.Cookie=JSESSIONID="
+            + jSessionid;
+    log.info("Constructed Traccar WebSocket URL: {}", traccarWsUrl);
+    return traccarWsUrl;
   }
 }
