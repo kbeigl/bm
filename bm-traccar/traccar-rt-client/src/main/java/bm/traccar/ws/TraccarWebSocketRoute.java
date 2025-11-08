@@ -70,7 +70,7 @@ public class TraccarWebSocketRoute extends RouteBuilder {
     from("direct:start-websocket-connection")
         .routeId("traccarWebSocketMessageProcessingRoute")
         // set to LoggingLevel.DEBUG
-        .log("Process WebSocket raw  message: ${body}")
+        .log(LoggingLevel.DEBUG, "Process WebSocket raw  message: ${body}")
         .unmarshal() // convert body to ..
         .json() // .. LinkedHashMap Map<String, Object>
         // ===== JSON parsing
@@ -139,7 +139,9 @@ public class TraccarWebSocketRoute extends RouteBuilder {
                           public void configure() {
                             from("vertx-websocket:" + wsUri)
                                 .routeId(wsRouteId)
-                                .log("Received Traccar WebSocket update: ${body}")
+                                .log(
+                                    LoggingLevel.DEBUG,
+                                    "Received Traccar WebSocket update: ${body}")
                                 .to("direct:start-websocket-connection");
                           }
                         });

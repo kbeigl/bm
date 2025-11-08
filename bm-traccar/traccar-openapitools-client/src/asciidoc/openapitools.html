@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>traccar-openapitools-client</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,128 +436,613 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>traccar-openapitools-client</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_tldr">tl;dr</a></li>
+<li><a href="#_client_abstraction">client abstraction</a></li>
+<li><a href="#_openapi_yaml_file"><code>openapi.yaml</code> file</a></li>
+<li><a href="#_openapi_generator_maven_plugin">openapi-generator-maven-plugin</a>
+<ul class="sectlevel2">
+<li><a href="#_two_step_processing">two step processing</a></li>
+<li><a href="#_step_1_traccar_openapitools_client">step 1 - traccar-openapitools-client</a></li>
+<li><a href="#_step_2_traccar_api_generated">step 2 - traccar-api-generated</a></li>
+<li><a href="#_javadocs">javadocs</a></li>
+</ul>
+</li>
+<li><a href="#_inconsistent_openapi_specification">Inconsistent OpenAPI Specification</a>
+<ul class="sectlevel2">
+<li><a href="#_model_vs_api_parameter_generation">Model vs. API Parameter Generation</a></li>
+</ul>
+</li>
+<li><a href="#_conclusion">conclusion</a></li>
+</ul>
+</div>
 </div>
 <div id="content">
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The complete Traccar REST API is defined in a single <code>openapi.yaml</code> file
+and its first line defines the <code>openapi: 3.1.0</code> specification.
+This file is used with the
+<a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a>
+to generate a plain Java Client from an
+<a href="https://swagger.io/specification/">OpenAPI specification</a>.
+The generator is controlled and configured via
+<a href="https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin">openapi-generator-maven-plugin</a>
+and produces a <code>traccar-api-generated-x.y.z.jar</code> (in two steps).</p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+</div>
+<div class="sect1">
+<h2 id="_tldr">tl;dr</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project is actually only pointing to (or holding) the <code>openapi-traccar-x.y.z.yaml</code> file as source
+and is used to generate a Maven child project in the <code>target/</code> folder and
+run this child project to produce the <code>traccar-api-generated-x.y.z.jar</code>.</p>
+</div>
+<div class="paragraph">
+<p>In a <code>clean</code> state you can not see the child project and actually
+there is no need to open this <code>traccar-openapitools-client</code> project
+nor the created child project in your IDE to avoid extra configuration (for a non existing project).
+Once the Java Client is created and stored in your <code>.m2</code> repository
+it will be picked up by higher layer projects, i.e. the <code>traccar-api-client</code>.</p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+</div>
+<div class="sect1">
+<h2 id="_client_abstraction">client abstraction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since
+<a href="https://www.openapis.org/">OpenAPI is an official specification</a>
+there are many and will be more different code generators.
+Anyhow the resulting functionalities should remain the same.
+Therefore our client development will not directly invoke the server calls on the generated artifact.
+The higher level <code>traccar-api-client</code> is wrapped around the generated client (hiding it!),
+yet abstracting the server invocations with the <code>bm.traccar.api.Api interface</code>.</p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
 </div>
+<div class="sect1">
+<h2 id="_openapi_yaml_file"><code>openapi.yaml</code> file</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The complete Traccar REST API is defined in a single <code>openapi.yaml</code> file
+to be found in the root folder of every release.
+The <code>latest</code> version is available at the<br>
+<strong>(1)</strong> <a href="https://www.traccar.org/api-reference">Official Traccar API Reference</a>
+by clicking the button "Download OpenAPI specification".<br>
+<strong>(2)</strong> <a href="https://www.traccar.org/api-reference/openapi.yaml" class="bare">https://www.traccar.org/api-reference/openapi.yaml</a><br>
+<strong>(3)</strong> <a href="https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml" class="bare">https://raw.githubusercontent.com/traccar/traccar/master/openapi.yaml</a></p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
+<div class="paragraph">
+<p>In order to automate the versioning <strong>we will use this <em>versioned</em> url</strong> for the API generation<br>
+<strong>(4)</strong> <a href="https://github.com/traccar/traccar/blob/v6.8.0/openapi.yaml" class="bare">https://github.com/traccar/traccar/blob/v6.8.0/openapi.yaml</a><br>
+which is part of the Traccar Software Distribution with each version.</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
+<pre>&lt;inputSpec&gt;
+    https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml
+&lt;/inputSpec&gt;                                           ==================</pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openapi_generator_maven_plugin">openapi-generator-maven-plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When you run <code>mvn compile</code>, the Maven lifecycle passes the <code>generate-sources</code> phase.
+The plugin is configured to participate in that phase,
+and executes the Maven Plugin with the given configuration.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;id&gt;generate-client&lt;/id&gt;
+    &lt;goals&gt;
+        &lt;goal&gt;generate&lt;/goal&gt;
+    &lt;/goals&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can identify these tags in the build output:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
+<pre>openapi-generator-maven-plugin:7.13.0:generate (generate-client)
+                                      ========  ===============</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>During the <code>compile</code> phase, all the code generated
+from the grammar files is compiled without further configuration.<br>
+You can check the
+<a href="https://github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-maven-plugin/README.md">General Configuration parameters</a>
+for all options.</p>
+</div>
+<div class="paragraph">
+<p>Basically we use the <code>java</code> generator with the <code>restclient</code> library</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;configuration&gt;
+        &lt;inputSpec&gt;path/to/${traccar.version}/openapi.yaml&lt;/inputSpec&gt;
+        &lt;generatorName&gt;java&lt;/generatorName&gt;
+            &lt;configOptions&gt;
+                &lt;library&gt;restclient&lt;/library&gt;
+            &lt;/configOptions&gt;</code></pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>RestClient is a synchronous HTTP client introduced in Spring Framework 6.1 M2 that supersedes RestTemplate.
+A synchronous HTTP client sends and receives HTTP requests and responses in a blocking manner,
+meaning it waits for each request to complete before proceeding to the next one.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see www.baeldung.com/spring-boot-restclient
+</div>
+</div>
+<div class="paragraph">
+<p>and we define several package names to generate</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">        &lt;invokerPackage&gt;bm.traccar.invoke&lt;/invokerPackage&gt;
+            &lt;apiPackage&gt;bm.traccar.generated.api&lt;/apiPackage&gt;
+          &lt;modelPackage&gt;bm.traccar.generated.model.dto&lt;/modelPackage&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and we specify the artifact to be generated, i.e. the versioned name of the <code>jar</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">           &lt;groupId&gt;bm&lt;/groupId&gt;
+        &lt;artifactId&gt;traccar-api-generated&lt;/artifactId&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To keep things simple we do not post process (<code>JAVA_POST_PROCESS_FILE</code>)
+the result nor do we use the <code>--model-name-mappings</code> - as of now.
+Anyhow it is a good place to adopt the model to your company model.</p>
+</div>
+<div class="sect2">
+<h3 id="_two_step_processing">two step processing</h3>
+<div class="paragraph">
+<p>By running <code>mvn install</code> on project level</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
+<pre>~/git/bm/bm-traccar/traccar-openapitools-client$ mvn install</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>you can idenfify the processing in two steps.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_1_traccar_openapitools_client">step 1 - traccar-openapitools-client</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] --- openapi-generator-maven-plugin:7.13.0:generate (generate-client)
+  :                                          @ traccar-openapitools-client ---
+[INFO] OpenAPI Generator: java (client)
+  :
+[INFO] Processing operation null</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is raised because the traccar yaml file does not provide <code>operationId</code> for endpoints.
+These will be provided by the generator as described below.</p>
+</div>
+<div class="paragraph">
+<p>Then the <strong>DTO</strong> are created in the <code>target/generated-sources/openapi</code> folder:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] writing file .../openapi/src/main/java/bm/traccar/generated/model/dto/Attribute.java
+     generated project: openapi                generated DTOs in folder: dto</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you look into the <strong>newly generated <code>openapi/</code> project</strong> you will find a completly generated maven project,
+which you can not find in the original sources.
+The <code>openapi</code> project comes with a lengthy <code>pom.xml</code>
+with the name and group we have defined earlier to define the final <code>jar</code> outputted.
+As a development guideline: we won&#8217;t go into the generated project,
+simply run it and use the output for subsequent projects.</p>
+</div>
+<div class="paragraph">
+<p>Then the generator creates an <code>operationId</code> for every endpoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[WARNING] Empty operationId found for path: get /devices.
+     Renamed to auto-generated operationId: devicesGet
+                               =======================</code></pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Each endpoint and HTTP verb combination make an operation.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see redocly.com/blog/operationid-is-api-design
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>In OpenAPI terms, paths are endpoints (resources), such as <code>/users</code> or <code>/reports/summary/</code>, that your API exposes,
+and operations are the <code>HTTP</code> methods used to manipulate these paths, such as <code>GET</code>, <code>POST</code> or <code>DELETE</code>.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see swagger.io/docs/specification/v3_0/paths-and-operations/
+</div>
+</div>
+<div class="paragraph">
+<p>These <code>operationId</code> are used to create <code>api/</code> sources, tests and markdown docs</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] writing file /openapi/src/main/java/bm/traccar/generated/api/AttributesApi.java
+[INFO] writing file /openapi/src/test/java/bm/traccar/generated/api/AttributesApiTest.java
+[INFO] writing file /openapi/docs/AttributesApi.md              ===</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and finally the project generation is wrapped up with</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] writing file /openapi/pom.xml
+  :
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/ApiClient.java
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/ServerConfiguration.java
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/ServerVariable.java
+  :
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/HttpBasicAuth.java
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/HttpBearerAuth.java
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/ApiKeyAuth.java
+[INFO] writing file /openapi/src/main/java/bm/traccar/invoke/auth/Authentication.java
+  :</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The rest of the maven build for <em>this project</em> is irrelevant:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] --- maven-compiler-plugin:3.1:compile     (default-compile) ---
+[INFO] Not compiling main sources
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) ---
+[INFO] No sources to compile
+[INFO] --- maven-surefire-plugin:3.5.3:test      (default-test) ---
+[INFO] No tests to run.
+[INFO] --- maven-jar-plugin:2.4:jar              (default-jar) ---
+[INFO] Building jar: traccar-openapitools-client-6.7.1.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is achieved with</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
+<pre>&lt;maven.main.skip&gt;true&lt;/maven.main.skip&gt;</pre>
 </div>
 </div>
-<div class="literalblock">
+<div class="paragraph">
+<p>as there are no sources to process and test.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_2_traccar_api_generated">step 2 - traccar-api-generated</h3>
+<div class="paragraph">
+<p>So we have generated a new Java Maven Project <code>traccar-api-generated</code><br>
+in the <code>target/generated-sources/openapi</code> folder - and not a client software - yet.</p>
+</div>
+<div class="paragraph">
+<p>The newly generated project is not related or part of any predefined POM.
+To handle this we add the <code>exec-maven-plugin</code> to execute a complete <code>mvn install</code>
+to provide the generated jar for further processing.
+The execution is bound to the <code>install</code> phase</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;id&gt;install-generated-client&lt;/id&gt;
+    &lt;phase&gt;install&lt;/phase&gt;
+    &lt;goals&gt;
+        &lt;goal&gt;exec&lt;/goal&gt;
+    &lt;/goals&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which you can find in the build process</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] --- exec-maven-plugin:3.5.0:exec (install-generated-client)
+                                               @ traccar-openapitools-client ---
+[INFO] ----------------------&lt; bm:traccar-api-generated &gt;----------------------
+[INFO] Building traccar-api-generated 6.7.1
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] --- maven-enforcer-plugin:3.4.0:     .. @ traccar-api-generated ---
+[INFO] --- build-helper-maven-plugin:3.4.0: .. @ traccar-api-generated ---
+[INFO] --- maven-resources-plugin:2.6:      .. @ traccar-api-generated ---
+[INFO] --- maven-compiler-plugin:3.11.0:    .. @ traccar-api-generated ---
+[INFO] --- build-helper-maven-plugin:3.4.0  .. @ traccar-api-generated ---
+[INFO] --- maven-resources-plugin:2.6:      .. @ traccar-api-generated ---
+[INFO] --- maven-compiler-plugin:3.11.0:    .. @ traccar-api-generated ---
+[INFO] --- maven-surefire-plugin:3.1.2:     .. @ traccar-api-generated ---
+[INFO] --- maven-jar-plugin:3.3.0:jar       .. @ traccar-api-generated ---
+[INFO] Building jar: .../openapi/target/traccar-api-generated-6.7.1.jar
+[INFO]
+[INFO] --- maven-dependency-plugin:2.8:     .. @ traccar-api-generated ---
+[INFO] --- maven-jar-plugin:3.3.0:          .. @ traccar-api-generated ---
+[INFO] Building jar: .../openapi/target/traccar-api-generated-6.7.1-tests.jar
+[INFO]
+[INFO] --- maven-javadoc-plugin:3.5.0:jar   .. @ traccar-api-generated ---
+[INFO] Building jar: .../openapi/target/traccar-api-generated-6.7.1-javadoc.jar
+[INFO]
+[INFO] --- maven-source-plugin:3.3.0:       .. @ traccar-api-generated ---
+[INFO] Building jar: .../openapi/target/traccar-api-generated-6.7.1-sources.jar
+[INFO]
+[INFO] --- maven-install-plugin:2.4:        .. @ traccar-api-generated ---
+[INFO] Installing   .../openapi/target/traccar-api-generated-6.7.1.jar
+       to   .../.m2/repository/bm/traccar-api-generated/6.7.1/traccar-api-generated-6.7.1.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the execution is triggered in the first project: <code>@ traccar-openapitools-client</code><br>
+to launch the <code>Building</code> of the generated project: <code>@ traccar-api-generated</code>.</p>
+</div>
+<div class="paragraph">
+<p>As you can see several <code>jar</code> files are being built and finally installed in your <code>.m2/repository</code>.
+Once the <code>traccar-api-generated-x.y.z.jar</code> is installed this project has served its purpose
+and only needs to be rerun for a new traccar release.</p>
+</div>
+<div class="paragraph">
+<p>Another thing worth mentioning is that you will get an internal <code>BUILD SUCCESS</code>
+for the Maven execution kicked off from the main lifecycle:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  15.498 s
+[INFO] Finished at: 2025-06-16T13:51:22+02:00
+[INFO] ------------------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  21.282 s
+[INFO] Finished at: 2025-06-16T13:51:22+02:00
+[INFO] ------------------------------------------------------------------------</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_javadocs">javadocs</h3>
+<div class="paragraph">
+<p><strong>After</strong> generating the <code>traccar-openapitools-client</code> you can access
+<a href="./target/generated-sources/openapi/target/apidocs/index.html">the javadocs</a>
+directly in the <code>generated-sources/</code> folder.</p>
+</div>
+<div class="paragraph">
+<p>Of course they will be lost again after a <code>mvn clean</code>,
+but then you still have the <code>traccar-api-generated-6.7.1-javadoc.jar</code> in your <code>.m2</code>!</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inconsistent_openapi_specification">Inconsistent OpenAPI Specification</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Software is alive and the Traccar API, OpenAPI Specification
+and API generators are changeing continuously.
+As you can read in the Traccar Forum
+<a href="https://www.traccar.org/forums/topic/api-documentation-inconsistencies/">API Documentation inconsistencies</a>
+can occur.</p>
+</div>
+<div class="sect2">
+<h3 id="_model_vs_api_parameter_generation">Model vs. API Parameter Generation</h3>
+<div class="paragraph">
+<p>Let&#8217;s look at an example and see how we can handle or patch inconsistencies.</p>
+</div>
+<div class="paragraph">
+<p>After the upgrade to Traccar <code>6.8.0</code> the tests ran into compile problems.
+Now the maintainer of this project should not propagate new problems to the project users
+and rather find a workaround for minimal code changes in the team.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[ERROR] UsersApiIT.java:[53,31] incompatible types: java.lang.Long cannot be converted to int
+[ERROR] UsersApiIT.java:[62,39] incompatible types: java.lang.Long cannot be converted to java.lang.Integer</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_problem">problem</h4>
+<div class="paragraph">
+<p>It turns out that there is an inconsistency between Model and Method generation.<br>
+The yaml specifies a User object with an id:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">    User:
+      type: object
+      properties:
+        id: type: integer
+          format: int64</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which is generated by the <strong>model generator</strong> and <em>correctly</em> maps the User class
+and id of type <code>Long</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public class User {
+      public static final String JSON_PROPERTY_ID = "id";
+      @jakarta.annotation.Nullable
+      private Long id;
+              =======</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The API <strong>method generator</strong> is responsible for creating the UserApi interface.
+When it processes the path parameter, such as <code>users/{id}</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">  /users/{id}:
+    delete:
+      summary: Delete a User
+      tags:
+        - Users
+      parameters:
+        - name: id</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>it generates the (simplified) java method:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public class UsersApi {
+      /** Delete a User */
+      private ResponseSpec usersIdDeleteRequestCreation(Integer id) { ..
+                                                        ==========</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A Java Developer expects type safe API for a type safe programming language.
+The <code>int64</code> format in OpenAPI maps directly to a 64-bit integer,
+which should be represented by a <code>long</code> (or <code>Long</code>) in Java.
+The <code>Integer</code> class, on the other hand, corresponds to a 32-bit integer,
+which is the correct mapping for <code>int32</code> format.</p>
+</div>
+<div class="paragraph">
+<p>The correct configuration for the <code>openapi-generator-maven-plugin</code>
+is described as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;configOptions&gt;
+        &lt;typeMappings&gt;int64=Long&lt;/typeMappings&gt;
+    &lt;/configOptions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>but it doesn&#8217;t work for (or hurt) the current version.
+So let&#8217;s just leave it there for coming releases.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_solution">solution</h4>
+<div class="paragraph">
+<p>Still the maintainer has to come up with a suitable solution:
+Since large <code>Long</code> numbers don&#8217;t fit in an <code>Integer</code>
+we can add an explicit <em>narrowing</em> cast in the higher level <code>traccar-api-client Api</code>
+and catch a <code>NumberFormatException</code> or the like to create an <code>ApiException</code>
+with a usefull error message.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As of Traccar 6.8.0 we will restrict the User id range to <code>Integer</code>,<br>
+which should be sufficient for most Traccar servers and databases.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The idea is to define the <code>Api</code> interface as intended.
+Then we can hope for the impovement of the traccar <code>yaml</code> and / or OpenAPI Generator
+and easily remove the workaround.</p>
+</div>
+<div class="paragraph">
+<p>As we understand the intention of the widend value we will stick to the <code>User.id</code> type definition <code>Long</code>.
+Java does not allow to call a <code>method( Long value )</code> with an <code>Integer value</code>.
+There is no implicit (widening) casting and the <code>Long</code> and <code>Integer</code> objects are not related.
+The conversion must be explicit.</p>
+</div>
+<div class="paragraph">
+<p>In a first step the <code>Api interface</code> is changed to the <em>intended signature</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">  interface Users {
+    void deleteUser(Long id) throws ApiException;
+                    ====</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then we can sneak in a type conversion on the implementation side</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">  Users users =
+      new Api.Users() {
+        @Override
+        public void deleteUser(Long id) {
+                               ====
+          Integer integerId = ApiHelper.toInt(id);
+          usersApi.usersIdDelete(integerId);
+                                 =======
+        }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ApiHelper</code> will take the <code>Long</code>, check if it fits into an <code>Integer</code>
+and call the generated client method.
+The implicit type test is done with the <code>Math.toIntExact(longObj)</code>,
+which is the most reliable.
+If the cast fails due we have to through a meaningful exception message.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion">conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project should be a closed shop in the best case.
+Meaning that it is used to invoke a fully automated generation<br>
+of a REST Client Software <code>traccar-api-generated-x.y.z.jar</code>
+from the traccar specification <code>openapi.yaml</code> file.</p>
+</div>
+<div class="paragraph">
+<p>Of course you can code on the basis of this <code>jar</code>,
+but it is recommended to use the higher level <code>traccar-api-client</code> project,
+which provides the <code>Api interface</code> and embeds the Java Client
+in a Spring <code>@Service</code> for simple handling and integration.</p>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-08 12:43:45 +0100
 </div>
 </div>
 </body>

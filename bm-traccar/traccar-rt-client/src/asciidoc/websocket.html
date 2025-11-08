@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>The Traccar WebSocket Client</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,128 +436,519 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>The Traccar WebSocket Client</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_the_traccar_websocket_api">The Traccar WebSocket API</a>
+<ul class="sectlevel2">
+<li><a href="#_websocket_handshake">Websocket Handshake</a></li>
+<li><a href="#_websocket_component">WebSocket Component</a></li>
+</ul>
+</li>
+<li><a href="#_implementation_with_camel_routes">Implementation with Camel Routes</a>
+<ul class="sectlevel2">
+<li><a href="#_notes">Notes</a></li>
+<li><a href="#_debugging">Debugging</a></li>
+</ul>
+</li>
+<li><a href="#_review_traccar_api_client">review traccar-api-client</a>
+<ul class="sectlevel2">
+<li><a href="#_simple_example_usage">simple example / usage</a></li>
+<li><a href="#_configuration">configuration</a></li>
+</ul>
+</li>
+<li><a href="#_usage">usage</a></li>
+</ul>
+</div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> is a Java Client Software to <em>request</em> real time data
+from your Traccar Server. While the REST API is based on single requests,
+i.e. REST calls and responses without any session handling, i.e. stateless.</p>
+</div>
+<div class="paragraph">
+<p>Therefor this <strong>WebSocket Route/Session Manager</strong> can create a Camel channel
+for each individual registered user to manage WebSocket connections and event routing.</p>
+</div>
+<div class="paragraph">
+<p>On a higher level different websocket channels can report live events
+in a given <em>Scenario</em>. For example you could direct different vehicles
+to a rendezvous point and your software can create events as they approach each other.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_traccar_websocket_api">The Traccar WebSocket API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Our starting point is the specification at
+<a href="https://www.traccar.org/traccar-api/">Traccar WebSocket API</a>,
+which is actually so brief that we can reprint it here:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>In addition to the REST API, we provide an access to a WebSocket endpoint for live updates.<br>
+Endpoint for the WebSocket connection: <code>/api/socket</code><br>
+Session cookie is the only authorization option for the WebSocket connection.<br>
+Each message in the WebSocket stream uses the same universal JSON format:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "devices": [...],
+  "positions: [...],
+  "events": [...]
+}</code></pre>
+</div>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see www.traccar.org/traccar-api
+</div>
+</div>
+<div class="sect2">
+<h3 id="_websocket_handshake">Websocket Handshake</h3>
+<div class="paragraph">
+<p>Let&#8217;s break down the websocket spec above towards an implementation.</p>
+</div>
+<div class="sect3">
+<h4 id="_endpoint">Endpoint</h4>
+<div class="paragraph">
+<p>The primary WebSocket endpoint for Traccar is typically <code>/api/socket</code>.<br>
+The WebSocket URL would be <code>ws://your.traccar.server:8082/api/socket</code> <br>
+(or <code>wss://</code> for secure connections).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_authentication">Authentication</h4>
+<div class="paragraph">
+<p>Traccar&#8217;s WebSocket API relies solely on a session cookie <code>JSESSIONID</code> for authentication.<br>
+You cannot use Basic Auth or Bearer tokens directly with the WebSocket connection itself.</p>
+</div>
+<div class="paragraph">
+<p>In order to create a ws session you need to authenticate (as in <code>traccar-api-client</code> or <code>traccar-api-camel</code>)
+with a successful <code>HTTP POST</code> request to the Traccar <code>/api/session</code> endpoint to log in.<br>
+Then extract the <code>JSESSIONID</code> cookie from the response headers of this login request
+and use this <code>JSESSIONID</code> cookie when establishing the WebSocket connection.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_websocket_component">WebSocket Component</h3>
+<div class="paragraph">
+<p>As this repository is based on Spring Boot with Camel integration,<br>
+i.e. we are building a <strong>Camel Spring Boot WebSocket Client</strong> for Traccar.</p>
+</div>
+<div class="paragraph">
+<p>Besides Spring Boot and Camel we need to choose a websocket component.<br>
+Most popular choices are the <a href="https://vertx.io/">Eclipse Vert.x</a> and the
+<a href="https://jetty.org/docs/jetty/12/programming-guide/client/websocket.html">Eclipse Jetty WebSocket Client</a>.</p>
+</div>
+<div class="paragraph">
+<p><strong>Jetty</strong> is actually a traditional servlet-container with a thread based architecture in Java.
+As Traccar works with a Jetty Server it could be chosen for symetrie reasons.
+Anyhow we only want to rely on the specifications and not on proprietary implementations.</p>
+</div>
+<div class="paragraph">
+<p><strong>Vert.x</strong> is a modern event driven non blocking implementation comparable to <a href="https://netty.io/">netty</a>,
+which we have analyzed in depth in the jeets project.
+Vert.x has a better scalability for a larger number of connections and a lower latency.
+It also offers http, database drivers and smooth integration with other technologies.</p>
+</div>
+<div class="paragraph">
+<p>&#8230; and the winner is &#8230; <strong>Vert.x</strong><br>
+Of course we will use the camelized version with a Spring Boot Starter in Maven
+to abstract the WS component (in case we revise the decision later):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">       &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;
+    &lt;artifactId&gt;camel-vertx-websocket-starter&lt;/artifactId&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With Camel we can configure the appropriate security settings,<br>
+leverage Camel&#8217;s asynchronous nature to handle multiple WebSocket connections and messages efficiently<br>
+and implement a backpressure mechanisms in case of high message volumes.</p>
+</div>
+<div class="paragraph">
+<p>A basic route implementation looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public void configure() throws Exception {
+        from("vertx-websocket:ws://your-traccar-server:port/api/socket") <b class="conum">(1)</b>
+            .log("Received WebSocket message: ${body}")
+            .to("bean:yourMessageHandler");
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>use <code>wss://</code> for secure connections</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>But first we need to extract the <code>JSESSIONID</code> from a <code>http POST</code> and create a Cookie,<br>
+while using the http context from Spring Boot for the ws connection.</p>
+</div>
+<div class="paragraph">
+<p>Note that we will <strong>not</strong> use the <code>traccar-api-client</code> for the <code>http POST</code>,
+since we clearly want to separate the two clients for API and WebSocket.
+Our architecture does not want any dependencies between them for isolated testing etc.
+Each client represents a software <em>Unit</em> and can be tested, developed and used alone.
+And like every Unit it should be replaceble.</p>
+</div>
+<div class="paragraph">
+<p>Anyhow we can combine the two in a higher level <code>traccar-java-client</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_implementation_with_camel_routes">Implementation with Camel Routes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The core of this <code>traccar-ws-client</code> is the
+<a href="../../main/java/bm/traccar/ws/TraccarWsClientRoute.java">TraccarWsClientRoute</a>.<br>
+Here is a rough outline with three routes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Component
+public class TraccarWsClientRoute extends RouteBuilder {
+
+  @Override
+  public void configure() throws Exception {
+
+    from("timer:traccarLoginTimer?period=3600000") // every hour
+        .routeId("traccarLoginRoute") <b class="conum">(1)</b>
+          ...
+        .setBody(simple("email=" + email + "&amp;password=" + password)) // credentials
+        .toD(host + "/api/session") // login
+        .process(
+            exchange -&gt; {
+              // get 'Set-Cookie' header from response
+
+              // Extract JSESSIONID from the Set-Cookie header
+
+              // set exchange property as parameter for the next ws route
+
+              // Trigger traccarWebSocketConnectionRoute <b class="conum">(2)</b>
+            })
+          ...
+        .end();
+
+    from("direct:connectTraccarWebSocket")
+        .routeId("traccarWebSocketConnectionRoute") <b class="conum">(2)</b>
+        .process(
+            exchange -&gt; {
+              // get JSESSIONID from Route <b class="conum">(1)</b>
+
+              // set Cookie Header with JSESSIONID for initial handshake
+
+        .toD("vertx-websocket:" + traccarWebSocketUrl + "&amp;handshake.Cookie=${header.Cookie}")
+        .log("Connected to Traccar WebSocket.")
+        .to("direct:traccarWebSocketMessages"); <b class="conum">(3)</b>
+
+    from("direct:traccarWebSocketMessages")
+        .routeId("traccarWebSocketMessageProcessingRoute") <b class="conum">(3)</b>
+        .unmarshal()
+        .json(JsonLibrary.Jackson)
+        .log("Received Traccar WebSocket update: ${body}");</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Route to trigger <code>http POST</code></p>
+</li>
+<li>
+<p>Route to connect websocket with handshake</p>
+</li>
+<li>
+<p>Route to receive live data</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_notes">Notes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The dynamic <code>vertx-websocket</code> URL is proprietary and involves the <code>handshake</code> parameter.<br>
+The Jetty component (<code>websocket</code>) handles cookies different and requires an explicit header setting.</p>
+</li>
+<li>
+<p>We are not processing Cookies with<br>
+<code>java.net.CookieHandler, CookieManager, CookieStore, CookiePolicy, HttpCookie</code> etc.<br>
+In the first <code>http</code> route we are simply applying String functions to extract the <code>JSESSIONID</code>.</p>
+</li>
+<li>
+<p>You are responsible or security using Spring Cloud Config, Kubernetes Secrets, environment variables,
+a secrets management solution like Vault or whatever you chose for your software.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_debugging">Debugging</h3>
+<div class="paragraph">
+<p>The initial <code>traccar-ws-client</code> implementation is kept as simple as it gets.
+This allows a better understanding and makes it easier to expand the component
+inside the application lifecycle development.</p>
+</div>
+<div class="paragraph">
+<p>Nevertheless networking is alway a challenge and in this case you might experience problems
+with (reverse) proxies, firewalls, closed ports, URL / URI resolution, cloud installation,
+docker, port forwarding, Traccar server settings and beware of <em>misleading AI assistance</em>.</p>
+</div>
+<div class="paragraph">
+<p>Therefor you can execute the most simple test with two cammand lines, before you drill deeper.</p>
+</div>
+<div class="paragraph">
+<p>If you run into any problems apply the command line tools
+<code>curl</code> for the <code>http POST</code> and <code>wscat</code> for the websocket connection.
+In addition you should create an account on one of the graciously sponsered
+<a href="https://www.traccar.org/demo-server/">Traccar Demo Servers</a>
+and test with <code>https</code> and <code>email/password</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_step1_http_with_curl">Step1: http with curl</h4>
+<div class="paragraph">
+<p>Compose the command line with <code>email/password/http|s/port</code>
+and check the http connection with</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<pre>curl -v POST -d "email=admin@domain.com&amp;password=admin" http://localhost:8082/api/session</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>and hopefully get something like this</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&gt; POST /api/session HTTP/1.1                             <b class="conum">(1)</b>
+&gt; Host: localhost:8082
+&gt;
+&lt; Set-Cookie: JSESSIONID=node0q7h2lu4fsi40101wtkbz590i060.node0; Path=/; HttpOnly  <b class="conum">(2)</b>
+&lt; Server: Jetty(11.0.25)                                 <b class="conum">(3)</b>
+&lt;
+* Connection #1 to host localhost left intact            <b class="conum">(4)</b>
+  {...  "name":"admin",                                  <b class="conum">(5)</b>
+       "email":"admin@domain.com"  ...}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p><code>&gt;</code> for outgoing <code>POST</code></p>
+</li>
+<li>
+<p><code>&lt;</code> for incoming response with a <code>JSESSIONID</code></p>
+</li>
+<li>
+<p>Traccar&#8217;s Jetty Server version.</p>
+</li>
+<li>
+<p>make sure connection is kept up</p>
+</li>
+<li>
+<p>JSON DTO for logged user</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_step2_ws_with_wscat">Step2: ws with wscat</h4>
+<div class="paragraph">
+<p>Again, adopt your parameters and copy the <code>JSESSIONID</code> from the <code>http POST</code> above:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre>wscat -c ws://localhost:8082/api/socket \
+      -H "Cookie: JSESSIONID=node0q7h2lu4fsi40101wtkbz590i060.node0"
+Connected (press CTRL+C to quit)
+&lt; {"positions":[]}
+&lt; {}</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<div class="paragraph">
+<p>Here you should get the <code>Connected</code> response and see the messages arriving in intervals
+(configured on the server).
+If you want to see actual values you might change something in the Traccar Frontend
+or register a device or the like.</p>
 </div>
+<div class="paragraph">
+<p>Introduce a typo or use a wrong <code>JSESSIONID</code> to raise</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre>error: Unexpected server response: 503</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>which you might find in your java stack as</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
+<pre>WebSocket upgrade failure: 503</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
+<div class="paragraph">
+<p>To debug <code>UpgradeRejectedException: WebSocket upgrade failure: 503</code> on server side
+you should start here:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
+<pre>AsyncSocketServlet extends JettyWebSocketServlet
+configure()
+    userId = loginService.login(token).getUser().getId();</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This way you have validated all parameters and are good to go for comparing analyses
+as you develop.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_review_traccar_api_client">review traccar-api-client</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_simple_example_usage">simple example / usage</h3>
+<div class="paragraph">
+<p>Here&#8217;s a simple example code to demo how to add the Traccar API Service
+to your company software.<br>
+First you need these prerequesites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the <code>traccar-api-client-x.y.z.jar</code> to your application.<br>
+Or add it to your <code>.m2</code> repo or nexus server, then to <em>your</em> <code>pom</code>.</p>
+</li>
+<li>
+<p>Add your Traccar Server URL and credentials to your <code>application.properties</code> file.<br>
+i.e. <code>host, user.name, user.password, user.email (, accountToken)</code>.<br>
+Or provide these values in a way that meets your security strategy (secrets etc.)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>and then the coding is straight forward:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package your.company.app...;
+
+import bm.traccar.api.ApiService            // <b class="conum">(1)</b>
+
+public class TraccarUsers {
+
+    @Autowired
+    private ApiService api;                 // <b class="conum">(1)</b>
+
+    public static void main(String[] args) {
+
+        api.setBasicAuth(mail, password);   // <b class="conum">(2)</b>
+//      api.setBearerToken(token);
+
+        User user = new User();             // <b class="conum">(3)</b>
+        user.setName("user-1");
+        user.setEmail("email-1");
+        user.setPassword("pw-1");
+
+        User userOnServer = api.users.createUser(user);     // <b class="conum">(4)</b>
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>add the <code>ApiService</code>, being a Spring <code>@Service class</code></p>
+</li>
+<li>
+<p>choose and set your authentication<br>
+and can change it any time in the program flow.</p>
+</li>
+<li>
+<p>create a <code>new User</code> (DTO) in your software for your employees</p>
+</li>
+<li>
+<p>create a <code>new User</code> (Entity) in your Traccar Server<br>
+The new User (DTO) is returned with a unique ID from the server.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>And that is all you need to create users, devices etc.
+and manage them in your code!<br>
+For more examples check the integration tests, i.e. UsersIT and others.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration">configuration</h3>
+<div class="paragraph">
+<p>For convenience you can use the <code>application.properties</code> file
+and grab the <code>@Value</code> in your source code, depending on your security concepts.
+Check the <code>*.*IT</code> integration test files for demo code.</p>
+</div>
+<div class="sect3">
+<h4 id="_application_properties">application.properties</h4>
+<div class="literalblock">
+<div class="content">
+<pre># traccar.host=https://demo3.traccar.org
+traccar.host=http://localhost
+traccar.user.name=admin
+traccar.user.password=admin
+traccar.user.email=admin@domain.com</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>your implementation (compare ITests)</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
+<pre>@Value("${traccar.user.name}")     private String name;
+@Value("${traccar.user.password}") private String password;
+@Value("${traccar.user.email}")    private String mail;</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_usage">usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After adding the jar to your software or build system
+the API can easily be added to any Springboot Application as a @Service in your code</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
+<pre>@Autowired private ApiService api;</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-08 12:43:45 +0100
 </div>
 </div>
 </body>

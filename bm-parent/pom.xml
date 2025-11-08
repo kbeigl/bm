@@ -24,13 +24,13 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.9-SNAPSHOT</version>
+        <version>1.1.10-RC</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
     <packaging>pom</packaging>
 
-    <name>--- blue marble parameters                 ---</name>
+    <name>--- blue marble parameters             ---</name>
     <description>
         Parent POM for common definitions and constants for all sources.
     </description>
@@ -50,8 +50,8 @@
         <maven-failsafe-plugin-version>3.5.3</maven-failsafe-plugin-version>
 
         <!-- LTS versions preferred -->
-        <camel-version>4.10.6</camel-version>
-        <spring-boot-version>3.4.7</spring-boot-version>
+        <camel-version>4.14.2</camel-version>
+        <spring-boot-version>3.5.7</spring-boot-version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

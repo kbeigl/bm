@@ -23,10 +23,10 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.9-SNAPSHOT</version>
+    <version>1.1.10-RC</version>
     <packaging>pom</packaging>
 
-    <name>=== blue marble simulations                ===</name>
+    <name>=== blue marble simulations            ===</name>
     <description>
         Super POM to compile, test and build ALL sources with dependencies.
     </description>
@@ -52,8 +52,8 @@
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
         <!-- create Maven Profile -->
         <asciidoc.process.skip>true</asciidoc.process.skip>
-        <!-- higher version requires higher Maven version -->
-        <asciidoc.version>3.1.1</asciidoc.version>
+        <!-- asciidoctor-maven-plugin:3.2.0 requires Maven version 3.8.8 -->
+        <asciidoctor.maven.version>3.1.1</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
         <asciidoc.diagram.version>3.0.1</asciidoc.diagram.version>
     </properties>
@@ -68,7 +68,7 @@
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
-                <version>${asciidoc.version}</version>
+                <version>${asciidoctor.maven.version}</version>
 
                 <dependencies>
                     <dependency>
@@ -97,9 +97,15 @@
                             </requires>
                             <attributes>
                                 <diagram-server-type>kroki_io</diagram-server-type>
-                                <diagram-server-url>https://kroki.io</diagram-server-url>
+                                <diagram-server-url>http://localhost:8000</diagram-server-url>
+                                <!--
+                                <diagram-server-url>https://kroki.io</diagram-server-url> -->
+                                <kroki-server-url>http://localhost:8000</kroki-server-url>
+                                <!-- Fallback if local fails (AsciidoctorJ Kroki ≥ 0.18.0) -->
+                                <kroki-fallback-server-url>https://kroki.io</kroki-fallback-server-url>
+                                <!-- <kroki-server-url>https://kroki.io</kroki-server-url> -->
+                                <kroki-fetch-diagram>true</kroki-fetch-diagram>
                                 <diagram-impl>kroki</diagram-impl>
-                                <kroki-server-url>https://kroki.io</kroki-server-url>
                                 <allow-uri-read />
                                 <data-uri />
                                 <asciidoctor-diagram-verbose>true</asciidoctor-diagram-verbose>
@@ -111,9 +117,6 @@
                                 <mermaid-initialize>true</mermaid-initialize>
                                 <!-- Explicitly disable external Mermaid CLI -->
                                 <mermaid-command>none</mermaid-command>
-                                <!-- Optional: Specify Mermaid version for
-                                embedded renderer
-                                <mermaid-version>10.9.1</mermaid-version> -->
                                 <mermaid-format>svg</mermaid-format> 
                             </attributes>
                             <!-- relativeBaseDir>true -->

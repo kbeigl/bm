@@ -20,14 +20,17 @@ public class RealTimeClient implements CommandLineRunner {
 
   @Autowired private ConfigurableApplicationContext context;
 
-  @Value("${traccar.admin.name}")
-  private String adminName;
+  // @Value("${traccar.admin.name}")
+  @Value("${traccar.name}")
+  private String name;
 
-  @Value("${traccar.admin.password}")
-  private String adminPassword;
+  // @Value("${traccar.admin.password}")
+  @Value("${traccar.password}")
+  private String password;
 
-  @Value("${traccar.admin.email}")
-  private String adminEmail;
+  // @Value("${traccar.admin.email}")
+  @Value("${traccar.email}")
+  private String email;
 
   public static void main(String[] args) {
     SpringApplication app = new SpringApplication(RealTimeClient.class);
@@ -38,9 +41,9 @@ public class RealTimeClient implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     User admin = new User();
-    admin.setName(adminName);
-    admin.setPassword(adminPassword);
-    admin.setEmail(adminEmail);
+    admin.setName(name);
+    admin.setPassword(password);
+    admin.setEmail(email);
     logger.info("Starting RealTimeController login for admin: {}", admin.getEmail());
     boolean success = controller.loginAndInitialize(admin);
     if (success) {

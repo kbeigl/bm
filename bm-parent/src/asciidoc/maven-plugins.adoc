@@ -31,7 +31,7 @@ Asciidoctor is a fast text processor for parsing AsciiDoc into a document model,
 ____
 
 Goto projects 
-xref:./plugins/ascii-doctor.adoc [AsciiDoctor implementation and usage]
+xref:./ascii-doctor.adoc [AsciiDoctor implementation and usage]
 
 
 == Mermaid Chart 
@@ -73,7 +73,7 @@ link:https://mermaid.live[live editor] for interactive chart creation.
 
 The Maven Installation is part of the Maven AsciiDoc installation 
 and details can be found in its description
-xref:./plugins/ascii-doctor.adoc [AsciiDoctor implementation and usage].
+xref:./ascii-doctor.adoc [AsciiDoctor implementation and usage].
 
 
 == Google Code Style

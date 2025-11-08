@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>traccar-api-client implementation</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,128 +436,281 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1><code>traccar-api-client</code> implementation</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_openapi_generator">openapi-generator</a></li>
+<li><a href="#_traccar_rest">Traccar REST</a>
+<ul class="sectlevel2">
+<li><a href="#_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</a></li>
+<li><a href="#_are_not_system_entities">&#8230;&#8203; are not System Entities</a></li>
+</ul>
+</li>
+<li><a href="#_traccar_sub_api_implementations">Traccar sub Api implementations</a>
+<ul class="sectlevel2">
+<li><a href="#_sessionapi">SessionApi</a></li>
+</ul>
+</li>
+<li><a href="#_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></a></li>
+</ul>
+</div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This software is based on a generated <strong>Java Spring REST Client</strong> from the traccar specification.
+The single package (<code>bm.traccar.api</code>) implementation wraps the Java client in a <strong>Spring</strong> @Service
+to be applied wherever feasible. The API client completely hides the REST intricities
+inside regular Java methods.</p>
+</div>
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> is basically a single package application or rather <em>service</em>.
+In addition there is a websocket package to receive live information from the Tracking System.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openapi_generator">openapi-generator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As Traccar provides a REST specification in form of a <code>yaml</code> file we faciliate the
+<a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>OpenAPI Generator allows generation of API client libraries (SDK generation),
+server stubs, documentation and configuration automatically
+given an OpenAPI Spec v3.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see github.com/OpenAPITools/openapi-generator
+</div>
+</div>
+<div class="paragraph">
+<p>Note that this Java code generation takes place in the isolated
+<a href="../../traccar-openapitools-client/readme.adoc"><code>traccar-openapitools-client</code></a>
+project. It has to run before this project which is build around the generated artifact.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To get more details on the generation you can read the project notes:
+<a href="../../traccar-openapitools-client/readme.adoc">openapitools-client</a></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can check
+<a href="https://ademico-software.com/how-to-generate-the-client-api-for-an-openapi-rest-service/">Generate the client using Maven</a>
+for a starting point on how to apply Maven properties etc.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_traccar_rest">Traccar REST</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Traccar <code>v6.7</code> provides <strong>17 APIs</strong> (see <code>package bm.traccar.generated.api</code>)
+for all aspects of GPS Tracking.
+The <code>traccar-api-client</code> defines <em>one single (nested) API interface:</em>
+<code>bm.traccar.api.Api</code>, which allows us to switch the implementation.
+This was required, for example, when changing from swagger to OpenAPI (3 to 3.1).<br></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Therefor you should stick to the <code>bm.traccar.api.Api interface</code>
+to connect your program logic!</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</h3>
+<div class="paragraph">
+<p>In addition the <code>traccar-api-client</code> provides <strong>21 Data Transfer Objects</strong><br>
+see <code>package bm.traccar.generated.model.dto</code></p>
+</div>
+<div class="paragraph">
+<p>These DTO <em>represent</em> the different System Entities
+and are used to exchange information with the server.<br>
+For example the User API call to
+<a href="https://www.traccar.org/api-reference/#tag/Users/paths/~1users/post">Create a User</a>
+is provided as Java method by the Api interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public interface Api {
+           interface Users {
+                User createUser(User user) throws ApiException;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In your code you can easily create a <code>new User()</code> in your software</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    User userIN = new User();
+    userIN.setName(usr);
+    userIN.setEmail(mail);
+    userIN.setPassword(pwd);
+    userIN. ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and  then create it on server side and receive a copy:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    User userOUT =  api.users.createUser(userIN);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that <code>userIN</code> and <code>userOUT</code> are different instances.
+The latter provides the <code>userId</code> provided by the Traccar Model
+and is vital to use in the client server communication.
+The ID is usually hidden for external users (i.e. in the UI),
+but required for unambiguously user identification!</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_are_not_system_entities">&#8230;&#8203; are not System Entities</h3>
+<div class="paragraph">
+<p>Nevertheless you should always distinguish <em>Data Transfer Objects</em>
+from actual Entities in the Systems <em>Entity Relations Model</em> - ERM.
+<em>The Traccar System</em> is build around the <em>Traccar Data Model</em>,
+which is represented in the
+<a href="https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/model">model package</a>,
+while the DTOs are created in the
+<a href="https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/api/resource">resource package</a>.
+The Entities are only accessed by Traccar itself, while DTOs are snapshots of them.
+Of course you can always peek into the Traccar Database to check what&#8217;s going on.</p>
+</div>
+<div class="paragraph">
+<p>This is similar to DNA and RNA:<br>
+The DNA (ERM) is part of the <em>living</em> organic System,<br>
+while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_traccar_sub_api_implementations">Traccar sub Api implementations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project is part of a larger software and therefor the Traccar Api Endpoints (<code>operationId</code>)
+are implemented in the order required by the main application.</p>
+</div>
+<div class="sect2">
+<h3 id="_sessionapi">SessionApi</h3>
+<div class="paragraph">
+<p>We can find all generated sub APIs in the <code>bm.traccar.generated.api</code> package.
+For example we use the <code>UsersApi</code> and <code>DevicesApi</code> by setting the authentication,
+sending a request and receive entities.
+The <code>ApiClient</code> class holds the username and password.
+When you call an API method, it will automatically construct and add the Authorization header.
+This works perfectly for APIs that are stateless and check the basic auth header on every request.</p>
+</div>
+<div class="paragraph">
+<p>The <code>SessionApi</code> is a special case as <code>REST</code> and <code>HTTP</code> are defined as a stateless protocols.
+A session makes sense, if we log into the browser and keep it open.
+For the <code>traccar-api-client</code> we don&#8217;t need to establish a session for REST interactions.
+The sole purpose is to use the <code>SessionApi</code> to create a session
+and retrieve a <code>JSESSIONID</code> (Java Session Id) to be used with a websocket connection.</p>
+</div>
+<div class="paragraph">
+<p>You can make a <code>POST</code> request to the <code>/api/session</code> endpoint with the user&#8217;s email and password.
+This will create a session and return a Session Cookie managed by Jetty.
+This process is implemented in the <code>ApiService</code> and can be called with</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    String jSessionId = api.session.createSessionGetJsessionId(userMail, userPassword);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That&#8217;s all we need from the <code>SessionApi</code> and we will move on to the websocket implementation
+with the returned <code>JSESSIONID</code> for the provided User.
+When you connect to websocket endpoint <code>/api/socket</code> (Not the REST endpoint <code>/api/session</code>!),
+the server checks for the presence of a valid session cookie
+to authorize <em>the real-time data stream</em>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This API client implementation applies Aspect-Oriented Programming (AOP)
+as the technique for handling exceptions in Spring Boot applications.
+This way all exception handling happens in one central <code>ApiAspect</code> class
+and avoids code duplication.</p>
+</div>
+<div class="paragraph">
+<p>Generally any problem in the client software should through an <code>ApiException</code>
+to take over responsibility and to provide useful messages for developers
+and wrap the cause for deeper analysis.</p>
+</div>
+<div class="paragraph">
+<p>As you can see in the <code>bm.traccar.api.ApiAspect</code> class
+the <code>@Pointcut</code> includes all <code>*Api</code> classes and methods in :</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<pre>@Pointcut("execution(public * bm.traccar.generated.api.*Api.*(..))")</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
+<div class="paragraph">
+<p>and the <code>Joinpoint</code> is defined to only catch <code>RestClientExceptions</code>,
+wrap them in an <code>ApiException</code> and throw it for the method execution:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre>public void afterThrowingApiMethod(JoinPoint joinPoint, RestClientException rcEx)
+    throws ApiException {</pre>
 </div>
 </div>
-<div class="literalblock">
+<div class="paragraph">
+<p>Note that the <code>ApiException</code> is a <code>RuntimeException</code> and
+the caller is not forced by the compiler to catch it.
+However you should handle it as good practice
+and to ensure that you have a binding communication.</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre class="highlight"><code class="language-java" data-lang="java">Spring AOP
+invocation order
+    invoke **UsersApi.usersPost(..) ** &lt;-------------+
+      invoke ApiClient.selectHeaderAccept(..)        |
+      invoke ApiClient.selectHeaderContentType(..)   |
+      invoke ApiClient.invokeAPI(..)                 |
+    Exception in ApiMethod: **UsersApi.usersPost(..) **</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-08 12:43:45 +0100
 </div>
 </div>
 </body>

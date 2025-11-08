@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>Maven &lt;plugins&gt;</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,128 +436,140 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>Maven <code>&lt;plugins&gt;</code></h1>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each section provides a short introduction to each tool
+with links to lookup and learn more details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_asciidoctor">Asciidoctor</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_documentation">Documentation</h3>
+<div class="paragraph">
+<p>The complete project is documented in <em>AsciiDoc</em> or <code>.adoc</code> files.
+This is the broader approach to technical documents than <code>markdown</code>
+and you can find everything in the
+<a href="https://docs.asciidoctor.org/asciidoc/latest">AsciiDoc Language Documentation</a>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>AsciiDoc is a lightweight and semantic markup language primarily designed for writing technical documentation.
+The language can be used to produce a variety of presentation-rich output formats, such as HTML, PDF, EPUB3, man(ual) page, or DocBook.
+This capability enables it to be used in static site generators, IDEs, git tools and services, CI/CD systems, and other software.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.asciidoctor.org/asciidoc/latest
+</div>
+</div>
+<div class="paragraph">
+<p>It is important to understand that <code>.adoc</code> files are source files
+that should be processed to some target format.
+This processor is called the <em>Asciidoctor</em> and described in the
+<a href="https://docs.asciidoctor.org/asciidoctor/latest">AsciiDoctor Documentation</a>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Asciidoctor is a fast text processor for parsing AsciiDoc into a document model, then converting it to output formats.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.asciidoctor.org/asciidoctor/latest
+</div>
+</div>
+<div class="paragraph">
+<p>Goto projects
+<a href="./ascii-doctor.adoc ">AsciiDoctor implementation and usage</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mermaid_chart">Mermaid Chart</h2>
+<div class="sectionbody">
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Mermaid lets you create diagrams and visualizations using text and code.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.mermaidchart.com/mermaid-oss/intro/index.html#about-mermaid
+</div>
+</div>
+<div class="paragraph">
+<p>that&#8217;s about all there is to say about this software.</p>
+</div>
+<div class="paragraph">
+<p>Find more at <a href="https://github.com/mermaid-js/mermaid#readme">github</a></p>
+</div>
+<div class="paragraph">
+<p>The idea is to <em>describe</em> charts with the mermaid syntax</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    flowchart TD
+            A(["Start"])
+            A --&gt; B{"Decision"}
+            B --&gt; C["Option A"]
+            B --&gt; D["Option B"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and our Maven Plugin combination of AsciiDoc and Mermaid
+will generate html pages with SVG graphics on the fly:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0nZmxvd2NoYXJ0LXYyJyBjbGFzcz0nZmxvd2NoYXJ0JyBoZWlnaHQ9JzMyNC44OTA2MjUnIGlkPSdjb250YWluZXInIHByZXNlcnZlQXNwZWN0UmF0aW89J3hNaWRZTWlkIG1lZXQnIHJvbGU9J2dyYXBoaWNzLWRvY3VtZW50IGRvY3VtZW50JyB2aWV3Qm94PScwIDAgMzEyLjU2MjUgMzI0Ljg5MDYyNScgd2lkdGg9JzMxMi41NjI1JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxzdHlsZT4jY29udGFpbmVye2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmaWxsOiMzMzM7fUBrZXlmcmFtZXMgZWRnZS1hbmltYXRpb24tZnJhbWV7ZnJvbXtzdHJva2UtZGFzaG9mZnNldDowO319QGtleWZyYW1lcyBkYXNoe3Rve3N0cm9rZS1kYXNob2Zmc2V0OjA7fX0jY29udGFpbmVyIC5lZGdlLWFuaW1hdGlvbi1zbG93e3N0cm9rZS1kYXNoYXJyYXk6OSw1IWltcG9ydGFudDtzdHJva2UtZGFzaG9mZnNldDo5MDA7YW5pbWF0aW9uOmRhc2ggNTBzIGxpbmVhciBpbmZpbml0ZTtzdHJva2UtbGluZWNhcDpyb3VuZDt9I2NvbnRhaW5lciAuZWRnZS1hbmltYXRpb24tZmFzdHtzdHJva2UtZGFzaGFycmF5OjksNSFpbXBvcnRhbnQ7c3Ryb2tlLWRhc2hvZmZzZXQ6OTAwO2FuaW1hdGlvbjpkYXNoIDIwcyBsaW5lYXIgaW5maW5pdGU7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7fSNjb250YWluZXIgLmVycm9yLWljb257ZmlsbDojNTUyMjIyO30jY29udGFpbmVyIC5lcnJvci10ZXh0e2ZpbGw6IzU1MjIyMjtzdHJva2U6IzU1MjIyMjt9I2NvbnRhaW5lciAuZWRnZS10aGlja25lc3Mtbm9ybWFse3N0cm9rZS13aWR0aDoxcHg7fSNjb250YWluZXIgLmVkZ2UtdGhpY2tuZXNzLXRoaWNre3N0cm9rZS13aWR0aDozLjVweDt9I2NvbnRhaW5lciAuZWRnZS1wYXR0ZXJuLXNvbGlke3N0cm9rZS1kYXNoYXJyYXk6MDt9I2NvbnRhaW5lciAuZWRnZS10aGlja25lc3MtaW52aXNpYmxle3N0cm9rZS13aWR0aDowO2ZpbGw6bm9uZTt9I2NvbnRhaW5lciAuZWRnZS1wYXR0ZXJuLWRhc2hlZHtzdHJva2UtZGFzaGFycmF5OjM7fSNjb250YWluZXIgLmVkZ2UtcGF0dGVybi1kb3R0ZWR7c3Ryb2tlLWRhc2hhcnJheToyO30jY29udGFpbmVyIC5tYXJrZXJ7ZmlsbDojMzMzMzMzO3N0cm9rZTojMzMzMzMzO30jY29udGFpbmVyIC5tYXJrZXIuY3Jvc3N7c3Ryb2tlOiMzMzMzMzM7fSNjb250YWluZXIgc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDt9I2NvbnRhaW5lciBwe21hcmdpbjowO30jY29udGFpbmVyIC5sYWJlbHtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Y29sb3I6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3Rlci1sYWJlbCB0ZXh0e2ZpbGw6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3Rlci1sYWJlbCBzcGFue2NvbG9yOiMzMzM7fSNjb250YWluZXIgLmNsdXN0ZXItbGFiZWwgc3BhbiBwe2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnQ7fSNjb250YWluZXIgLmxhYmVsIHRleHQsI2NvbnRhaW5lciBzcGFue2ZpbGw6IzMzMztjb2xvcjojMzMzO30jY29udGFpbmVyIC5ub2RlIHJlY3QsI2NvbnRhaW5lciAubm9kZSBjaXJjbGUsI2NvbnRhaW5lciAubm9kZSBlbGxpcHNlLCNjb250YWluZXIgLm5vZGUgcG9seWdvbiwjY29udGFpbmVyIC5ub2RlIHBhdGh7ZmlsbDojRUNFQ0ZGO3N0cm9rZTojOTM3MERCO3N0cm9rZS13aWR0aDoxcHg7fSNjb250YWluZXIgLnJvdWdoLW5vZGUgLmxhYmVsIHRleHQsI2NvbnRhaW5lciAubm9kZSAubGFiZWwgdGV4dCwjY29udGFpbmVyIC5pbWFnZS1zaGFwZSAubGFiZWwsI2NvbnRhaW5lciAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbmNob3I6bWlkZGxlO30jY29udGFpbmVyIC5ub2RlIC5rYXRleCBwYXRoe2ZpbGw6IzAwMDtzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MXB4O30jY29udGFpbmVyIC5yb3VnaC1ub2RlIC5sYWJlbCwjY29udGFpbmVyIC5ub2RlIC5sYWJlbCwjY29udGFpbmVyIC5pbWFnZS1zaGFwZSAubGFiZWwsI2NvbnRhaW5lciAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbGlnbjpjZW50ZXI7fSNjb250YWluZXIgLm5vZGUuY2xpY2thYmxle2N1cnNvcjpwb2ludGVyO30jY29udGFpbmVyIC5yb290IC5hbmNob3IgcGF0aHtmaWxsOiMzMzMzMzMhaW1wb3J0YW50O3N0cm9rZS13aWR0aDowO3N0cm9rZTojMzMzMzMzO30jY29udGFpbmVyIC5hcnJvd2hlYWRQYXRoe2ZpbGw6IzMzMzMzMzt9I2NvbnRhaW5lciAuZWRnZVBhdGggLnBhdGh7c3Ryb2tlOiMzMzMzMzM7c3Ryb2tlLXdpZHRoOjIuMHB4O30jY29udGFpbmVyIC5mbG93Y2hhcnQtbGlua3tzdHJva2U6IzMzMzMzMztmaWxsOm5vbmU7fSNjb250YWluZXIgLmVkZ2VMYWJlbHtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7dGV4dC1hbGlnbjpjZW50ZXI7fSNjb250YWluZXIgLmVkZ2VMYWJlbCBwe2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt9I2NvbnRhaW5lciAuZWRnZUxhYmVsIHJlY3R7b3BhY2l0eTowLjU7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO2ZpbGw6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt9I2NvbnRhaW5lciAubGFiZWxCa2d7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwgMjMyLCAyMzIsIDAuNSk7fSNjb250YWluZXIgLmNsdXN0ZXIgcmVjdHtmaWxsOiNmZmZmZGU7c3Ryb2tlOiNhYWFhMzM7c3Ryb2tlLXdpZHRoOjFweDt9I2NvbnRhaW5lciAuY2x1c3RlciB0ZXh0e2ZpbGw6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3RlciBzcGFue2NvbG9yOiMzMzM7fSNjb250YWluZXIgZGl2Lm1lcm1haWRUb29sdGlwe3Bvc2l0aW9uOmFic29sdXRlO3RleHQtYWxpZ246Y2VudGVyO21heC13aWR0aDoyMDBweDtwYWRkaW5nOjJweDtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7YmFja2dyb3VuZDpoc2woODAsIDEwMCUsIDk2LjI3NDUwOTgwMzklKTtib3JkZXI6MXB4IHNvbGlkICNhYWFhMzM7Ym9yZGVyLXJhZGl1czoycHg7cG9pbnRlci1ldmVudHM6bm9uZTt6LWluZGV4OjEwMDt9I2NvbnRhaW5lciAuZmxvd2NoYXJ0VGl0bGVUZXh0e3RleHQtYW5jaG9yOm1pZGRsZTtmb250LXNpemU6MThweDtmaWxsOiMzMzM7fSNjb250YWluZXIgcmVjdC50ZXh0e2ZpbGw6bm9uZTtzdHJva2Utd2lkdGg6MDt9I2NvbnRhaW5lciAuaWNvbi1zaGFwZSwjY29udGFpbmVyIC5pbWFnZS1zaGFwZXtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7dGV4dC1hbGlnbjpjZW50ZXI7fSNjb250YWluZXIgLmljb24tc2hhcGUgcCwjY29udGFpbmVyIC5pbWFnZS1zaGFwZSBwe2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTtwYWRkaW5nOjJweDt9I2NvbnRhaW5lciAuaWNvbi1zaGFwZSByZWN0LCNjb250YWluZXIgLmltYWdlLXNoYXBlIHJlY3R7b3BhY2l0eTowLjU7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO2ZpbGw6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt9I2NvbnRhaW5lciA6cm9vdHstLW1lcm1haWQtZm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO308L3N0eWxlPjxnPjxtYXJrZXIgY2xhc3M9J21hcmtlciBmbG93Y2hhcnQtdjInIGlkPSdjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kJyBtYXJrZXJIZWlnaHQ9JzgnIG1hcmtlclVuaXRzPSd1c2VyU3BhY2VPblVzZScgbWFya2VyV2lkdGg9JzgnIG9yaWVudD0nYXV0bycgcmVmWD0nNScgcmVmWT0nNScgdmlld0JveD0nMCAwIDEwIDEwJz48cGF0aCBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBkPSdNIDAgMCBMIDEwIDUgTCAwIDEwIHonIHN0eWxlPSdzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItcG9pbnRTdGFydCcgbWFya2VySGVpZ2h0PSc4JyBtYXJrZXJVbml0cz0ndXNlclNwYWNlT25Vc2UnIG1hcmtlcldpZHRoPSc4JyBvcmllbnQ9J2F1dG8nIHJlZlg9JzQuNScgcmVmWT0nNScgdmlld0JveD0nMCAwIDEwIDEwJz48cGF0aCBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBkPSdNIDAgNSBMIDEwIDEwIEwgMTAgMCB6JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOycvPjwvbWFya2VyPjxtYXJrZXIgY2xhc3M9J21hcmtlciBmbG93Y2hhcnQtdjInIGlkPSdjb250YWluZXJfZmxvd2NoYXJ0LXYyLWNpcmNsZUVuZCcgbWFya2VySGVpZ2h0PScxMScgbWFya2VyVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBtYXJrZXJXaWR0aD0nMTEnIG9yaWVudD0nYXV0bycgcmVmWD0nMTEnIHJlZlk9JzUnIHZpZXdCb3g9JzAgMCAxMCAxMCc+PGNpcmNsZSBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBjeD0nNScgY3k9JzUnIHI9JzUnIHN0eWxlPSdzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItY2lyY2xlU3RhcnQnIG1hcmtlckhlaWdodD0nMTEnIG1hcmtlclVuaXRzPSd1c2VyU3BhY2VPblVzZScgbWFya2VyV2lkdGg9JzExJyBvcmllbnQ9J2F1dG8nIHJlZlg9Jy0xJyByZWZZPSc1JyB2aWV3Qm94PScwIDAgMTAgMTAnPjxjaXJjbGUgY2xhc3M9J2Fycm93TWFya2VyUGF0aCcgY3g9JzUnIGN5PSc1JyByPSc1JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOycvPjwvbWFya2VyPjxtYXJrZXIgY2xhc3M9J21hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjInIGlkPSdjb250YWluZXJfZmxvd2NoYXJ0LXYyLWNyb3NzRW5kJyBtYXJrZXJIZWlnaHQ9JzExJyBtYXJrZXJVbml0cz0ndXNlclNwYWNlT25Vc2UnIG1hcmtlcldpZHRoPScxMScgb3JpZW50PSdhdXRvJyByZWZYPScxMicgcmVmWT0nNS4yJyB2aWV3Qm94PScwIDAgMTEgMTEnPjxwYXRoIGNsYXNzPSdhcnJvd01hcmtlclBhdGgnIGQ9J00gMSwxIGwgOSw5IE0gMTAsMSBsIC05LDknIHN0eWxlPSdzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGNyb3NzIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItY3Jvc3NTdGFydCcgbWFya2VySGVpZ2h0PScxMScgbWFya2VyVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBtYXJrZXJXaWR0aD0nMTEnIG9yaWVudD0nYXV0bycgcmVmWD0nLTEnIHJlZlk9JzUuMicgdmlld0JveD0nMCAwIDExIDExJz48cGF0aCBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBkPSdNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAyOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOycvPjwvbWFya2VyPjxnIGNsYXNzPSdyb290Jz48ZyBjbGFzcz0nY2x1c3RlcnMnLz48ZyBjbGFzcz0nZWRnZVBhdGhzJz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNMTU2LjE0MSw0N0wxNTYuMTQxLDUxLjE2N0MxNTYuMTQxLDU1LjMzMywxNTYuMTQxLDYzLjY2NywxNTYuMjExLDcxLjQxN0MxNTYuMjgxLDc5LjE2NywxNTYuNDIyLDg2LjMzNCwxNTYuNDkyLDg5LjkxN0wxNTYuNTYyLDkzLjUwMScgaWQ9J0xfQV9CXzAnIG1hcmtlci1lbmQ9J3VybCgjY29udGFpbmVyX2Zsb3djaGFydC12Mi1wb2ludEVuZCknIHN0eWxlPScnLz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNMTI3LjAzNywxODMuNzg3TDExNy40NDcsMTkyLjgwNEMxMDcuODU4LDIwMS44MjEsODguNjc5LDIxOS44NTYsNzkuMDg5LDIzMi4zNzNDNjkuNSwyNDQuODkxLDY5LjUsMjUxLjg5MSw2OS41LDI1NS4zOTFMNjkuNSwyNTguODkxJyBpZD0nTF9CX0NfMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgc3R5bGU9JycvPjxwYXRoIGNsYXNzPSdlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsnIGQ9J00xODYuMjQ1LDE4My43ODdMMTk1LjY2NywxOTIuODA0QzIwNS4wOSwyMDEuODIxLDIyMy45MzYsMjE5Ljg1NiwyMzMuMzU4LDIzMi4zNzNDMjQyLjc4MSwyNDQuODkxLDI0Mi43ODEsMjUxLjg5MSwyNDIuNzgxLDI1NS4zOTFMMjQyLjc4MSwyNTguODkxJyBpZD0nTF9CX0RfMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgc3R5bGU9JycvPjwvZz48ZyBjbGFzcz0nZWRnZUxhYmVscyc+PGcgY2xhc3M9J2VkZ2VMYWJlbCc+PGcgY2xhc3M9J2xhYmVsJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgwLCAwKSc+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScwJyB3aWR0aD0nMCc+PGRpdiBjbGFzcz0nbGFiZWxCa2cnIHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J2VkZ2VMYWJlbCcvPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdlZGdlTGFiZWwnPjxnIGNsYXNzPSdsYWJlbCcgdHJhbnNmb3JtPSd0cmFuc2xhdGUoMCwgMCknPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMCcgd2lkdGg9JzAnPjxkaXYgY2xhc3M9J2xhYmVsQmtnJyBzdHlsZT0nZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwnPjxzcGFuIGNsYXNzPSdlZGdlTGFiZWwnLz48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0nZWRnZUxhYmVsJz48ZyBjbGFzcz0nbGFiZWwnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDAsIDApJz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzAnIHdpZHRoPScwJz48ZGl2IGNsYXNzPSdsYWJlbEJrZycgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nZWRnZUxhYmVsJy8+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSdub2Rlcyc+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC1BLTAnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDE1Ni4xNDA2MjUsIDI3LjUpJz48cmVjdCBjbGFzcz0nYmFzaWMgbGFiZWwtY29udGFpbmVyJyBoZWlnaHQ9JzM5JyByeD0nMTkuNScgcnk9JzE5LjUnIHN0eWxlPScnIHdpZHRoPSc1OS43OTY4NzUnIHg9Jy0yOS44OTg0Mzc1JyB5PSctMTkuNScvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTE3LjUyMzQzNzUsIC0xMiknPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzI0JyB3aWR0aD0nMzUuMDQ2ODc1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+U3RhcnQ8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdub2RlIGRlZmF1bHQnIGlkPSdmbG93Y2hhcnQtQi0yJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgxNTYuMTQwNjI1LCAxNTQuOTQ1MzEyNSknPjxwb2x5Z29uIGNsYXNzPSdsYWJlbC1jb250YWluZXInIHBvaW50cz0nNTcuOTQ1MzEyNSwwIDExNS44OTA2MjUsLTU3Ljk0NTMxMjUgNTcuOTQ1MzEyNSwtMTE1Ljg5MDYyNSAwLC01Ny45NDUzMTI1JyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgtNTcuOTQ1MzEyNSw1Ny45NDUzMTI1KScvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTMwLjk0NTMxMjUsIC0xMiknPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzI0JyB3aWR0aD0nNjEuODkwNjI1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+RGVjaXNpb248L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdub2RlIGRlZmF1bHQnIGlkPSdmbG93Y2hhcnQtQy00JyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSg2OS41LCAyODkuODkwNjI1KSc+PHJlY3QgY2xhc3M9J2Jhc2ljIGxhYmVsLWNvbnRhaW5lcicgaGVpZ2h0PSc1NCcgc3R5bGU9Jycgd2lkdGg9JzEyMycgeD0nLTYxLjUnIHk9Jy0yNycvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTMxLjUsIC0xMiknPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzI0JyB3aWR0aD0nNjMnPjxkaXYgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nbm9kZUxhYmVsJz48cD5PcHRpb24gQTwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC1ELTYnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDI0Mi43ODEyNSwgMjg5Ljg5MDYyNSknPjxyZWN0IGNsYXNzPSdiYXNpYyBsYWJlbC1jb250YWluZXInIGhlaWdodD0nNTQnIHN0eWxlPScnIHdpZHRoPScxMjMuNTYyNScgeD0nLTYxLjc4MTI1JyB5PSctMjcnLz48ZyBjbGFzcz0nbGFiZWwnIHN0eWxlPScnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKC0zMS43ODEyNSwgLTEyKSc+PHJlY3QvPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMjQnIHdpZHRoPSc2My41NjI1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+T3B0aW9uIEI8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="Diagram" width="312" height="324">
+</div>
+</div>
+<div class="paragraph">
+<p>There is also a
+<a href="https://mermaid.live">live editor</a> for interactive chart creation.</p>
+</div>
+<div class="paragraph">
+<p>The Maven Installation is part of the Maven AsciiDoc installation
+and details can be found in its description
+<a href="./ascii-doctor.adoc ">AsciiDoctor implementation and usage</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_google_code_style">Google Code Style</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are many code formatters and formats out there.
+Just like in the <code>jeets</code> project we chose the
+<a href="https://github.com/spotify/fmt-maven-plugin">fmt-maven-plugin</a></p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<pre>   &lt;groupId&gt;com.coveo&lt;/groupId&gt;
+&lt;artifactId&gt;fmt-maven-plugin&lt;/artifactId&gt;</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<div class="paragraph">
+<p>The choice is based on simplicity and the most common code style with
+<a href="https://google.github.io/styleguide/javaguide.html">Google Java Style</a>.<br>
+The plugin is strict about styling, cannot be configured by design
+and automatically formats the code before compilation.</p>
 </div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-11 12:53:22 +0100
 </div>
 </div>
 </body>

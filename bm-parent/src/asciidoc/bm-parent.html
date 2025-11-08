@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Dockerized Traccar Server</title>
+<title>Multi Module Repository</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -434,216 +434,126 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book toc2 toc-left">
 <div id="header">
-<h1>Dockerized Traccar Server</h1>
+<h1>Multi Module Repository</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_project_nature">project nature</a>
+<ul class="sectlevel2">
+<li><a href="#_maven_build_tool">Maven build tool</a></li>
+<li><a href="#_camel_integration_framework">Camel integration framework</a></li>
+<li><a href="#_spring_framework_and_spring_boot_application">Spring Framework and Spring Boot Application</a></li>
+</ul>
+</li>
+<li><a href="#_multi_module_projects_structure">Multi Module projects structure</a>
+<ul class="sectlevel1">
+<li><a href="#_root_project_bm_sim">root project <code>bm-sim</code></a>
+<ul class="sectlevel2">
+<li><a href="#_modules"><code>&lt;modules&gt;</code></a></li>
+</ul>
+</li>
+<li><a href="#_bm_parent_project"><code>bm-parent</code> project</a>
+<ul class="sectlevel2">
+<li><a href="#_project_setup">project setup</a>
+<ul class="sectlevel3">
+<li><a href="#_properties"><code>&lt;properties&gt;</code></a></li>
+<li><a href="#_dependencymgm_and_top_level_bom"><code>&lt;dependencyMgm&gt;</code> and top level BOM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_maven_plugins">Maven <code>&lt;plugins&gt;</code></a>
+<ul class="sectlevel1">
+<li><a href="#_asciidoctor">Asciidoctor</a>
+<ul class="sectlevel2">
+<li><a href="#_documentation">Documentation</a></li>
+</ul>
+</li>
+<li><a href="#_mermaid_chart">Mermaid Chart</a></li>
+<li><a href="#_google_code_style">Google Code Style</a></li>
+</ul>
+</li>
+<li><a href="#_maven_maintenance_release">Maven maintenance &amp; release</a>
+<ul class="sectlevel1">
+<li><a href="#_upgrades_and_updates">upgrades and updates</a>
+<ul class="sectlevel2">
+<li><a href="#_step_1_maven_versions">step 1 - maven versions</a></li>
+<li><a href="#_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</a></li>
+<li><a href="#_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</a></li>
+<li><a href="#_step_4_tracar_versions">step 4 - Tracar versions</a></li>
+<li><a href="#_useful_mvn_commands">useful mvn commands</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Traccar Client Software is developed with Integration Tests against a Docker Traccar Server.</p>
+<p>This <code>bm-sim</code> repository is a
+<a href="https://maven.apache.org/guides/mini/guide-multiple-modules.html">Maven Multiple Module</a>
+project.
+The Maven Reactor mechanism makes sure to collect all modules
+and assert correct build order with every <code>mvn</code> command executed.
+It assures that any project is build as required by another.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_build_and_run_traccar_docker_container">build and run Traccar Docker Container</h2>
+<h2 id="_project_nature">project nature</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The traccar project at Github provides instructions to fetch and install the Traccar
-<a href="https://hub.docker.com/r/traccar/traccar">DockerHub image</a>.
-This Maven Module leverages the
-<a href="https://github.com/fabric8io/docker-maven-plugin/blob/master/README.md"><code>fabric8io docker-maven-plugin</code></a>
-to control the Docker container phases to manage a dockerized Traccar server
-for integration testing.</p>
-</div>
-<div class="paragraph">
-<p>To avoid the <code>sudo</code> command you can create a docker group to enable non-root user access:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">    sudo groupadd -f docker
-    sudo usermod -aG docker $USER
-    newgrp docker
-    groups</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_docker_maven_plugin"><code>docker-maven-plugin</code></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can compare the parameters of the <code>docker-maven-plugin</code>
-with the four point checklist at
-<a href="https://hub.docker.com/r/traccar/traccar#container-create-example">Container create example</a>
-and adopt them to your requirements and system.</p>
+<p>This is a Java project and the development cycle
+is defined by the major components:</p>
 </div>
 <div class="sect2">
-<h3 id="_build"><code>&lt;build&gt;</code></h3>
+<h3 id="_maven_build_tool">Maven build tool</h3>
 <div class="paragraph">
-<p>In the plugin <code>&lt;configuration&gt;</code> of the <code>&lt;image&gt;</code> and <code>&lt;build&gt;</code> section
-you can find the traccar version and target OS.
-Please note that this repository was set up with <code>Dockerfile.ubuntu</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;traccar.version&gt;6.8.0&lt;/traccar.version&gt;
-    &lt;docker.image.version&gt;${traccar.version}&lt;/docker.image.version&gt;
-    &lt;docker.image.os&gt;ubuntu&lt;/docker.image.os&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You might want to swap with <code>Dockerfile.alpine</code> or <code>Dockerfile.debian</code>
-for your purposes.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;artifactId&gt;docker-maven-plugin&lt;/artifactId&gt;
-     ...
-    &lt;image&gt;
-        &lt;alias&gt;traccar&lt;/alias&gt;
-        &lt;name&gt;traccar/traccar:${traccar.version}-${docker.image.os}&lt;/name&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>creates an image <code>traccar/traccar:6.8.0-ubuntu</code>
-just like the command line</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>$ docker pull traccar/traccar:6.8.0-ubuntu</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that we distinguish <code>project-</code> and <code>${traccar.version}</code>
-in order patch versions, when required.</p>
-</div>
-<div class="sect3">
-<h4 id="_dockerfile"><code>&lt;dockerFile&gt;</code></h4>
-<div class="paragraph">
-<p>The Dockerfile is not part of this project and is directly referenced with its <code>${traccar.version}</code>
-from the sources at github</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;dockerFile&gt;Dockerfile.${docker.image.os}&lt;/dockerFile&gt;
-    &lt;contextDir&gt;https://github.com/traccar/traccar/blob/v${traccar.version}/docker&lt;/contextDir&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The docker file &#8230;&#8203;</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>defines os version image, ie ubuntu:24:04</p>
-</li>
-<li>
-<p>grabs the <a href="https://github.com/traccar/traccar/releases">traccar release</a>
-from github and unzips</p>
-</li>
-<li>
-<p>provides entry point, ie java cmdline</p>
-</li>
-<li>
-<p><strong>expects a</strong> <code>WORKDIR /opt/traccar</code> <strong>on your machine!</strong><br>
-which we will provide next.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_dockerrun"><code>docker:run</code></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Now we are almost ready create a container from the image and run it.<br>
-Back to the traccar instructions we are asked to create workdirectories
-and <code>chmod</code> as you like.</p>
-</div>
-<div class="sect2">
-<h3 id="_create_work_directories">create work directories</h3>
-<div class="paragraph">
-<p>&#8230; and set permissions according to your policies.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>sudo mkdir -p /opt/traccar/
-sudo chmod 777 traccar</pre>
-</div>
+<p>Implies major versioning, dependency management, plugin configuration,
+build lifecycle and finally release management.
+If available and feasible external tools, i.e. plugins, like the
+<a href="../../../bm-traccar/traccar-openapitools-client/readme.html">OpenAPI Generator</a>
+are integrated into the lifecycle to generate code for subsequent modules.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_cat_default_traccar_xml">cat default traccar.xml</h3>
+<h3 id="_camel_integration_framework">Camel integration framework</h3>
 <div class="paragraph">
-<p><strong>cat</strong> the <code>traccar.xml</code> file to your local file system.<br>
-Make sure you pick the correct name, version and flavor for <code>traccar/traccar:6.6-ubuntu</code> .<br>
-<em>This time we are directly applying</em> the <code>docker run</code> command without <code>mvn</code> !</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>$ docker run --rm --entrypoint cat traccar/traccar:x.y.z-ubuntu \
-   /opt/traccar/conf/traccar.xml &gt; /opt/traccar/traccar.xml</pre>
-</div>
+<p>Apache Camel has a very powerful bean injection framework
+to allow developers <em>to focus on solving business problems</em>.</p>
 </div>
 <div class="paragraph">
-<p>Now you should find the <code>traccar.xml</code> file as specified.
-As an experienced traccar admin you can now configure traccar
-according to your production server.
-Keep in mind that <em>this project</em> does not require Tracker information
-nor opening the ports as described in <code>&lt;port&gt;</code> below.</p>
+<p>At its core, Apache Camel is an integration engine, which can be used
+to facilitate interactions between a wide and varied array of technologies.
+These bridges between service- and technology Endpoints,
+the Routes are implemented on an engine - the CamelContext,
+and they communicate with “exchange messages”.</p>
 </div>
 <div class="paragraph">
-<p>The focus <em>of this project</em> is on interacting with the
-<a href="https://www.traccar.org/api-reference">Traccar API</a>
-in the Traccar container.</p>
+<p>For this repository Camel is used to glue independant Units together.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_container">create container</h3>
+<h3 id="_spring_framework_and_spring_boot_application">Spring Framework and Spring Boot Application</h3>
 <div class="paragraph">
-<p>The last step creating the traccar container on the traccar Github page
-is to run direcly with docker <code>docker run</code>.
-We do not want to run docker via command line,
-we want to start and stop the container for integration testing.
-So we will use <code>mvn docker:run</code> to make sure everything is in place.</p>
+<p>Spring context, dependency injection, and application startup.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_run"><code>&lt;run&gt;</code></h3>
 <div class="paragraph">
-<p>Next you should check the parameters of the <code>&lt;run&gt;</code> section for your personal preferences</p>
+<p><a href="https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html" class="bare">https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html</a></p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-xml" data-lang="xml">        &lt;run&gt;
-            &lt;hostname&gt;traccar&lt;/hostname&gt;
-            &lt;ports&gt;
-                &lt;port&gt;80:8082&lt;/port&gt;
-            &lt;/ports&gt;
-            &lt;volumes&gt;
-                &lt;bind&gt;
-                    &lt;volume&gt;/opt/traccar/logs:/opt/traccar/logs:rw&lt;/volume&gt;
-                    &lt;volume&gt;/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro&lt;/volume&gt;
-                    &lt;volume&gt;/opt/traccar/data:/opt/traccar/data:rw&lt;/volume&gt;
-                &lt;/bind&gt;
-            &lt;/volumes&gt;
-            &lt;log&gt;&lt;!-- do not remove --&gt;&lt;/log&gt;
-            &lt;wait&gt;
-                &lt;http&gt;
-                    &lt;url&gt;http://localhost&lt;/url&gt;
-                &lt;/http&gt;
-            &lt;/wait&gt;
-        &lt;/run&gt;</code></pre>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_port"><code>&lt;port&gt;</code></h4>
 <div class="paragraph">
-<p>Set the external port to 80 simplify the http url of the traccar UI to <code><a href="http://localhost" class="bare">http://localhost</a></code>.</p>
+<p>Spring Boot component provides auto-configuration for Apache Camel.
+Our opinionated auto-configuration of the Camel context
+auto-detects Camel routes available in the Spring context
+and registers the key Camel utilities
+(like producer and consumer templates, type converters etc.) as <code>@Bean</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -652,423 +562,445 @@ So we will use <code>mvn docker:run</code> to make sure everything is in place.<
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>Please note that this project is for OpenAPI development and the access is restricted
-to the port (default 80) of the UI.<br>
-The Tracker Protocol TCP and UDP Ports</p>
-</div>
 <div class="literalblock">
 <div class="content">
-<pre>--publish 5000-5150:5000-5150 \
---publish 5000-5150:5000-5150/udp \</pre>
+<pre>Spring Boot will auto-configure Camel for you.</pre>
 </div>
-</div>
-<div class="paragraph">
-<p>are not required <em>nor configured</em> for API testing <em>in this project</em>.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>In order to test your Traccar Server in Docker with an Android or iPhone Traccar Client
-you can open the relevant port with</p>
 </div>
-<div class="literalblock">
+</div>
+</div>
+<h1 id="_multi_module_projects_structure" class="sect0">Multi Module projects structure</h1>
+<div class="openblock partintro">
 <div class="content">
-<pre>&lt;ports&gt;
-    &lt;port&gt;80:8082&lt;/port&gt;
-    &lt;port&gt;5055:5055&lt;/port&gt;
-&lt;/ports&gt;</pre>
-</div>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_wait"><code>&lt;wait&gt;</code></h4>
 <div class="paragraph">
-<p>Wait for availabity of the container, before running tests.</p>
+<p>A
+<a href="https://maven.apache.org/guides/mini/guide-multiple-modules.html">Maven Multiple Module</a>
+Project supports project aggregation in addition to project inheritance.
+The mechanism in Maven that handles multi-module projects is referred to as <em>the Reactor</em>.</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
 <div class="paragraph">
-<p>Once the container has started you can also access the traccar UI
-in you local browser with <code><a href="http://localhost" class="bare">http://localhost</a></code> .</p>
+<p>The Reactor or root pom ..</p>
 </div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_volumes"><code>&lt;volumes&gt;</code></h4>
-<div class="paragraph">
-<p>The volumes define the mapped traccar folders on your local system.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
+<div class="ulist">
+<ul>
 <li>
-<p>we want to <code>tail</code> the logfile to see what&#8217;s going on on server side.</p>
+<p>Collects all the available modules to build</p>
 </li>
 <li>
-<p>we want to configure the <code>traccar.xml</code> analog to the production server.</p>
+<p>Sorts the projects into the correct build order</p>
 </li>
 <li>
-<p>we want to see what&#8217;s going on in the database.</p>
+<p>Builds the selected projects in order</p>
 </li>
-</ol>
+<li>
+<p>Should contain: <code>&lt;modules&gt;</code> section listing all submodules (<code>bm-parent</code>, <code>bm-traccar</code>, etc.).</p>
+</li>
+<li>
+<p>Should NOT contain dependencies or build plugins that are meant to be inherited by modules.</p>
+</li>
+<li>
+<p>Basic project metadata (groupId, artifactId, version, packaging=pom).</p>
+</li>
+<li>
+<p>Common properties (if needed).</p>
+</li>
+<li>
+<p>Plugin management (optional, but usually placed in parent).</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>These volumes represent the standard installation of traccar
-and <code>&lt;traccar/data&gt;</code> was added for development support.</p>
+<p>and simply is a POM that refers to other Maven projects.</p>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_traccardata"><code>&lt;traccar/data&gt;</code></h4>
 <div class="paragraph">
-<p>In the <code>&lt;volumes&gt;</code> section above you will find an additional volume</p>
+<p>Note the output line at the beginning of every Maven Build</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>&lt;volume&gt;/opt/traccar/data:/opt/traccar/data:rw&lt;/volume&gt;</pre>
-</div>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>This way developers can always peak into traccar&#8217;s data model.<br>
-Different options to work with the Database are explained
-<a href="./databaseTest.adoc">here</a></p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Also note the <code>Database</code> heading at the bottom of</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>https://hub.docker.com/r/traccar/traccar</pre>
-</div>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<p>The default when executing the above docker run command is an internal H2 database.
- The docker run command also doesn&#8217;t create a mount point on the host for the data folder
- which will cause the database to be lost when the container is recreated.
- This point can be mitigated by adding the line</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>-v /var/docker/traccar/data:/opt/traccar/data:rw \</pre>
-</div>
-</div>
-</blockquote>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_log"><code>&lt;log&gt;</code></h4>
-<div class="paragraph">
-<p>Note that the empty</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>`&lt;log&gt;&lt;!-- do not remove --&gt;&lt;/log&gt;`</pre>
+<pre>[INFO] Reactor Build Order:</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>section <em>is required</em> as described in
-<a href="https://dmp.fabric8.io/#start-logging">5.2.10. Logging</a>:</p>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<p>Logging is enabled by default if a <code>&lt;log&gt;</code> section is given!</p>
-</div>
-</blockquote>
+<p>The Parent pom defines common <code>&lt;dependencies&gt;</code> and <code>&lt;plugins&gt;</code> (and <code>&lt;pluginManagement&gt;</code>)
+inherited by all submodules and does not create a JAR or a WAR.</p>
 </div>
 <div class="paragraph">
-<p>This way you can always keep a console or editor open
-to auto reload, i.e. <code>tail</code> the <code>tracker-server.log</code> file.</p>
+<p>The <code>bm-parent/pom.xml</code> ..</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serves as the parent for all submodules (<code>bm-traccar</code>, etc.).</p>
+</li>
+<li>
+<p>Should contain: <code>&lt;dependencyManagement&gt;</code> for shared dependency versions.<br>
+<code>&lt;build&gt;</code> section for shared plugins (like asciidoctor-maven-plugin, compiler plugin, surefire, etc.).</p>
+</li>
+<li>
+<p>Should NOT contain <code>&lt;modules&gt;</code> (that’s for the aggregator/root pom).</p>
+</li>
+<li>
+<p>Shared properties (Java version, encoding, etc.).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a quick overview on the complete project you can always run <code>mvn clean</code>
+to see the processing order.</p>
 </div>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_root_project_bm_sim">root project <code>bm-sim</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Maven Bill of Materials (BOM) is collected the root <code>pom.xml</code> file, i.e. <em>aggregator POM</em>
+that defines common dependencies, versions, properties and other dependent Maven Projects.
+It is considered good development practice to run <code>mvn clean install</code>
+in the repository root directory in order to create all artifacts in the local <code>.m2/repository</code>.
+This substitutes a Nexus Server usually providing released artifacts.
+After that the developer can exclusively focus on the project s/he is assigned to.</p>
+</div>
+<div class="paragraph">
+<p>see
+<a href="https://docs.microfocus.com/doc/205/saas/bestpracticesmavenprojects">structuring Maven projects and modules</a></p>
+</div>
+<div class="paragraph">
+<p>For team development you should work with the <code>-SNAPSHOT</code> tag and a central (Nexus) Server
+over your personal <code>.m2</code> repo.
+This way all team members are accessing the same (continuously changeing) artifact
+and the complete build process can be reduced to the module and artifact in focus.</p>
 </div>
 <div class="sect2">
-<h3 id="_mvn_dockerrun"><code>mvn docker:run</code></h3>
+<h3 id="_modules"><code>&lt;modules&gt;</code></h3>
 <div class="paragraph">
-<p>Now we can execute: <code>mvn docker:run</code> and container start, wait,
-stop and remove should look something like this:</p>
+<p>This approach reduces duplication and allows to share configurations between modules.
+Practically the parent pom can be seen as the cover sheet with project information
+and most important - the list of submodules.</p>
+</div>
+<div class="paragraph">
+<p>compare to
+<a href="https://github.com/kbeigl/jeets/blob/master/pom.xml">JeeTS repository</a></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">~/git/bm/bm-traccar/traccar-api-camel$ mvn docker:run
-                                       ==============
-[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-camel ---
-[INFO] DOCKER&gt; Pulling from traccar/traccar
- b08e2ff4391e: Pull complete
- 0b823ac9e80a: Pull complete
- 66fe9131b572: Pull complete
- 4f4fb700ef54: Pull complete
-[INFO] DOCKER&gt; Digest: sha256:5bd7e3a8d059b1ca0e86004f747f6bebe9206f5b2da61b380f70c2a6285e59f5
-[INFO] DOCKER&gt; Status: Downloaded newer image for traccar/traccar:6.8.0-ubuntu
-[INFO] DOCKER&gt; Pulled traccar/traccar:6.8.0-ubuntu in 49 seconds
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Start container 7ad9a7c7a649
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar":
-               Waiting on url http://localhost with method HEAD for status 200..399.
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Waited on url http://localhost 5900 ms</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Looks good: Container started and waited five seconds for the localhost.
-We have manually started <code>mvn docker:run</code>, now we can manually stop the container
-with the familiar key combination <code>&lt;Ctrl&gt;&lt;c&gt;</code> :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">^C
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar":
-               Stop and removed container 7ad9a7c7a649 after 0 ms</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><em>Now</em> you can check your local system with docker command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">~/git/bm/bm-traccar/traccar-api-camel$ docker images -a
-                                       ================
-REPOSITORY        TAG            IMAGE ID       CREATED       SIZE
-traccar/traccar   6.8.0-ubuntu   5fdf770fa10b   6 weeks ago   298MB</code></pre>
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;modules&gt;
+        &lt;module&gt;bm-parent&lt;/module&gt;
+        &lt;module&gt;bm-traccar&lt;/module&gt;
+                ...
+    &lt;/modules</code></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_validate_development_environment">validate development environment</h2>
+<h2 id="_bm_parent_project"><code>bm-parent</code> project</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Let&#8217;s check, if everything is in place.</p>
-</div>
-<div class="sect2">
-<h3 id="_traccar_frontend">Traccar Frontend</h3>
-<div class="paragraph">
-<p>If you run <code>mvn docker:run</code> again (and over and over) the docker pull should not show
-as long as the docker image is on your machine.
-After waiting for startup (5.69 seconds in this case) &#8230;</p>
+<p>The parent project is the first module called in the build process.<br>
+It starts by running the <code>os-maven-plugin</code> (actually a Maven <code>&lt;extension&gt;</code>)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ traccar-api-camel ---
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Start container 6b39263a1f9c
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar":
-               Waiting on url http://localhost with method HEAD for status 200..399.
-[INFO] DOCKER&gt; [traccar/traccar:6.8.0-ubuntu] "traccar": Waited on url http://localhost 5690 ms</code></pre>
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] Scanning for projects...
+[INFO] ---------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ---------------------------------------------------
+[INFO] os.detected.name: linux
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 6.11
+[INFO] os.detected.version.major: 6
+[INFO] os.detected.version.minor: 11
+[INFO] os.detected.release: tuxedo
+[INFO] os.detected.release.version: 22.04
+[INFO] os.detected.release.like.tuxedo: true
+[INFO] os.detected.release.like.ubuntu: true
+[INFO] os.detected.release.like.debian: true
+[INFO] os.detected.classifier: linux-x86_64</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>&#8230; you can open the url in your browser.</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tip</div>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>At the development time you can open a console, execute <code>mvn docker:run</code> and leave it open.
-This way you can execute Integration Tests (*IT) as Unit Tests against the Traccar Server in your IDE!
-As good practice each test should clean up the server for subsequent tests in random order.</p>
-</div>
-<div class="paragraph">
-<p>As an example you can debug a JUnit Test in your IDE, set a debug point after creating a new user
-and then log <em>as this user</em> in on the Frontend. Then continue the test to clean up.</p>
-</div>
-<div class="paragraph">
-<p>Much more complex scenarios can be observed step by step in details.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
+<p>which provides Maven parameters, like <code>${os.detected.name}</code>,<br>
+to direct the build lifecycle as required for your targeted system.</p>
 </div>
 <div class="sect2">
-<h3 id="_tracker_server_log"><code>tracker-server.log</code></h3>
+<h3 id="_project_setup">project setup</h3>
+<div class="sect3">
+<h4 id="_properties"><code>&lt;properties&gt;</code></h4>
 <div class="paragraph">
-<p>In your local folder you should find the logfile</p>
+<p>The properties of the parent project are applied to the full repo.
+Here the main parameters for Java, JDK, Maven with components and plugins,
+the driving Camel version in conjunction with spring boot.</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>/opt/traccar/logs/tracker-server.log</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>There you should see the server start and the database setup by liquibase.<br></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">INFO: Operating system name: Linux version: 6.11.0-109019-tuxedo architecture: amd64
-INFO: Java runtime name: OpenJDK 64-Bit Server VM vendor: Ubuntu version: 17.0.14+7-Ubuntu-124.04
-INFO: Memory limit heap: 1024mb non-heap: 0mb
-INFO: Character encoding: US-ASCII
-INFO: Version: 6.6
-INFO: Starting server...
-INFO: HikariPool-1 - Starting...
-
-INFO: Set default schema name to PUBLIC
-INFO: Creating database history table with name: PUBLIC.DATABASECHANGELOG
-
-INFO: Table tc_attributes created
-
-INFO: Foreign key constraint added to tc_device_command (deviceid)
-
-INFO: New row inserted into tc_servers
-INFO: ChangeSet changelog-4.0-clean::changelog-4.0-clean::author ran successfully in 214ms
-
-INFO: Index user_device_user_id created
-
-INFO: Column tc_orders.toAddress renamed to toaddresstmp
-
-INFO: UPDATE SUMMARY
-INFO: Run:                         50
-INFO: Previously run:               0
-INFO: Filtered out:                 0
-INFO: -------------------------------
-INFO: Total change sets:           50
-
-INFO: Update summary generated
-
-INFO: Started Server@c18dcc4{STARTING}[11.0.24,sto=0] @4926ms
-
-INFO: Stopping server...
-
-INFO: Version: 6.6
-INFO: Starting server...
-
-INFO: UPDATE SUMMARY
-INFO: Run:                          0
-INFO: Previously run:              50
-INFO: Filtered out:                 0
-INFO: -------------------------------
-INFO: Total change sets:           50</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that the second start is faster, since the database is already there -
-which is exactely what we wanted.</p>
 </div>
 <div class="sect3">
-<h4 id="_debugging">debugging</h4>
+<h4 id="_dependencymgm_and_top_level_bom"><code>&lt;dependencyMgm&gt;</code> and top level BOM</h4>
 <div class="paragraph">
-<p>We are creating traccar client software without modifying the traccar server.
-We are starting the traccar server docker image out of the box
-to develop against it (and save a lot of mocking etc.).</p>
-</div>
-<div class="paragraph">
-<p>One way to check the server is the <code>tracker-server.log</code>.
-As one example you can debug one of
-the <code>bm.traccar.api.*IT</code> integration tests.
-Most of them <code>extend BaseIntegrationTest</code>
-which uses the preconfigured system administrator to log in.</p>
-</div>
-<div class="paragraph">
-<p>In the log you can see the system user id <code>9000000000000000000</code>
-creating users with ids <code>1</code> and <code>2</code></p>
+<p>The repository versioning of Java archives is defined by</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>INFO: user: 9000000000000000000, action: create, object: user, id: 1
-INFO: user: 9000000000000000000, action: create, object: user, id: 2
-INFO: user: 2, action: login,  from: 172.17.0.1
-INFO: user: 2, action: logout, from: 172.17.0.1
-INFO: user: 1, action: login,  from: 172.17.0.1
-INFO: user: 1, action: logout, from: 172.17.0.1</pre>
+<pre>&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;
+            &lt;artifactId&gt;camel-spring-boot-bom&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>It is recommended to import Camel Spring Boot BOM before Spring Boot BOM
+to ensure Camel dependencies are using supported JARs from the release.</p>
+</div>
+<div class="paragraph">
+<p>compare to
+<a href="https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml">JeeTS repository</a></p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>INFO: user: 1, action: login, from: [0:0:0:0:0:0:0:1]    frontend
-INFO: user: 1, action: login, from: 127.0.0.1            JUnit !?</pre>
+<pre>   &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;
+&lt;artifactId&gt;camel-spring-boot-dependencies&lt;/artifactId&gt;</pre>
 </div>
 </div>
 </div>
 </div>
+</div>
+</div>
+<h1 id="_maven_plugins" class="sect0">Maven <code>&lt;plugins&gt;</code></h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>Each section provides a short introduction to each tool
+with links to lookup and learn more details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_asciidoctor">Asciidoctor</h2>
+<div class="sectionbody">
 <div class="sect2">
-<h3 id="_call_the_api">call the API</h3>
+<h3 id="_documentation">Documentation</h3>
 <div class="paragraph">
-<p>You can call the Rest APIs such as</p>
+<p>The complete project is documented in <em>AsciiDoc</em> or <code>.adoc</code> files.
+This is the broader approach to technical documents than <code>markdown</code>
+and you can find everything in the
+<a href="https://docs.asciidoctor.org/asciidoc/latest">AsciiDoc Language Documentation</a>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>AsciiDoc is a lightweight and semantic markup language primarily designed for writing technical documentation.
+The language can be used to produce a variety of presentation-rich output formats, such as HTML, PDF, EPUB3, man(ual) page, or DocBook.
+This capability enables it to be used in static site generators, IDEs, git tools and services, CI/CD systems, and other software.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.asciidoctor.org/asciidoc/latest
+</div>
+</div>
+<div class="paragraph">
+<p>It is important to understand that <code>.adoc</code> files are source files
+that should be processed to some target format.
+This processor is called the <em>Asciidoctor</em> and described in the
+<a href="https://docs.asciidoctor.org/asciidoctor/latest">AsciiDoctor Documentation</a>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Asciidoctor is a fast text processor for parsing AsciiDoc into a document model, then converting it to output formats.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.asciidoctor.org/asciidoctor/latest
+</div>
+</div>
+<div class="paragraph">
+<p>Goto projects
+<a href="./ascii-doctor.adoc ">AsciiDoctor implementation and usage</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mermaid_chart">Mermaid Chart</h2>
+<div class="sectionbody">
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Mermaid lets you create diagrams and visualizations using text and code.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.mermaidchart.com/mermaid-oss/intro/index.html#about-mermaid
+</div>
+</div>
+<div class="paragraph">
+<p>that&#8217;s about all there is to say about this software.</p>
+</div>
+<div class="paragraph">
+<p>Find more at <a href="https://github.com/mermaid-js/mermaid#readme">github</a></p>
+</div>
+<div class="paragraph">
+<p>The idea is to <em>describe</em> charts with the mermaid syntax</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>curl http://0.0.0.0:8080/api/v3/pet/123</pre>
+<pre class="highlight"><code class="language-xml" data-lang="xml">    flowchart TD
+            A(["Start"])
+            A --&gt; B{"Decision"}
+            B --&gt; C["Option A"]
+            B --&gt; D["Option B"]</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Which returns information about a pet.</p>
+<p>and our Maven Plugin combination of AsciiDoc and Mermaid
+will generate html pages with SVG graphics on the fly:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="data:image/svg+xml;base64,PHN2ZyBhcmlhLXJvbGVkZXNjcmlwdGlvbj0nZmxvd2NoYXJ0LXYyJyBjbGFzcz0nZmxvd2NoYXJ0JyBoZWlnaHQ9JzMyNC44OTA2MjUnIGlkPSdjb250YWluZXInIHByZXNlcnZlQXNwZWN0UmF0aW89J3hNaWRZTWlkIG1lZXQnIHJvbGU9J2dyYXBoaWNzLWRvY3VtZW50IGRvY3VtZW50JyB2aWV3Qm94PScwIDAgMzEyLjU2MjUgMzI0Ljg5MDYyNScgd2lkdGg9JzMxMi41NjI1JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxzdHlsZT4jY29udGFpbmVye2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmaWxsOiMzMzM7fUBrZXlmcmFtZXMgZWRnZS1hbmltYXRpb24tZnJhbWV7ZnJvbXtzdHJva2UtZGFzaG9mZnNldDowO319QGtleWZyYW1lcyBkYXNoe3Rve3N0cm9rZS1kYXNob2Zmc2V0OjA7fX0jY29udGFpbmVyIC5lZGdlLWFuaW1hdGlvbi1zbG93e3N0cm9rZS1kYXNoYXJyYXk6OSw1IWltcG9ydGFudDtzdHJva2UtZGFzaG9mZnNldDo5MDA7YW5pbWF0aW9uOmRhc2ggNTBzIGxpbmVhciBpbmZpbml0ZTtzdHJva2UtbGluZWNhcDpyb3VuZDt9I2NvbnRhaW5lciAuZWRnZS1hbmltYXRpb24tZmFzdHtzdHJva2UtZGFzaGFycmF5OjksNSFpbXBvcnRhbnQ7c3Ryb2tlLWRhc2hvZmZzZXQ6OTAwO2FuaW1hdGlvbjpkYXNoIDIwcyBsaW5lYXIgaW5maW5pdGU7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7fSNjb250YWluZXIgLmVycm9yLWljb257ZmlsbDojNTUyMjIyO30jY29udGFpbmVyIC5lcnJvci10ZXh0e2ZpbGw6IzU1MjIyMjtzdHJva2U6IzU1MjIyMjt9I2NvbnRhaW5lciAuZWRnZS10aGlja25lc3Mtbm9ybWFse3N0cm9rZS13aWR0aDoxcHg7fSNjb250YWluZXIgLmVkZ2UtdGhpY2tuZXNzLXRoaWNre3N0cm9rZS13aWR0aDozLjVweDt9I2NvbnRhaW5lciAuZWRnZS1wYXR0ZXJuLXNvbGlke3N0cm9rZS1kYXNoYXJyYXk6MDt9I2NvbnRhaW5lciAuZWRnZS10aGlja25lc3MtaW52aXNpYmxle3N0cm9rZS13aWR0aDowO2ZpbGw6bm9uZTt9I2NvbnRhaW5lciAuZWRnZS1wYXR0ZXJuLWRhc2hlZHtzdHJva2UtZGFzaGFycmF5OjM7fSNjb250YWluZXIgLmVkZ2UtcGF0dGVybi1kb3R0ZWR7c3Ryb2tlLWRhc2hhcnJheToyO30jY29udGFpbmVyIC5tYXJrZXJ7ZmlsbDojMzMzMzMzO3N0cm9rZTojMzMzMzMzO30jY29udGFpbmVyIC5tYXJrZXIuY3Jvc3N7c3Ryb2tlOiMzMzMzMzM7fSNjb250YWluZXIgc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDt9I2NvbnRhaW5lciBwe21hcmdpbjowO30jY29udGFpbmVyIC5sYWJlbHtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Y29sb3I6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3Rlci1sYWJlbCB0ZXh0e2ZpbGw6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3Rlci1sYWJlbCBzcGFue2NvbG9yOiMzMzM7fSNjb250YWluZXIgLmNsdXN0ZXItbGFiZWwgc3BhbiBwe2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnQ7fSNjb250YWluZXIgLmxhYmVsIHRleHQsI2NvbnRhaW5lciBzcGFue2ZpbGw6IzMzMztjb2xvcjojMzMzO30jY29udGFpbmVyIC5ub2RlIHJlY3QsI2NvbnRhaW5lciAubm9kZSBjaXJjbGUsI2NvbnRhaW5lciAubm9kZSBlbGxpcHNlLCNjb250YWluZXIgLm5vZGUgcG9seWdvbiwjY29udGFpbmVyIC5ub2RlIHBhdGh7ZmlsbDojRUNFQ0ZGO3N0cm9rZTojOTM3MERCO3N0cm9rZS13aWR0aDoxcHg7fSNjb250YWluZXIgLnJvdWdoLW5vZGUgLmxhYmVsIHRleHQsI2NvbnRhaW5lciAubm9kZSAubGFiZWwgdGV4dCwjY29udGFpbmVyIC5pbWFnZS1zaGFwZSAubGFiZWwsI2NvbnRhaW5lciAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbmNob3I6bWlkZGxlO30jY29udGFpbmVyIC5ub2RlIC5rYXRleCBwYXRoe2ZpbGw6IzAwMDtzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MXB4O30jY29udGFpbmVyIC5yb3VnaC1ub2RlIC5sYWJlbCwjY29udGFpbmVyIC5ub2RlIC5sYWJlbCwjY29udGFpbmVyIC5pbWFnZS1zaGFwZSAubGFiZWwsI2NvbnRhaW5lciAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbGlnbjpjZW50ZXI7fSNjb250YWluZXIgLm5vZGUuY2xpY2thYmxle2N1cnNvcjpwb2ludGVyO30jY29udGFpbmVyIC5yb290IC5hbmNob3IgcGF0aHtmaWxsOiMzMzMzMzMhaW1wb3J0YW50O3N0cm9rZS13aWR0aDowO3N0cm9rZTojMzMzMzMzO30jY29udGFpbmVyIC5hcnJvd2hlYWRQYXRoe2ZpbGw6IzMzMzMzMzt9I2NvbnRhaW5lciAuZWRnZVBhdGggLnBhdGh7c3Ryb2tlOiMzMzMzMzM7c3Ryb2tlLXdpZHRoOjIuMHB4O30jY29udGFpbmVyIC5mbG93Y2hhcnQtbGlua3tzdHJva2U6IzMzMzMzMztmaWxsOm5vbmU7fSNjb250YWluZXIgLmVkZ2VMYWJlbHtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7dGV4dC1hbGlnbjpjZW50ZXI7fSNjb250YWluZXIgLmVkZ2VMYWJlbCBwe2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt9I2NvbnRhaW5lciAuZWRnZUxhYmVsIHJlY3R7b3BhY2l0eTowLjU7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO2ZpbGw6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt9I2NvbnRhaW5lciAubGFiZWxCa2d7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwgMjMyLCAyMzIsIDAuNSk7fSNjb250YWluZXIgLmNsdXN0ZXIgcmVjdHtmaWxsOiNmZmZmZGU7c3Ryb2tlOiNhYWFhMzM7c3Ryb2tlLXdpZHRoOjFweDt9I2NvbnRhaW5lciAuY2x1c3RlciB0ZXh0e2ZpbGw6IzMzMzt9I2NvbnRhaW5lciAuY2x1c3RlciBzcGFue2NvbG9yOiMzMzM7fSNjb250YWluZXIgZGl2Lm1lcm1haWRUb29sdGlwe3Bvc2l0aW9uOmFic29sdXRlO3RleHQtYWxpZ246Y2VudGVyO21heC13aWR0aDoyMDBweDtwYWRkaW5nOjJweDtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Zm9udC1zaXplOjEycHg7YmFja2dyb3VuZDpoc2woODAsIDEwMCUsIDk2LjI3NDUwOTgwMzklKTtib3JkZXI6MXB4IHNvbGlkICNhYWFhMzM7Ym9yZGVyLXJhZGl1czoycHg7cG9pbnRlci1ldmVudHM6bm9uZTt6LWluZGV4OjEwMDt9I2NvbnRhaW5lciAuZmxvd2NoYXJ0VGl0bGVUZXh0e3RleHQtYW5jaG9yOm1pZGRsZTtmb250LXNpemU6MThweDtmaWxsOiMzMzM7fSNjb250YWluZXIgcmVjdC50ZXh0e2ZpbGw6bm9uZTtzdHJva2Utd2lkdGg6MDt9I2NvbnRhaW5lciAuaWNvbi1zaGFwZSwjY29udGFpbmVyIC5pbWFnZS1zaGFwZXtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7dGV4dC1hbGlnbjpjZW50ZXI7fSNjb250YWluZXIgLmljb24tc2hhcGUgcCwjY29udGFpbmVyIC5pbWFnZS1zaGFwZSBwe2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTtwYWRkaW5nOjJweDt9I2NvbnRhaW5lciAuaWNvbi1zaGFwZSByZWN0LCNjb250YWluZXIgLmltYWdlLXNoYXBlIHJlY3R7b3BhY2l0eTowLjU7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO2ZpbGw6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt9I2NvbnRhaW5lciA6cm9vdHstLW1lcm1haWQtZm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO308L3N0eWxlPjxnPjxtYXJrZXIgY2xhc3M9J21hcmtlciBmbG93Y2hhcnQtdjInIGlkPSdjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kJyBtYXJrZXJIZWlnaHQ9JzgnIG1hcmtlclVuaXRzPSd1c2VyU3BhY2VPblVzZScgbWFya2VyV2lkdGg9JzgnIG9yaWVudD0nYXV0bycgcmVmWD0nNScgcmVmWT0nNScgdmlld0JveD0nMCAwIDEwIDEwJz48cGF0aCBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBkPSdNIDAgMCBMIDEwIDUgTCAwIDEwIHonIHN0eWxlPSdzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItcG9pbnRTdGFydCcgbWFya2VySGVpZ2h0PSc4JyBtYXJrZXJVbml0cz0ndXNlclNwYWNlT25Vc2UnIG1hcmtlcldpZHRoPSc4JyBvcmllbnQ9J2F1dG8nIHJlZlg9JzQuNScgcmVmWT0nNScgdmlld0JveD0nMCAwIDEwIDEwJz48cGF0aCBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBkPSdNIDAgNSBMIDEwIDEwIEwgMTAgMCB6JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOycvPjwvbWFya2VyPjxtYXJrZXIgY2xhc3M9J21hcmtlciBmbG93Y2hhcnQtdjInIGlkPSdjb250YWluZXJfZmxvd2NoYXJ0LXYyLWNpcmNsZUVuZCcgbWFya2VySGVpZ2h0PScxMScgbWFya2VyVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBtYXJrZXJXaWR0aD0nMTEnIG9yaWVudD0nYXV0bycgcmVmWD0nMTEnIHJlZlk9JzUnIHZpZXdCb3g9JzAgMCAxMCAxMCc+PGNpcmNsZSBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBjeD0nNScgY3k9JzUnIHI9JzUnIHN0eWxlPSdzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItY2lyY2xlU3RhcnQnIG1hcmtlckhlaWdodD0nMTEnIG1hcmtlclVuaXRzPSd1c2VyU3BhY2VPblVzZScgbWFya2VyV2lkdGg9JzExJyBvcmllbnQ9J2F1dG8nIHJlZlg9Jy0xJyByZWZZPSc1JyB2aWV3Qm94PScwIDAgMTAgMTAnPjxjaXJjbGUgY2xhc3M9J2Fycm93TWFya2VyUGF0aCcgY3g9JzUnIGN5PSc1JyByPSc1JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOycvPjwvbWFya2VyPjxtYXJrZXIgY2xhc3M9J21hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjInIGlkPSdjb250YWluZXJfZmxvd2NoYXJ0LXYyLWNyb3NzRW5kJyBtYXJrZXJIZWlnaHQ9JzExJyBtYXJrZXJVbml0cz0ndXNlclNwYWNlT25Vc2UnIG1hcmtlcldpZHRoPScxMScgb3JpZW50PSdhdXRvJyByZWZYPScxMicgcmVmWT0nNS4yJyB2aWV3Qm94PScwIDAgMTEgMTEnPjxwYXRoIGNsYXNzPSdhcnJvd01hcmtlclBhdGgnIGQ9J00gMSwxIGwgOSw5IE0gMTAsMSBsIC05LDknIHN0eWxlPSdzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Jy8+PC9tYXJrZXI+PG1hcmtlciBjbGFzcz0nbWFya2VyIGNyb3NzIGZsb3djaGFydC12MicgaWQ9J2NvbnRhaW5lcl9mbG93Y2hhcnQtdjItY3Jvc3NTdGFydCcgbWFya2VySGVpZ2h0PScxMScgbWFya2VyVW5pdHM9J3VzZXJTcGFjZU9uVXNlJyBtYXJrZXJXaWR0aD0nMTEnIG9yaWVudD0nYXV0bycgcmVmWD0nLTEnIHJlZlk9JzUuMicgdmlld0JveD0nMCAwIDExIDExJz48cGF0aCBjbGFzcz0nYXJyb3dNYXJrZXJQYXRoJyBkPSdNIDEsMSBsIDksOSBNIDEwLDEgbCAtOSw5JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAyOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOycvPjwvbWFya2VyPjxnIGNsYXNzPSdyb290Jz48ZyBjbGFzcz0nY2x1c3RlcnMnLz48ZyBjbGFzcz0nZWRnZVBhdGhzJz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNMTU2LjE0MSw0N0wxNTYuMTQxLDUxLjE2N0MxNTYuMTQxLDU1LjMzMywxNTYuMTQxLDYzLjY2NywxNTYuMjExLDcxLjQxN0MxNTYuMjgxLDc5LjE2NywxNTYuNDIyLDg2LjMzNCwxNTYuNDkyLDg5LjkxN0wxNTYuNTYyLDkzLjUwMScgaWQ9J0xfQV9CXzAnIG1hcmtlci1lbmQ9J3VybCgjY29udGFpbmVyX2Zsb3djaGFydC12Mi1wb2ludEVuZCknIHN0eWxlPScnLz48cGF0aCBjbGFzcz0nZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rJyBkPSdNMTI3LjAzNywxODMuNzg3TDExNy40NDcsMTkyLjgwNEMxMDcuODU4LDIwMS44MjEsODguNjc5LDIxOS44NTYsNzkuMDg5LDIzMi4zNzNDNjkuNSwyNDQuODkxLDY5LjUsMjUxLjg5MSw2OS41LDI1NS4zOTFMNjkuNSwyNTguODkxJyBpZD0nTF9CX0NfMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgc3R5bGU9JycvPjxwYXRoIGNsYXNzPSdlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsnIGQ9J00xODYuMjQ1LDE4My43ODdMMTk1LjY2NywxOTIuODA0QzIwNS4wOSwyMDEuODIxLDIyMy45MzYsMjE5Ljg1NiwyMzMuMzU4LDIzMi4zNzNDMjQyLjc4MSwyNDQuODkxLDI0Mi43ODEsMjUxLjg5MSwyNDIuNzgxLDI1NS4zOTFMMjQyLjc4MSwyNTguODkxJyBpZD0nTF9CX0RfMCcgbWFya2VyLWVuZD0ndXJsKCNjb250YWluZXJfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKScgc3R5bGU9JycvPjwvZz48ZyBjbGFzcz0nZWRnZUxhYmVscyc+PGcgY2xhc3M9J2VkZ2VMYWJlbCc+PGcgY2xhc3M9J2xhYmVsJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgwLCAwKSc+PGZvcmVpZ25PYmplY3QgaGVpZ2h0PScwJyB3aWR0aD0nMCc+PGRpdiBjbGFzcz0nbGFiZWxCa2cnIHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J2VkZ2VMYWJlbCcvPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdlZGdlTGFiZWwnPjxnIGNsYXNzPSdsYWJlbCcgdHJhbnNmb3JtPSd0cmFuc2xhdGUoMCwgMCknPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMCcgd2lkdGg9JzAnPjxkaXYgY2xhc3M9J2xhYmVsQmtnJyBzdHlsZT0nZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwnPjxzcGFuIGNsYXNzPSdlZGdlTGFiZWwnLz48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0nZWRnZUxhYmVsJz48ZyBjbGFzcz0nbGFiZWwnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDAsIDApJz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzAnIHdpZHRoPScwJz48ZGl2IGNsYXNzPSdsYWJlbEJrZycgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nZWRnZUxhYmVsJy8+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjxnIGNsYXNzPSdub2Rlcyc+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC1BLTAnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDE1Ni4xNDA2MjUsIDI3LjUpJz48cmVjdCBjbGFzcz0nYmFzaWMgbGFiZWwtY29udGFpbmVyJyBoZWlnaHQ9JzM5JyByeD0nMTkuNScgcnk9JzE5LjUnIHN0eWxlPScnIHdpZHRoPSc1OS43OTY4NzUnIHg9Jy0yOS44OTg0Mzc1JyB5PSctMTkuNScvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTE3LjUyMzQzNzUsIC0xMiknPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzI0JyB3aWR0aD0nMzUuMDQ2ODc1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+U3RhcnQ8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdub2RlIGRlZmF1bHQnIGlkPSdmbG93Y2hhcnQtQi0yJyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgxNTYuMTQwNjI1LCAxNTQuOTQ1MzEyNSknPjxwb2x5Z29uIGNsYXNzPSdsYWJlbC1jb250YWluZXInIHBvaW50cz0nNTcuOTQ1MzEyNSwwIDExNS44OTA2MjUsLTU3Ljk0NTMxMjUgNTcuOTQ1MzEyNSwtMTE1Ljg5MDYyNSAwLC01Ny45NDUzMTI1JyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSgtNTcuOTQ1MzEyNSw1Ny45NDUzMTI1KScvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTMwLjk0NTMxMjUsIC0xMiknPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzI0JyB3aWR0aD0nNjEuODkwNjI1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+RGVjaXNpb248L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSdub2RlIGRlZmF1bHQnIGlkPSdmbG93Y2hhcnQtQy00JyB0cmFuc2Zvcm09J3RyYW5zbGF0ZSg2OS41LCAyODkuODkwNjI1KSc+PHJlY3QgY2xhc3M9J2Jhc2ljIGxhYmVsLWNvbnRhaW5lcicgaGVpZ2h0PSc1NCcgc3R5bGU9Jycgd2lkdGg9JzEyMycgeD0nLTYxLjUnIHk9Jy0yNycvPjxnIGNsYXNzPSdsYWJlbCcgc3R5bGU9JycgdHJhbnNmb3JtPSd0cmFuc2xhdGUoLTMxLjUsIC0xMiknPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCBoZWlnaHQ9JzI0JyB3aWR0aD0nNjMnPjxkaXYgc3R5bGU9J2Rpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sJz48c3BhbiBjbGFzcz0nbm9kZUxhYmVsJz48cD5PcHRpb24gQTwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9J25vZGUgZGVmYXVsdCcgaWQ9J2Zsb3djaGFydC1ELTYnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKDI0Mi43ODEyNSwgMjg5Ljg5MDYyNSknPjxyZWN0IGNsYXNzPSdiYXNpYyBsYWJlbC1jb250YWluZXInIGhlaWdodD0nNTQnIHN0eWxlPScnIHdpZHRoPScxMjMuNTYyNScgeD0nLTYxLjc4MTI1JyB5PSctMjcnLz48ZyBjbGFzcz0nbGFiZWwnIHN0eWxlPScnIHRyYW5zZm9ybT0ndHJhbnNsYXRlKC0zMS43ODEyNSwgLTEyKSc+PHJlY3QvPjxmb3JlaWduT2JqZWN0IGhlaWdodD0nMjQnIHdpZHRoPSc2My41NjI1Jz48ZGl2IHN0eWxlPSdkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCc+PHNwYW4gY2xhc3M9J25vZGVMYWJlbCc+PHA+T3B0aW9uIEI8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="Diagram" width="312" height="324">
+</div>
 </div>
 <div class="paragraph">
-<p>You can also update an existing PET such:</p>
+<p>There is also a
+<a href="https://mermaid.live">live editor</a> for interactive chart creation.</p>
 </div>
-<div class="listingblock">
+<div class="paragraph">
+<p>The Maven Installation is part of the Maven AsciiDoc installation
+and details can be found in its description
+<a href="./ascii-doctor.adoc ">AsciiDoctor implementation and usage</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_google_code_style">Google Code Style</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are many code formatters and formats out there.
+Just like in the <code>jeets</code> project we chose the
+<a href="https://github.com/spotify/fmt-maven-plugin">fmt-maven-plugin</a></p>
+</div>
+<div class="literalblock">
 <div class="content">
-<pre>curl -XPUT -H "Content-Type: application/json" --data "@daisy.json" http://0.0.0.0:8080/api/v3/pet</pre>
+<pre>   &lt;groupId&gt;com.coveo&lt;/groupId&gt;
+&lt;artifactId&gt;fmt-maven-plugin&lt;/artifactId&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The choice is based on simplicity and the most common code style with
+<a href="https://google.github.io/styleguide/javaguide.html">Google Java Style</a>.<br>
+The plugin is strict about styling, cannot be configured by design
+and automatically formats the code before compilation.</p>
+</div>
+</div>
+</div>
+<h1 id="_maven_maintenance_release" class="sect0">Maven maintenance &amp; release</h1>
+<div class="sect1">
+<h2 id="_upgrades_and_updates">upgrades and updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After releasing a repository version <code>v1,0</code>, <code>v1.1.1-SNAPSHOT</code> or <code>-RC</code> etc.
+the major versions are upgraded.<br>
+The following steps cover the vital coordinates.</p>
+</div>
+<div class="sect2">
+<h3 id="_step_1_maven_versions">step 1 - maven versions</h3>
+<div class="literalblock">
+<div class="content">
+<pre>mvn versions:display-plugin-updates</pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_login_into_fresh_traccar_server">login into fresh traccar server</h3>
+<h3 id="_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</h3>
+<div class="paragraph">
+<p>The above maven command does not check the BOM versions.
+Therefor they are incremented one by one until the repository
+is completly build with <code>mvn install</code>.</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>http://localhost/?token=VIRTUAL_ADMIN_ACCESS
-http://localhost/settings/user/9000000000000000000</pre>
+<pre>      &lt;camel-version&gt;4.10.6&lt;/camel-version&gt;
+&lt;spring-boot-version&gt;3.4.7&lt;/spring-boot-version&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We usually stick to the <code>LTS</code> versions provided.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</h3>
+<div class="paragraph">
+<p>Upgrading Java can be fine for the repository.
+Nevertheless we would like to keep a compromise between highest available
+and lowest backward compatibility for users of the released jar files.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;jdk.version&gt;21&lt;/jdk.version&gt;</pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_grab_jsessionid">grab JSESSIONID</h3>
+<h3 id="_step_4_tracar_versions">step 4 - Tracar versions</h3>
+<div class="paragraph">
+<p>This step is more than just a change of pom coordinates.
+Traccar always has and still is evolving at a high pace and
+for this repository especially the REST API is vital.
+Therefor we go through this upgrade process, if there is time :(</p>
+</div>
+<div class="paragraph">
+<p>For your purposes check the API version and most REST calls
+have been available for years and should be (backward) compatible
+to your Traccar Server Version.</p>
+</div>
+<div class="paragraph">
+<p>And the</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>wscat -c ws://localhost:80/api/socket -H "Cookie: JSESSIONID=node014ro3l06ueuxuvmvrcbykfbqp12.node0"</pre>
+<pre>org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -&gt; 7.14.0</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>Connected (press CTRL+C to quit)
-&lt; {"positions":[]}
-&lt; {}
-Disconnected (code: 1006, reason: "")   // trigger: docker:run &gt; CTRL+C</pre>
-</div>
+<div class="paragraph">
+<p>should be updated with the Traccar Version.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_enter_browser_request">enter browser request</h3>
+<h3 id="_useful_mvn_commands">useful mvn commands</h3>
+<div class="paragraph">
+<p>Maven also provides</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>https://demo3.traccar.org/api/devices?id=1461
-https://demo3.traccar.org/api/devices/1461</pre>
+<pre>dependency:analyze</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>plugin goal for analyzing the dependencies:
+it helps making this best practice more achievable.</p>
+</div>
+<div class="paragraph">
+<p>Most Maven plugins have a help goal
+that prints a description of the plugin and its parameters and types.<br>
+For instance, to see help for the javadoc goal, type:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mvn javadoc:help -Ddetail -Dgoal=javadoc</pre>
 </div>
 </div>
 </div>
@@ -1077,7 +1009,7 @@ https://demo3.traccar.org/api/devices/1461</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 23:26:22 +0100
+Last updated 2025-10-27 13:10:22 +0100
 </div>
 </div>
 </body>

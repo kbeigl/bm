@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>Multi Module Repository</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,128 +436,93 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>Multi Module Repository</h1>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This <code>bm-sim</code> repository is a
+<a href="https://maven.apache.org/guides/mini/guide-multiple-modules.html">Maven Multiple Module</a>
+project.
+The Maven Reactor mechanism makes sure to collect all modules
+and assert correct build order with every <code>mvn</code> command executed.
+It assures that any project is build as required by another.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_nature">project nature</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is a Java project and the development cycle
+is defined by the major components:</p>
+</div>
+<div class="sect2">
+<h3 id="_maven_build_tool">Maven build tool</h3>
+<div class="paragraph">
+<p>Implies major versioning, dependency management, plugin configuration,
+build lifecycle and finally release management.
+If available and feasible external tools, i.e. plugins, like the
+<a href="../../../bm-traccar/traccar-openapitools-client/readme.html">OpenAPI Generator</a>
+are integrated into the lifecycle to generate code for subsequent modules.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_camel_integration_framework">Camel integration framework</h3>
+<div class="paragraph">
+<p>Apache Camel has a very powerful bean injection framework
+to allow developers <em>to focus on solving business problems</em>.</p>
+</div>
+<div class="paragraph">
+<p>At its core, Apache Camel is an integration engine, which can be used
+to facilitate interactions between a wide and varied array of technologies.
+These bridges between service- and technology Endpoints,
+the Routes are implemented on an engine - the CamelContext,
+and they communicate with “exchange messages”.</p>
+</div>
+<div class="paragraph">
+<p>For this repository Camel is used to glue independant Units together.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_spring_framework_and_spring_boot_application">Spring Framework and Spring Boot Application</h3>
+<div class="paragraph">
+<p>Spring context, dependency injection, and application startup.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html" class="bare">https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html</a></p>
+</div>
+<div class="paragraph">
+<p>Spring Boot component provides auto-configuration for Apache Camel.
+Our opinionated auto-configuration of the Camel context
+auto-detects Camel routes available in the Spring context
+and registers the key Camel utilities
+(like producer and consumer templates, type converters etc.) as <code>@Bean</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<pre>Spring Boot will auto-configure Camel for you.</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+</td>
+</tr>
+</table>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-08 12:43:45 +0100
 </div>
 </div>
 </body>

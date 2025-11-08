@@ -24,18 +24,18 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.9-SNAPSHOT</version>
+        <version>1.1.10-RC</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-traccar</artifactId>
     <packaging>pom</packaging>
 
-    <name>---- traccar client implementations        ---</name>
+    <name>---- traccar client implementations    ---</name>
     <properties>
         <!-- actual traccar vs sub!project version !
         <traccar.version>${project.version}</traccar.version> -->
-        <traccar.version>6.8.0</traccar.version>
+        <traccar.version>6.10.0</traccar.version>
 
         <docker.maven.plugin.version>0.46.0</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>

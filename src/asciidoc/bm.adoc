@@ -12,12 +12,12 @@ link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-eboo
 
 [source,text]
 -----------------
-[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client     6.8.0 ........ 
-[INFO] ..... traccar-api-client              6.8.0 ........ 
-[INFO] ..... traccar-rt-client               6.8.0 ........ 
+    [INFO] === blue marble simulations            === 1.1.10-RC 
+    [INFO] --- blue marble parameters             --- 1.1.10-RC 
+    [INFO] ---- traccar client implementations    --- 1.1.10-RC 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0-RC ........
+    [INFO] ..... traccar-rt-client           6.10.0-RC ........ 
 -----------------
 
 For earlier versions check the 
@@ -49,7 +49,7 @@ As of `v1.1.8` we are developing the following three
 cascaded and yet independent artifacts:
 
 
-=== 1. `traccar-openapitools-client`
+=== `traccar-openapitools-client`
 
 The Traccar REST API is defined in a single `openapi.yaml` file,
 which is processed with the  
@@ -59,7 +59,7 @@ link:https://swagger.io/specification/[OpenAPI specification].
 
 xref:../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.adoc[details ...]
 
-=== 2. `traccar-api-client`
+=== `traccar-api-client`
 
 ==== The Traccar OpenAPI Client
 
@@ -71,7 +71,7 @@ Pull driving reports for your sales team ... and much more ;)
 
 xref:../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.adoc[details ...]
 
-=== 3. `traccar-rt-client`
+=== `traccar-realtime-client`
 
 ==== The Traccar Real-Time Client
 
@@ -80,4 +80,60 @@ to provide full (remote) control over and interact
 via live surveillance of your Traccar Server Scenario. 
 
 xref:../../bm-traccar/traccar-rt-client/src/asciidoc/traccar-rt-client.adoc[details ...]
+
+=== CLI Quick Start
+
+After creating the three layers around the `ApiClient`, `Api interface` 
+and `RealTimeManager` these are combined 
+in the `@SpringBootApplication  RealTimeClient`.
+
+==== run `RealTimeClient` CLI
+
+The `traccar-rt-client` does not provide any webservices.
+It is a plain command line interface (CLI) to connect to a traccar server 
+from the command line and read what's going on.
+
+    @SpringBootApplication
+    public class RealTimeClient implements CommandLineRunner
+
+Therefor it is a solid building block for real time applications.
+You can integrate it in your application and code against the
+`RealTimeManager` as if it was the traccar server.
+
+
+pick up the `traccar-rt-client-6.10.0-RC.jar`
+
+put it in `/someFolder/traccar-rt-client-6.10.0-RC.jar`
+
+(release url)
+
+copy app.props
+
+enter credentials
+
+run java, mvn spring:run ..
+
+start your traccar client or your tracker connected to traccar
+
+watch the console over the map
+
+If you don't have a traccar server you can sign up 
+at one of traccar's demo servers.
+
+RealTimeClient is a Spring Boot application that:
+
+    •  Starts RealTimeController on launch.
+    •  Reads admin credentials from application.properties.
+    •  Logs in as the admin user when starting.
+    •  Remains running until manually shutdown (e.g., Ctrl+C), and supports graceful shutdown.
+
+  modify RealTimeClient to a @SpringBootApplication that starts the RealTimeController
+  and log in as traccar.admin.name as provided in the application.properties and can be gracefully shutdown manually
+
+  You can run the application as usual (e.g., with mvn spring-boot:run or java -jar),
+  and it will log in and initialize the real-time controller using the configured admin credentials.
+
+
+
+
 

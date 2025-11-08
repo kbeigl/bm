@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>Multi Module projects structure</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,128 +436,217 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>Multi Module projects structure</h1>
 </div>
 <div id="content">
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>A
+<a href="https://maven.apache.org/guides/mini/guide-multiple-modules.html">Maven Multiple Module</a>
+Project supports project aggregation in addition to project inheritance.
+The mechanism in Maven that handles multi-module projects is referred to as <em>the Reactor</em>.</p>
 </div>
+<div class="paragraph">
+<p>The Reactor or root pom ..</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<div class="ulist">
+<ul>
+<li>
+<p>Collects all the available modules to build</p>
+</li>
+<li>
+<p>Sorts the projects into the correct build order</p>
+</li>
+<li>
+<p>Builds the selected projects in order</p>
+</li>
+<li>
+<p>Should contain: <code>&lt;modules&gt;</code> section listing all submodules (<code>bm-parent</code>, <code>bm-traccar</code>, etc.).</p>
+</li>
+<li>
+<p>Should NOT contain dependencies or build plugins that are meant to be inherited by modules.</p>
+</li>
+<li>
+<p>Basic project metadata (groupId, artifactId, version, packaging=pom).</p>
+</li>
+<li>
+<p>Common properties (if needed).</p>
+</li>
+<li>
+<p>Plugin management (optional, but usually placed in parent).</p>
+</li>
+</ul>
 </div>
+<div class="paragraph">
+<p>and simply is a POM that refers to other Maven projects.</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
-</div>
+<div class="paragraph">
+<p>Note the output line at the beginning of every Maven Build</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
+<pre>[INFO] Reactor Build Order:</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>The Parent pom defines common <code>&lt;dependencies&gt;</code> and <code>&lt;plugins&gt;</code> (and <code>&lt;pluginManagement&gt;</code>)
+inherited by all submodules and does not create a JAR or a WAR.</p>
+</div>
+<div class="paragraph">
+<p>The <code>bm-parent/pom.xml</code> ..</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serves as the parent for all submodules (<code>bm-traccar</code>, etc.).</p>
+</li>
+<li>
+<p>Should contain: <code>&lt;dependencyManagement&gt;</code> for shared dependency versions.<br>
+<code>&lt;build&gt;</code> section for shared plugins (like asciidoctor-maven-plugin, compiler plugin, surefire, etc.).</p>
+</li>
+<li>
+<p>Should NOT contain <code>&lt;modules&gt;</code> (that’s for the aggregator/root pom).</p>
+</li>
+<li>
+<p>Shared properties (Java version, encoding, etc.).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a quick overview on the complete project you can always run <code>mvn clean</code>
+to see the processing order.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_root_project_bm_sim">root project <code>bm-sim</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Maven Bill of Materials (BOM) is collected the root <code>pom.xml</code> file, i.e. <em>aggregator POM</em>
+that defines common dependencies, versions, properties and other dependent Maven Projects.
+It is considered good development practice to run <code>mvn clean install</code>
+in the repository root directory in order to create all artifacts in the local <code>.m2/repository</code>.
+This substitutes a Nexus Server usually providing released artifacts.
+After that the developer can exclusively focus on the project s/he is assigned to.</p>
+</div>
+<div class="paragraph">
+<p>see
+<a href="https://docs.microfocus.com/doc/205/saas/bestpracticesmavenprojects">structuring Maven projects and modules</a></p>
+</div>
+<div class="paragraph">
+<p>For team development you should work with the <code>-SNAPSHOT</code> tag and a central (Nexus) Server
+over your personal <code>.m2</code> repo.
+This way all team members are accessing the same (continuously changeing) artifact
+and the complete build process can be reduced to the module and artifact in focus.</p>
+</div>
+<div class="sect2">
+<h3 id="_modules"><code>&lt;modules&gt;</code></h3>
+<div class="paragraph">
+<p>This approach reduces duplication and allows to share configurations between modules.
+Practically the parent pom can be seen as the cover sheet with project information
+and most important - the list of submodules.</p>
+</div>
+<div class="paragraph">
+<p>compare to
+<a href="https://github.com/kbeigl/jeets/blob/master/pom.xml">JeeTS repository</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;modules&gt;
+        &lt;module&gt;bm-parent&lt;/module&gt;
+        &lt;module&gt;bm-traccar&lt;/module&gt;
+                ...
+    &lt;/modules</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bm_parent_project"><code>bm-parent</code> project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The parent project is the first module called in the build process.<br>
+It starts by running the <code>os-maven-plugin</code> (actually a Maven <code>&lt;extension&gt;</code>)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">[INFO] Scanning for projects...
+[INFO] ---------------------------------------------------
+[INFO] Detecting the operating system and CPU architecture
+[INFO] ---------------------------------------------------
+[INFO] os.detected.name: linux
+[INFO] os.detected.arch: x86_64
+[INFO] os.detected.bitness: 64
+[INFO] os.detected.version: 6.11
+[INFO] os.detected.version.major: 6
+[INFO] os.detected.version.minor: 11
+[INFO] os.detected.release: tuxedo
+[INFO] os.detected.release.version: 22.04
+[INFO] os.detected.release.like.tuxedo: true
+[INFO] os.detected.release.like.ubuntu: true
+[INFO] os.detected.release.like.debian: true
+[INFO] os.detected.classifier: linux-x86_64</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which provides Maven parameters, like <code>${os.detected.name}</code>,<br>
+to direct the build lifecycle as required for your targeted system.</p>
+</div>
+<div class="sect2">
+<h3 id="_project_setup">project setup</h3>
+<div class="sect3">
+<h4 id="_properties"><code>&lt;properties&gt;</code></h4>
+<div class="paragraph">
+<p>The properties of the parent project are applied to the full repo.
+Here the main parameters for Java, JDK, Maven with components and plugins,
+the driving Camel version in conjunction with spring boot.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dependencymgm_and_top_level_bom"><code>&lt;dependencyMgm&gt;</code> and top level BOM</h4>
+<div class="paragraph">
+<p>The repository versioning of Java archives is defined by</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
+<pre>&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;
+            &lt;artifactId&gt;camel-spring-boot-bom&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
+<div class="paragraph">
+<p>It is recommended to import Camel Spring Boot BOM before Spring Boot BOM
+to ensure Camel dependencies are using supported JARs from the release.</p>
 </div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
-</div>
+<div class="paragraph">
+<p>compare to
+<a href="https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml">JeeTS repository</a></p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
+<pre>   &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;
+&lt;artifactId&gt;camel-spring-boot-dependencies&lt;/artifactId&gt;</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-08 12:43:45 +0100
 </div>
 </div>
 </body>

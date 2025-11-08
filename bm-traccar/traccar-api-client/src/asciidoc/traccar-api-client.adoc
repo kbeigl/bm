@@ -46,26 +46,6 @@ sequenceDiagram
     ApiClient-->>BusinessApp: Result/DTO
 ....
 
-The deployment diagram shows how the components are deployed and interact with the Traccar server:
-
-[mermaid]
-....
-flowchart LR
-    subgraph Client Host
-        A1[User Application]
-        A2[traccar-api-client]
-        A3[traccar-openapitools-client]
-    end
-
-    subgraph Server Host
-        B1[Traccar Server]
-    end
-
-    A1-->|API Calls|A2
-    A2-->|Uses|A3
-    A3-->|HTTP|B1
-....
-
 
 == The Traccar API
 

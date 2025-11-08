@@ -16,6 +16,10 @@ formats, like a complete website or a pdf document.
 link:https://kbeigl.github.io/bm/src/asciidoc/bm.html[*Github Pages*] 
 of this repository.
 
+- If you are not writing, simply skip the documentation generation with +
+  `<asciidoc.process.skip>true</asciidoc.process.skip>` +
+  in the highest level `pom.xml`.  
+
 - at development time you should browse the `.adoc` files to _edit_, +
 while the `.html` files are produced via  `mvn package` 
 and checked in for releases.
@@ -48,11 +52,11 @@ On the other hand you can view the local `.html` files in your browser.
 
 == choose your format
 
-We are using the `asciidoctor-maven-plugin` to convert 
-all `.adoc` files in all `src/asciidoc` folders  to a `.html` page.
+We are using the 
+xref:./bm-parent/src/asciidoc/maven-plugins.adoc[`asciidoctor-maven-plugin`] 
+to convert all `.adoc` files in all `src/asciidoc` folders  to `.html` pages.
 We are currently using `mermaid` charts for documentation,
-which are converted to `svg` format
-by the external `kroki` service.
+which are converted to `svg` format by the external (or internal) `kroki` service.
 
 These conversions should spare the interested to developer from 
 different processing and viewing of `adoc/mermaid` sources

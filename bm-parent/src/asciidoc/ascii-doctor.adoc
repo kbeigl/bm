@@ -24,7 +24,7 @@ ____
 
 === Introduction
 
-As of `v1.1.8` this repository is in prototyping mode.
+As of `v1.1.x` this repository is in prototyping mode.
 Usually developers do a lot of research, trial and error 
 or even switch the strategy when realizing a wrong approach.
 This important information - mostly for developer him/herself -
@@ -70,6 +70,7 @@ Note that the plugin is defined in the reactor- and not the parent pom.xml! +
 <groupId>org.asciidoctor</groupId>
 <artifactId>asciidoctor-maven-plugin</artifactId>
 <version>3.1.1</version>
+<!-- asciidoctor-maven-plugin:3.2.0 requires Maven version 3.8.8 -->
 <executions>
     <execution>
         <id>generate-html-docs</id>
@@ -171,7 +172,7 @@ and output is html without causing confusion:
 
 ==== `<attributes>`
 
-For the time being we have not attributed the ascii documents globally from Maven:
+For the time being _we have not_ attributed the ascii documents globally from Maven:
 
     <attributes>
         <doctype>book</doctype>
@@ -186,7 +187,7 @@ but we are experimenting directly in selected adocs:
     :toclevels: 3
 
 
-=== external mermaid rendering
+=== Mermaid rendering
 
 We are creating mermaid graphs and placing them directly in the `adoc`.
 Then we are applying `asciidoctor-diagram` supported by `asciidoctorj-diagram`
@@ -195,6 +196,8 @@ in Maven to create `html/svg` output.
 For a smooth start into a new software the Maven Project should be self contained 
 and build successful without external dependencies. 
 This works fine for `[ditaa]` diagrams, since it is written in Java.
+
+==== external
 
 For `[mermaid]` diagrams an external converter is required 
 and you can observe this in debug mode
@@ -244,6 +247,84 @@ Now we have created a cyclic compilation of documents
 which does not interrupt the build, can override existing source files
 and allows developers to type and free their minds.
 
+
+==== internal
+
+For a clean documentation all html pages and svg graphics are deleted 
+and documentation is generated with a local kiko server.
+
+===== kroki with docker
+
+This can be setup in a combined docker setting of kroki with a 'Mermaid companion':
+
+[source,xml]
+----
+  # Start Mermaid companion (with plenty of memory/shm)
+  docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
+    -p 8002:8002 yuzutech/kroki-mermaid
+
+  # Start main Kroki and link it to the companion
+  docker run -d --name kroki --memory=2g --shm-size=1g \
+    --link kroki-mermaid:mermaid \
+    -e KROKI_MERMAID_HOST=mermaid \
+    -e KROKI_MERMAID_PORT=8002 \
+    -p 8000:8000 \
+    yuzutech/kroki:latest
+----
+
+`kroki-mermaid` contains a pre-installed Chromium binary that works 
+without any sandbox, without download, without /dev/shm issues.
+
+and with the maven configuration
+
+[source,xml]
+----
+   <diagram-server-url>http://localhost:8000</diagram-server-url>
+     <kroki-server-url>http://localhost:8000</kroki-server-url>
+----
+
+Here is a simple test
+
+    curl -X POST http://localhost:8000/mermaid/svg -d 'graph LR; A-->B'
+
+to get a sample svg (text) as response.
+
+If you only install the kroki server on ubuntu 
+you can run into Puppeteer/Chromium problems.
+This may not be a longterm solution 
+as the images are pretty big chunks
+(and not feasible for cd/ci)
+
+[source,xml]
+----
+docker images
+REPOSITORY               TAG             SIZE
+traccar/traccar          6.10.0-ubuntu     313 MB
+yuzutech/kroki           latest          2.41  GB
+yuzutech/kroki-mermaid   latest          1.06  GB
+----
+
+and the docker command line is claiming a lot of memory.
+
+The `mmdc` command line is probably much 'cheaper'...
+
+===== Mermaid CLI `mmdc`
+
+  mermaid diagrams require the Mermaid CLI (mmdc) to be installed
+  (Node.js + @mermaid-js/mermaid-cli)
+  so asciidoctorj-diagram can render to SVG.
+
+  ensure mermaid CLI is installed on the build machine
+  (Node + npm install -g @mermaid-js/mermaid-cli)
+
+  install Mermaid CLI (mmdc) on the build machine
+  (global npm install -g @mermaid-js/mermaid-cli)
+  so asciidoctorj-diagram can call it.
+
+  Ensure mermaid CLI (mmdc) is available on the build machine (needed to render mermaid to SVG):
+  - install Node.js if missing
+  - npm install -g @mermaid-js/mermaid-cli
+  - ensure mmdc is on PATH
 
 === outlook
 

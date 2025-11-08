@@ -382,3 +382,85 @@ Note that the second start is faster, since the database is already there -
 which is exactely what we wanted.
 
 
+==== debugging
+
+We are creating traccar client software without modifying the traccar server.
+We are starting the traccar server docker image out of the box 
+to develop against it (and save a lot of mocking etc.).
+
+One way to check the server is the `tracker-server.log`.
+As one example you can debug one of 
+the `bm.traccar.api.*IT` integration tests.
+Most of them `extend BaseIntegrationTest` 
+which uses the preconfigured system administrator to log in.
+
+In the log you can see the system user id `9000000000000000000` 
+creating users with ids `1` and `2` 
+
+  INFO: user: 9000000000000000000, action: create, object: user, id: 1
+  INFO: user: 9000000000000000000, action: create, object: user, id: 2
+  INFO: user: 2, action: login,  from: 172.17.0.1
+  INFO: user: 2, action: logout, from: 172.17.0.1
+  INFO: user: 1, action: login,  from: 172.17.0.1
+  INFO: user: 1, action: logout, from: 172.17.0.1
+
+  INFO: user: 1, action: login, from: [0:0:0:0:0:0:0:1]    frontend
+  INFO: user: 1, action: login, from: 127.0.0.1            JUnit !?
+
+
+=== call the API
+
+You can call the Rest APIs such as
+
+----
+curl http://0.0.0.0:8080/api/v3/pet/123
+----
+
+Which returns information about a pet.
+
+You can also update an existing PET such:
+
+----
+curl -XPUT -H "Content-Type: application/json" --data "@daisy.json" http://0.0.0.0:8080/api/v3/pet
+----
+
+
+=== login into fresh traccar server
+
+  http://localhost/?token=VIRTUAL_ADMIN_ACCESS
+  http://localhost/settings/user/9000000000000000000
+
+=== grab JSESSIONID 
+
+    wscat -c ws://localhost:80/api/socket -H "Cookie: JSESSIONID=node014ro3l06ueuxuvmvrcbykfbqp12.node0"
+
+    Connected (press CTRL+C to quit)
+    < {"positions":[]}
+    < {}
+    Disconnected (code: 1006, reason: "")   // trigger: docker:run > CTRL+C
+
+=== enter browser request
+
+    https://demo3.traccar.org/api/devices?id=1461
+    https://demo3.traccar.org/api/devices/1461
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>Asciidoctor</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -434,130 +434,495 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book toc2 toc-left">
 <div id="header">
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_asciidoctor">Asciidoctor</a>
+<ul class="sectlevel2">
+<li><a href="#_installation">Installation</a></li>
+<li><a href="#_introduction">Introduction</a></li>
+<li><a href="#_configuration">Configuration</a>
+<ul class="sectlevel3">
+<li><a href="#_antipattern">! antipattern !</a></li>
+<li><a href="#_attributes"><code>&lt;attributes&gt;</code></a></li>
+</ul>
+</li>
+<li><a href="#_mermaid_rendering">Mermaid rendering</a>
+<ul class="sectlevel3">
+<li><a href="#_external">external</a></li>
+<li><a href="#_internal">internal</a></li>
+</ul>
+</li>
+<li><a href="#_outlook">outlook</a></li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 <div id="content">
+<div class="sect1">
+<h2 id="_asciidoctor">Asciidoctor</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_installation">Installation</h3>
+<div class="paragraph">
+<p>Since we want to create output formats directly from
+and into our repository we can use the
+<a href="https://docs.asciidoctor.org/maven-tools/latest">Asciidoctor Maven Tools</a>.</p>
+</div>
+<div class="paragraph">
+<p>We are still in the prototyping phase of the project and the first step was to write <code>.adoc</code> files.
+So we want to link the files accross the whole project and keep it simple.
+Therefore we will use the
+<a href="https://docs.asciidoctor.org/maven-tools/latest/plugin/introduction/">asciidoctor-maven-plugin</a></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>The Asciidoctor Maven Plugin is used to convert AsciiDoc documents using Asciidoctor.
+The plugin offers a comprehensive way to configure a conversion process using AsciidoctorJ in a declarative way.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://docs.asciidoctor.org/maven-tools/latest/plugin/introduction/
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_introduction">Introduction</h3>
+<div class="paragraph">
+<p>As of <code>v1.1.x</code> this repository is in prototyping mode.
+Usually developers do a lot of research, trial and error
+or even switch the strategy when realizing a wrong approach.
+This important information - mostly for developer him/herself -
+and usually scribbled in some (paper) notebook.</p>
+</div>
+<div class="paragraph">
+<p>We have started out to add a <code>readme.adoc</code> on the top level of each project.
+The next step is to add graphs for a faster perception of the software.
+Also, we want to provide a browsing experience for people interested.
+Therefor we picked a modern word processor to gather documents for different output formats.</p>
+</div>
+<div class="paragraph">
+<p>On the other hand we <em>do not</em> want to create an isolated website for this repository.
+The develpment process should remain as straight forward as possible.
+That is why we want each projects documentation (sources) in the project
+for the developer to scribble his approaches, progress
+and finally the cleaned result.</p>
+</div>
+<div class="paragraph">
+<p>One advantage of a multi module project is
+that you can open each project separaretly in the IDE
+and we want to enable developers to type whenever they feel like it,
+or want to get it out of their heads.
+This can be done with the adoc files.</p>
+</div>
+<div class="paragraph">
+<p>Then again you can never be sure <em>how</em> you are looking at the files
+and <em>where</em> they actually reside in the build process.
+An asciidoc viewer can be installed in a browser or the IDE etc.
+Or the website, like github, already provides the conversion.</p>
+</div>
+<div class="paragraph">
+<p>This ambiguation is described in the main
+<a href="../../../../readme.adoc"><code>readme.adoc</code></a>
+file, where the reader can make a choice between raw/rendered <code>adoc</code>,
+and between raw/hosted <code>html</code> files.</p>
+</div>
+<div class="paragraph">
+<p>To reduce the confusion the <code>asciidoctor-maven-plugin</code> is configured
+for the complete build process from reactor to sub/sub .. projects.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration">Configuration</h3>
+<div class="paragraph">
+<p>Note that the plugin is defined in the reactor- and not the parent pom.xml!<br></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;groupId&gt;org.asciidoctor&lt;/groupId&gt;
+&lt;artifactId&gt;asciidoctor-maven-plugin&lt;/artifactId&gt;
+&lt;version&gt;3.1.1&lt;/version&gt;
+&lt;!-- asciidoctor-maven-plugin:3.2.0 requires Maven version 3.8.8 --&gt;
+&lt;executions&gt;
+    &lt;execution&gt;
+        &lt;id&gt;generate-html-docs&lt;/id&gt;
+        &lt;phase&gt;generate-resources&lt;/phase&gt;  // maybe use 'prepare-package'
+        &lt;goals&gt;
+            &lt;goal&gt;process-asciidoc&lt;/goal&gt;
+        &lt;/goals&gt;
+        &lt;configuration&gt;
+            &lt;sourceDirectory&gt;${project.basedir}/src/asciidoc&lt;/sourceDirectory&gt;
+            &lt;outputDirectory&gt;${project.basedir}/src/asciidoc&lt;/outputDirectory&gt;
+            &lt;backend&gt;html5&lt;/backend&gt;
+            ...
+        &lt;/configuration&gt;
+    &lt;/execution&gt;
+&lt;/executions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The reason we placed the plugin on top level
+is that we also want to create documentation on this level.
+Note that we have hard coded <code>html5</code> as output format.
+This can be changed or widend to pdf and more as required.</p>
+</div>
+<div class="paragraph">
+<p>Note that a project with <code>&lt;packaging&gt;pom&lt;/packaging&gt;</code> fetches content from other modules,
+but does not compile sources nor create a <em>primary</em> artifact, like a <code>jar</code>.
+Anyhow it can execute plugins and can create <em>secondary</em> artifacts
+like a <code>subproject-a-1.1.8-asciidoc.zip</code>.</p>
+</div>
+<div class="paragraph">
+<p>In order to find the documentation at the same place in each project
+we have defined a general source folder with</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+<pre>&lt;sourceDirectory&gt;${project.basedir}/src/asciidoc&lt;/sourceDirectory&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For an isolated run you can run</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mvn clean package</pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_antipattern">! antipattern !</h4>
+<div class="paragraph">
+<p>You might have noted the configuration of identical folders for source and output</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">        &lt;configuration&gt;
+            &lt;sourceDirectory&gt;${project.basedir}/src/asciidoc&lt;/sourceDirectory&gt;
+            &lt;outputDirectory&gt;${project.basedir}/src/asciidoc&lt;/outputDirectory&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We have done this for simplicity to generate the <code>html</code> output right next to the <code>adoc</code> source file
+in order to conserve the links in the documentation.
+Note that we do not use <code>link</code> but the <code>xref</code> macro to reference documents!
+This ensures that you can navigate through  <code>html</code> and <code>adoc</code> file independantly,
+while the developer can change the suffix in the browser url to switch.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>While possible, generating output files directly into your source directory (src/)
+is considered a strong anti-pattern in Maven and software development
+for several critical reasons:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mixing Sources and Generated Files:<br>
+Your src directory should only contain human-written source code and resources.</p>
+</li>
+<li>
+<p>Version Control Pollution:<br>
+You will have to constantly update your .gitignore file to exclude all generated .html files.</p>
+</li>
+<li>
+<p>Build Lifecycle Issues:<br>
+The mvn clean command is designed to delete the target directory.
+It will not touch your src folder.
+This means old, stale HTML files will be left behind, leading to confusion
+and potential errors unless you delete them manually every time.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Therefor you should <code>.gitignore</code> all html files (or mark 'assume unchanged')
+in the folders <code>${project.basedir}/src/asciidoc</code> for the time being.
+If you don&#8217;t touch the documentation there is no need to commit the changed html files.</p>
+</div>
+<div class="paragraph">
+<p>The final section of the <code>&lt;configuration&gt;</code> makes sure that sources are adoc
+and output is html without causing confusion:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">        &lt;configuration&gt;
+            ...
+            &lt;sourceDocumentExtensions&gt;
+                &lt;sourceDocumentExtension&gt;adoc&lt;/sourceDocumentExtension&gt;
+            &lt;/sourceDocumentExtensions&gt;
+            &lt;resources&gt;
+                &lt;resource&gt;
+                    &lt;directory&gt;${project.basedir}/src/asciidoc&lt;/directory&gt;
+                    &lt;excludes&gt;
+                        &lt;exclude&gt;**/*.html&lt;/exclude&gt;
+                    &lt;/excludes&gt;
+                &lt;/resource&gt;
+            &lt;/resources&gt;
+        &lt;/configuration&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_attributes"><code>&lt;attributes&gt;</code></h4>
+<div class="paragraph">
+<p>For the time being <em>we have not</em> attributed the ascii documents globally from Maven:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;attributes&gt;
+    &lt;doctype&gt;book&lt;/doctype&gt;
+    &lt;toc&gt;left&lt;/toc&gt;
+    &lt;source-highlighter&gt;coderay&lt;/source-highlighter&gt;
+&lt;/attributes&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>but we are experimenting directly in selected adocs:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>:doctype: book
+:toc: left
+:toclevels: 3</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mermaid_rendering">Mermaid rendering</h3>
+<div class="paragraph">
+<p>We are creating mermaid graphs and placing them directly in the <code>adoc</code>.
+Then we are applying <code>asciidoctor-diagram</code> supported by <code>asciidoctorj-diagram</code>
+in Maven to create <code>html/svg</code> output.</p>
+</div>
+<div class="paragraph">
+<p>For a smooth start into a new software the Maven Project should be self contained
+and build successful without external dependencies.
+This works fine for <code>[ditaa]</code> diagrams, since it is written in Java.</p>
+</div>
+<div class="sect3">
+<h4 id="_external">external</h4>
+<div class="paragraph">
+<p>For <code>[mermaid]</code> diagrams an external converter is required
+and you can observe this in debug mode</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] asciidoctor: DEBUG: Finding 'mmdc' in attributes
+[INFO] asciidoctor: DEBUG: Finding 'mmdc' in environment
+[INFO] asciidoctor: DEBUG: Found '/usr/local/bin/mmdc' in environment</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We don&#8217;t want users to install <code>sudo</code> stuff in whatever system the software is build.
+It simply doesn&#8217;t make a good impression to distribute software
+that fails creating the documentation and requires system changes.
+Distributors can&#8217;t predict each CD/CI environment
+in which the software will be composed.</p>
+</div>
+<div class="paragraph">
+<p>For a self-contained environment the conversion could be achieved with
+<a href="https://github.com/asciidoctor/docker-asciidoctor">docker-asciidoctor</a>.</p>
+</div>
+<div class="paragraph">
+<p>If we do accept an external dependency to the internat at build time
+we might as well use the <a href="https://kroki.io/">Kroki Diagram Server/Service</a>
+as described in
+<a href="https://docs.asciidoctor.org/browser-extension/diagrams-extension-option">Use Kroki via the diagrams extension</a>.</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Kroki creates diagrams from textual descriptions!<br>
+Kroki provides a unified API with support for BlockDiag (.. Mermaid ..).<br>
+Kroki provides a unified API for all the diagram libraries.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://kroki.io
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s use kroki for simplicity</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;diagram-server-type&gt;kroki_io&lt;/diagram-server-type&gt;
+&lt;diagram-server-url&gt;https://kroki.io&lt;/diagram-server-url&gt;
+  &lt;kroki-server-url&gt;https://kroki.io&lt;/kroki-server-url&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As kroki is a free service you might experince server problems in you build</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] --- asciidoctor-maven-plugin:3.1.1:process-asciidoc (generate-html-docs) @ bm-traccar ---
+[INFO] Converted /home/kbeigl/git/bm/bm-traccar/src/asciidoc/setup-tests.adoc
+[INFO] asciidoctor: ERROR: bm-traccar-arc.adoc: line 25:
+                    Failed to generate image: 400 "Bad Request"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Simply try again another time and make sure images are present
+before checking in the latest html set.</p>
+</div>
+<div class="paragraph">
+<p>Now we have created a cyclic compilation of documents
+which does not interrupt the build, can override existing source files
+and allows developers to type and free their minds.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_internal">internal</h4>
+<div class="paragraph">
+<p>For a clean documentation all html pages and svg graphics are deleted
+and documentation is generated with a local kiko server.</p>
+</div>
+<div class="sect4">
+<h5 id="_kroki_with_docker">kroki with docker</h5>
+<div class="paragraph">
+<p>This can be setup in a combined docker setting of kroki with a 'Mermaid companion':</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">  # Start Mermaid companion (with plenty of memory/shm)
+  docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
+    -p 8002:8002 yuzutech/kroki-mermaid
+
+  # Start main Kroki and link it to the companion
+  docker run -d --name kroki --memory=2g --shm-size=1g \
+    --link kroki-mermaid:mermaid \
+    -e KROKI_MERMAID_HOST=mermaid \
+    -e KROKI_MERMAID_PORT=8002 \
+    -p 8000:8000 \
+    yuzutech/kroki:latest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>kroki-mermaid</code> contains a pre-installed Chromium binary that works
+without any sandbox, without download, without /dev/shm issues.</p>
+</div>
+<div class="paragraph">
+<p>and with the maven configuration</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">   &lt;diagram-server-url&gt;http://localhost:8000&lt;/diagram-server-url&gt;
+     &lt;kroki-server-url&gt;http://localhost:8000&lt;/kroki-server-url&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here is a simple test</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>curl -X POST http://localhost:8000/mermaid/svg -d 'graph LR; A--&gt;B'</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to get a sample svg (text) as response.</p>
+</div>
+<div class="paragraph">
+<p>If you only install the kroki server on ubuntu
+you can run into Puppeteer/Chromium problems.
+This may not be a longterm solution
+as the images are pretty big chunks
+(and not feasible for cd/ci)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">docker images
+REPOSITORY               TAG             SIZE
+traccar/traccar          6.10.0-ubuntu     313 MB
+yuzutech/kroki           latest          2.41  GB
+yuzutech/kroki-mermaid   latest          1.06  GB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and the docker command line is claiming a lot of memory.</p>
+</div>
+<div class="paragraph">
+<p>The <code>mmdc</code> command line is probably much 'cheaper'&#8230;&#8203;</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_mermaid_cli_mmdc">Mermaid CLI <code>mmdc</code></h5>
+<div class="literalblock">
+<div class="content">
+<pre>mermaid diagrams require the Mermaid CLI (mmdc) to be installed
+(Node.js + @mermaid-js/mermaid-cli)
+so asciidoctorj-diagram can render to SVG.</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre>ensure mermaid CLI is installed on the build machine
+(Node + npm install -g @mermaid-js/mermaid-cli)</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre>install Mermaid CLI (mmdc) on the build machine
+(global npm install -g @mermaid-js/mermaid-cli)
+so asciidoctorj-diagram can call it.</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<pre>Ensure mermaid CLI (mmdc) is available on the build machine (needed to render mermaid to SVG):
+- install Node.js if missing
+- npm install -g @mermaid-js/mermaid-cli
+- ensure mmdc is on PATH</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_outlook">outlook</h3>
+<div class="paragraph">
+<p>For the time being we can type into the adocs as we please.<br>
+This is the top priority for a software creation process.<br>
+At a later stage we might introduce a</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
+<pre>&lt;module&gt;bm-documentation&lt;module&gt;</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
+<div class="paragraph">
+<p>project at the end of the build.
+This follows the idea of an aggregator module (standard Maven best practice for complex builds)
+that can pull previously zipped (<code>maven-assembly-plugin</code>) documents
+from all projects, assemble them to one structure (<code>maven-dependency-plugin</code>)
+and finally process them to a full site or single pdf etc.</p>
+</div>
+<div class="paragraph">
+<p>As we learn to know AsciiDoc we add more features and head towards this finalization.
+Hava a look at the <code>bm-parent.adoc</code> how to create a single page with toc
+and counter check the output <code>bm-parent.html</code> file .</p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-11 12:58:55 +0100
+Last updated 2025-11-11 23:46:13 +0100
 </div>
 </div>
 </body>

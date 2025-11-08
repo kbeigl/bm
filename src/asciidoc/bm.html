@@ -444,9 +444,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_bm_parent"><code>/bm-parent</code></a></li>
 <li><a href="#_bm_traccar"><code>/bm-traccar</code></a>
 <ul class="sectlevel2">
-<li><a href="#_traccar_openapitools_client"><code>/traccar-openapitools-client</code></a></li>
-<li><a href="#_traccar_api_client"><code>/traccar-api-client</code></a></li>
-<li><a href="#_traccar_rt_client"><code>/traccar-rt-client</code></a></li>
+<li><a href="#_traccar_openapitools_client"><code>traccar-openapitools-client</code></a></li>
+<li><a href="#_traccar_api_client"><code>traccar-api-client</code></a></li>
+<li><a href="#_traccar_realtime_client"><code>traccar-realtime-client</code></a></li>
+<li><a href="#_cli_quick_start">CLI Quick Start</a></li>
 </ul>
 </li>
 </ul>
@@ -468,12 +469,12 @@ outlined in this
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</code></pre>
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations            === 1.1.10-RC
+    [INFO] --- blue marble parameters             --- 1.1.10-RC
+    [INFO] ---- traccar client implementations    --- 1.1.10-RC
+    [INFO] ..... traccar-openapitools-client 6.10.0 ...........
+    [INFO] ..... traccar-api-client          6.10.0-RC ........
+    [INFO] ..... traccar-rt-client           6.10.0-RC ........</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -492,7 +493,7 @@ and assert correct build order with every <code>mvn</code> command executed.
 It assures that any project is build as required by another.</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-parent/src/asciidoc/bm-parent.html">read more &#8230;&#8203;</a></p>
+<p><a href="../../bm-parent/src/asciidoc/bm-parent.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
@@ -509,21 +510,14 @@ and
 <a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">Jeets Book</a>.</p>
 </div>
 <div class="paragraph">
-<p>As of <code>v1.1.8</code> we are developing three cascaded
-and yet independent artifacts</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>asd</p>
-</li>
-</ol>
+<p><a href="../../bm-traccar/src/asciidoc/bm-traccar.html">read more to setup and adopt your development environment</a></p>
 </div>
 <div class="paragraph">
-<p><a href="./bm-traccar/readme.adoc">read more to setup and adopt your development environment</a></p>
+<p>As of <code>v1.1.8</code> we are developing the following three
+cascaded and yet independent artifacts:</p>
 </div>
 <div class="sect2">
-<h3 id="_traccar_openapitools_client"><code>/traccar-openapitools-client</code></h3>
+<h3 id="_traccar_openapitools_client"><code>traccar-openapitools-client</code></h3>
 <div class="paragraph">
 <p>The Traccar REST API is defined in a single <code>openapi.yaml</code> file,
 which is processed with the
@@ -532,11 +526,11 @@ to generate a plain Java Client <code>traccar-api-generated-x.y.z.jar</code> fro
 <a href="https://swagger.io/specification/">OpenAPI specification</a>.</p>
 </div>
 <div class="paragraph">
-<p><a href="./bm-traccar/traccar-openapitools-client/readme.adoc">read more &#8230;&#8203;</a></p>
+<p><a href="../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_traccar_api_client"><code>/traccar-api-client</code></h3>
+<h3 id="_traccar_api_client"><code>traccar-api-client</code></h3>
 <div class="sect3">
 <h4 id="_the_traccar_openapi_client">The Traccar OpenAPI Client</h4>
 <div class="paragraph">
@@ -547,12 +541,12 @@ Synchronize your employees with their cars and driver information without utiliz
 Pull driving reports for your sales team &#8230;&#8203; and much more ;)</p>
 </div>
 <div class="paragraph">
-<p><a href="./bm-traccar/traccar-api-client/readme.adoc">read more &#8230;&#8203;</a></p>
+<p><a href="../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_traccar_rt_client"><code>/traccar-rt-client</code></h3>
+<h3 id="_traccar_realtime_client"><code>traccar-realtime-client</code></h3>
 <div class="sect3">
 <h4 id="_the_traccar_real_time_client">The Traccar Real-Time Client</h4>
 <div class="paragraph">
@@ -561,7 +555,93 @@ to provide full (remote) control over and interact
 via live surveillance of your Traccar Server Scenario.</p>
 </div>
 <div class="paragraph">
-<p><a href="./bm-traccar/traccar-rt-client/readme.adoc">read more &#8230;&#8203;</a></p>
+<p><a href="../../bm-traccar/traccar-rt-client/src/asciidoc/traccar-rt-client.html">details &#8230;&#8203;</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cli_quick_start">CLI Quick Start</h3>
+<div class="paragraph">
+<p>After creating the three layers around the <code>ApiClient</code>, <code>Api interface</code>
+and <code>RealTimeManager</code> these are combined
+in the <code>@SpringBootApplication  RealTimeClient</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_run_realtimeclient_cli">run <code>RealTimeClient</code> CLI</h4>
+<div class="paragraph">
+<p>The <code>traccar-rt-client</code> does not provide any webservices.
+It is a plain command line interface (CLI) to connect to a traccar server
+from the command line and read what&#8217;s going on.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@SpringBootApplication
+public class RealTimeClient implements CommandLineRunner</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Therefor it is a solid building block for real time applications.
+You can integrate it in your application and code against the
+<code>RealTimeManager</code> as if it was the traccar server.</p>
+</div>
+<div class="paragraph">
+<p>pick up the <code>traccar-rt-client-6.10.0-RC.jar</code></p>
+</div>
+<div class="paragraph">
+<p>put it in <code>/someFolder/traccar-rt-client-6.10.0-RC.jar</code></p>
+</div>
+<div class="paragraph">
+<p>(release url)</p>
+</div>
+<div class="paragraph">
+<p>copy app.props</p>
+</div>
+<div class="paragraph">
+<p>enter credentials</p>
+</div>
+<div class="paragraph">
+<p>run java, mvn spring:run ..</p>
+</div>
+<div class="paragraph">
+<p>start your traccar client or your tracker connected to traccar</p>
+</div>
+<div class="paragraph">
+<p>watch the console over the map</p>
+</div>
+<div class="paragraph">
+<p>If you don&#8217;t have a traccar server you can sign up
+at one of traccar&#8217;s demo servers.</p>
+</div>
+<div class="paragraph">
+<p>RealTimeClient is a Spring Boot application that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Starts RealTimeController on launch.</p>
+</li>
+<li>
+<p>Reads admin credentials from application.properties.</p>
+</li>
+<li>
+<p>Logs in as the admin user when starting.</p>
+</li>
+<li>
+<p>Remains running until manually shutdown (e.g., Ctrl+C), and supports graceful shutdown.</p>
+<div class="literalblock">
+<div class="content">
+<pre>modify RealTimeClient to a @SpringBootApplication that starts the RealTimeController
+and log in as traccar.admin.name as provided in the application.properties and can be gracefully shutdown manually</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>You can run the application as usual (e.g., with mvn spring-boot:run or java -jar),
+and it will log in and initialize the real-time controller using the configured admin credentials.</pre>
+</div>
+</div>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -570,7 +650,7 @@ via live surveillance of your Traccar Server Scenario.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-21 16:17:55 +0200
+Last updated 2025-11-12 13:13:30 +0100
 </div>
 </div>
 </body>

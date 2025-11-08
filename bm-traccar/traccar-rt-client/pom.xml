@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.9-SNAPSHOT</version>
+        <version>1.1.10-RC</version>
     </parent>
 
     <artifactId>traccar-rt-client</artifactId>
-    <version>6.8.0</version>
+    <version>6.10.0-RC</version>
 
     <name>..... traccar-rt-client</name>
     <description>traccar-real-time-client</description>
