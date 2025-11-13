@@ -32,9 +32,6 @@ public class TraccarWebSocketRoute extends RouteBuilder {
   @Value("${traccar.host}")
   private String host;
 
-  //  @Value("${traccar.websocket.url}")
-  //  private String traccarWebSocketUrl;
-
   // no REST API involved !
   @Autowired private TraccarSessionManager sessionManager;
   @Autowired protected ProducerTemplate producer;
@@ -47,10 +44,6 @@ public class TraccarWebSocketRoute extends RouteBuilder {
     exchange.getIn().setHeader("email", email);
     exchange.getIn().setHeader("password", password);
     producer.send("direct:traccarLogin", exchange);
-    // now the server is waiting for live events
-    // Wait for the given number of seconds after WS connected
-    // Thread.sleep(10 * 1000L); // wait in seconds
-    // TODO add a timer (via CamelCtxt?) to keep the connection alive
   }
 
   // TODO auto restart/retry after disconnect: traccar.websocket.refresh
@@ -78,6 +71,7 @@ public class TraccarWebSocketRoute extends RouteBuilder {
         .choice()
         // ===== empty message
         .when(simple("${body.isEmpty()}"))
+        // or when array length == 0 ?
         .log("Empty message ignored: ${body}")
         // ===== devices
         .when(simple("${body[devices]} != null"))

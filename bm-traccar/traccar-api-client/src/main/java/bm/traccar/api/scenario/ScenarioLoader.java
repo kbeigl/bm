@@ -1,4 +1,4 @@
-package bm.traccar.rt.scenario;
+package bm.traccar.api.scenario;
 
 import bm.traccar.api.Api;
 import bm.traccar.generated.model.dto.Device;
@@ -25,9 +25,6 @@ public class ScenarioLoader {
 
   @Value("${traccar.web.serviceAccountToken}")
   protected String virtualAdmin;
-
-  @Value("${traccar.server.registration}")
-  protected boolean serverRegistration;
 
   @Autowired protected Api api;
   @Autowired private ScenarioProperties props;
@@ -108,7 +105,7 @@ public class ScenarioLoader {
     }
   }
 
-  private User createAdminUser(bm.traccar.rt.scenario.ScenarioProperties.User user) {
+  private User createAdminUser(ScenarioProperties.User user) {
     admin =
         api.getUsersApi()
             .createUserWithCredentials(user.name, user.password, user.email, user.administrator);
@@ -139,6 +136,11 @@ public class ScenarioLoader {
   /** Remove all scenario users and devices from the server. */
   // delete users > imply devices and relations?
   public void teardownScenario() {
+
+    // never know who's calling
+    // api.setBearerToken(virtualAdmin);
+    api.setBasicAuth(admin.getEmail(), props.getUser().get(0).password);
+
     logger.info("--- tear down scenario on server ---");
     // Remove devices
     for (int i = 0; i < props.getDevice().size(); i++) {

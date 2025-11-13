@@ -1,0 +1,4 @@
+
+= spcae & time
+
+see Chp 4 of ROAF book

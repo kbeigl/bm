@@ -1,10 +1,10 @@
-package bm.traccar.rt.scenario;
+package bm.traccar.api.scenario;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bm.traccar.rt.scenario.ScenarioProperties.User;
+import bm.traccar.api.scenario.ScenarioProperties.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

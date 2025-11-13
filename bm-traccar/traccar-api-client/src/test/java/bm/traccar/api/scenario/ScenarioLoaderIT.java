@@ -1,4 +1,4 @@
-package bm.traccar.rt.scenario;
+package bm.traccar.api.scenario;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,7 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 @ContextConfiguration(
-    classes = {ApiService.class, ApiConfig.class, ScenarioConfig.class, ScenarioLoader.class})
+    classes = {ApiService.class, ApiConfig.class, ScenarioLoader.class, ScenarioConfig.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ScenarioLoaderIT {
   private static final Logger logger = LoggerFactory.getLogger(ScenarioLoaderIT.class);
@@ -26,13 +26,11 @@ public class ScenarioLoaderIT {
   @Autowired protected Api api;
   @Autowired ScenarioLoader scenarioSetup;
 
-  //  @Value("${traccar.web.serviceAccountToken}")
-  //  protected String virtualAdmin;
-
   @Test
   @Order(1)
   void shouldSetupScenario() {
     scenarioSetup.setupScenario();
+    // move into scenarioSetup and remove api from here?
     // we are admin now
     // verify server settings
     Server server = api.getServerApi().getServerInfo();
@@ -45,6 +43,7 @@ public class ScenarioLoaderIT {
         .forEach(u -> logger.info("User{}: {}", u.getId(), u.getEmail()));
   }
 
+  // this does not run without setup, due to authentication
   @Test
   @Order(2)
   void shouldTeardownScenario() {

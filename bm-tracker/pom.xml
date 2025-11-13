@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2025 Kristof Beiglböck kbeigl@web.de
+
+    The blue marble repository licenses this file to you
+    under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>bm</groupId>
+        <artifactId>bm-parent</artifactId>
+        <version>1.1.11-RC</version>
+        <relativePath>../bm-parent</relativePath>
+    </parent>
+
+    <artifactId>bm-tracker</artifactId>
+    <version>1.1.11</version>
+    <packaging>pom</packaging>
+
+    <name>---- GPS Unit and Tracker              ---</name>
+
+    <properties>
+        <jts.version>1.19.0</jts.version>
+        <geotools.version>28.0</geotools.version>
+    </properties>
+
+    <modules>
+        <module>gps-osmand-tracker</module>
+    </modules>
+
+    <dependencies>
+        <!-- JTS Core for Coordinate -->
+        <dependency>
+            <groupId>org.locationtech.jts</groupId>
+            <artifactId>jts-core</artifactId>
+            <version>${jts.version}</version>
+        </dependency>
+
+        <!-- GeoTools Dependencies for GeodeticCalculator and CRS -->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-referencing</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-hsql</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-metadata</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <!-- GeoTools required repository -->
+        <repository>
+            <id>osgeo</id>
+            <name>OSGeo Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

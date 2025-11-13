@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @SpringBootTest
 @CamelSpringBootTest
@@ -31,9 +30,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 public class TraccarWebSocketProcessingTest {
 
   @Autowired protected Api api;
-  // @Autowired private CamelContext camel;
-  @MockitoSpyBean private TraccarWebSocketRoute traccarLiveRoute;
   @Autowired private ProducerTemplate producer;
+  // @Autowired private CamelContext camel;
+  // @MockitoSpyBean private TraccarWebSocketRoute traccarLiveRoute;
 
   // test: device relation to position
 

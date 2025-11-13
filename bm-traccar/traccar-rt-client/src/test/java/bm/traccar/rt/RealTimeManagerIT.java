@@ -3,7 +3,6 @@ package bm.traccar.rt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import bm.traccar.RealTimeClient;
 import bm.traccar.api.Api;
 import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.Position;
@@ -16,16 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
-class RealTimeManagerIT extends BaseReaTimeScenarioTest {
+class RealTimeManagerIT extends BaseRealTimeTest {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeManagerIT.class);
 
-  @MockBean private RealTimeClient mockRealTimeClient;
-
-  // pre development for RTController with an RTModel instance
   @Autowired protected Api api;
 
+  // no dependency injection
   private RealTimeManager stateManager = RealTimeManager.getInstance();
 
   @Test
@@ -39,7 +35,7 @@ class RealTimeManagerIT extends BaseReaTimeScenarioTest {
     // save stateManager user!?
     // api.getBasicAuth().getUsername() / .getPassword();
     // move down and only set User after setup was successful ?
-    stateManager.loginUser(scenario.admin);
+    stateManager.setLoginUser(scenario.admin);
     logger.info("stateManager: " + stateManager.getCurrentUser().map(User::getName).orElse("None"));
 
     // 2. SIMULATE INITIAL DATA LOAD (from REST API)
@@ -67,10 +63,6 @@ class RealTimeManagerIT extends BaseReaTimeScenarioTest {
         stateManager.getAllDevices().stream().map(Device::getId).sorted().toList();
     assertEquals(
         initialDeviceIds, stateManagerDeviceIds, "Device lists do not match after initial load");
-
-    // Check the latest position (should be empty right now)
-    //    logger.info("Latest position for device XXX: "
-    //	+ stateManager.getLatestPositionForDevice(XXX).orElse(null));
 
     // 3. SIMULATE LIVE UPDATE (from WebSocket for example)
     logger.info("--- WebSocket message received: New Position ---");

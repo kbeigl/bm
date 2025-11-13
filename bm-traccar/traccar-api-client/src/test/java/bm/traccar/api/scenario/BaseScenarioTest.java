@@ -1,23 +1,19 @@
-package bm.traccar.rt;
+package bm.traccar.api.scenario;
 
+import bm.traccar.api.ApiConfig;
 import bm.traccar.api.ApiException;
-import bm.traccar.rt.scenario.ScenarioLoader;
-import bm.traccar.rt.scenario.ScenarioProperties;
+import bm.traccar.api.ApiService;
 import java.util.Arrays;
-import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
 /**
@@ -33,38 +29,17 @@ import org.springframework.test.annotation.DirtiesContext;
  * <p>It disables JMX for faster test execution and provides pre-configured Camel test utilities
  * like CamelContext and ProducerTemplate.
  */
-@SpringBootTest(classes = BaseReaTimeScenarioTest.TestConfig.class)
-// properties = {"camel.springboot.java-routes-include-pattern=**/routes/**"})
+@SpringBootTest(classes = BaseScenarioTest.TestConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public abstract class BaseReaTimeScenarioTest {
-  private static final Logger logger = LoggerFactory.getLogger(BaseReaTimeScenarioTest.class);
+public abstract class BaseScenarioTest {
+  private static final Logger logger = LoggerFactory.getLogger(BaseScenarioTest.class);
 
-  /**
-   * The Spring Boot test configuration to replace a @SpringBootApplication for tests. Explicitly
-   * enable auto-configuration and define which packages to scan.
-   */
-  @CamelSpringBootTest
-  // Spring Test context runner
-  @SpringBootTest
-  // replacement for auto-configuration, like Camel
-  @EnableAutoConfiguration
-  // entire package as @SpringBootApplication would do
-  @ComponentScan(basePackages = "bm.traccar")
+  /** The Spring Boot test configuration to replace a @SpringBootApplication for tests. */
+  @Import({ScenarioLoader.class, ScenarioConfig.class, ApiService.class, ApiConfig.class})
   @Configuration
   public static class TestConfig {
     // This class can be empty, it holds the annotations.
-
-    // THESE TWO ScenarioProperties CAUSE AMBIGUITY PROBLEMS, TODO: resolve
-    // ?? scenario-bm.traccar.rt.scenario.ScenarioProperties | ScenarioProperties
-    //	  scenarioProperties                                 | ScenarioProperties
-    //	  scenarioConfig                                     | ScenarioConfig$$SpringCGLIB$$0
-    // workaround:
-    @Bean
-    @Primary
-    public ScenarioProperties scenarioProperties() {
-      return new ScenarioProperties();
-    }
   }
 
   @Autowired ScenarioLoader scenario;

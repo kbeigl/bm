@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.10-RC</version>
+        <version>1.1.11-RC</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -43,7 +43,7 @@
         <jdk.version>21</jdk.version>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
-        
+
         <maven-minimum-version>3.6.3</maven-minimum-version>
         <maven-enforcer-plugin-version>3.6.1</maven-enforcer-plugin-version>
         <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
@@ -51,9 +51,25 @@
 
         <!-- LTS versions preferred -->
         <camel-version>4.14.2</camel-version>
-        <spring-boot-version>3.5.7</spring-boot-version>
+        <spring-boot-version>4.0.0-RC2</spring-boot-version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- actual traccar vs sub!project version !
+        <traccar.version>${project.version}</traccar.version> -->
+        <traccar.version>6.10.0</traccar.version>
+
+        <docker.maven.plugin.version>0.46.0</docker.maven.plugin.version>
+        <docker.image.prefix>traccar</docker.image.prefix>
+        <docker.image.name>traccar</docker.image.name>
+        <docker.image.version>${traccar.version}</docker.image.version>
+        <docker.image.os>ubuntu</docker.image.os>
+
+        <!-- simplify build on github and user pulls-->
+        <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
+        <!-- ITs are skipped, but docker is starting if above is false -->
+        <integration.tests.skip>true</integration.tests.skip>
+
     </properties>
 
     <dependencyManagement>
@@ -76,6 +92,15 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- SprBoot 4 upgrades (move down to bm-traccar?) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
         <!-- test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -110,8 +135,102 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>traccar-api-itests</id>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                            <configuration>
+                                <skipITs>${integration.tests.skip}</skipITs>
+                                <classesDirectory>
+                                    ${project.build.outputDirectory}</classesDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>${docker.maven.plugin.version}</version>
+                    <configuration>
+                        <skip>${docker.skip.tests}</skip>
+                        <images>
+                            <image>
+                                <alias>traccar</alias>
+                                <name>
+                                    traccar/traccar:${traccar.version}-${docker.image.os}</name>
+                                <build>
+                                    <dockerFile>Dockerfile.${docker.image.os}</dockerFile>
+                                    <contextDir>
+                                        https://github.com/traccar/traccar/blob/v${traccar.version}/docker</contextDir>
+                                    <noCache>true</noCache>
+                                </build>
+                                <run>
+                                    <hostname>traccar</hostname>
+                                    <ports>
+                                        <port>80:8082</port>
+                                        <port>5055:5055</port>
+                                    </ports>
+                                    <volumes>
+                                        <bind>
+                                            <volume>/opt/traccar/logs:/opt/traccar/logs:rw</volume>
+                                            <volume>/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
+                                            <!-- <volume>/opt/traccar/data:/opt/traccar/data:rw</volume> -->
+                                        </bind>
+                                    </volumes>
+                                    <log><!-- do not remove --></log>
+                                    <wait>
+                                        <http>
+                                            <url>http://localhost</url>
+                                        </http>
+                                        <time>10000</time>
+                                    </wait>
+                                </run>
+                            </image>
+                        </images>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>start</id>
+                            <phase>pre-integration-test</phase>
+                            <goals>
+                                <goal>start</goal>
+                                <!-- 
+                                <goal>build</goal>   works without phase
+                                <goal>verify</goal>  works without phase 
+                                 -->
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>stop</id>
+                            <phase>post-integration-test</phase>
+                            <goals>
+                                <goal>stop</goal>
+                            </goals>
+                        </execution>
+                        <!--
+                        <execution>
+                            <id>build-image</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>build</goal>
+                            </goals>
+                        </execution>
+                         -->
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
+
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -143,8 +262,7 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- move to pluginManagement !
+            <!-- move to pluginManagement ! 
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -156,7 +274,8 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>   -->
+            </plugin>
+             -->
         </plugins>
     </build>
 

@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.10-RC</version>
+        <version>1.1.11-RC</version>
     </parent>
 
     <artifactId>traccar-openapitools-client</artifactId>
@@ -41,7 +41,7 @@
         <!-- REMOVE -->
         <!-- spring-boot.repackage.skip>true<spring-boot.repackage.skip -->
         <!-- DONT MOVE UP -->
-        <openapi-generator-maven-plugin-version>7.14.0</openapi-generator-maven-plugin-version>
+        <openapi-generator-maven-plugin-version>7.17.0</openapi-generator-maven-plugin-version>
         <!--
             consider configuration via maven props
             github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-maven-plugin/README.md

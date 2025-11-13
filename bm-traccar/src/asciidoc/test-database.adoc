@@ -39,9 +39,6 @@ The recommended traccar docker installation is to leave the database inside the 
 By mounting the `/data` folder we can look inside the data, which stays persistent
 after the container has stopped. + 
 Note that the H2 database is locked as long the traccar container is working. + 
-Find database management and manipulation 
-link:../databaseTest.adoc[here] .
-
 
 
 == automate admin/admin

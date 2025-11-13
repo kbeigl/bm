@@ -1,0 +1,52 @@
+= OsmAnd Live Tracking Protocol Specification
+
+== Overview
+
+The OsmAnd protocol is a simple, HTTP-based text protocol used to transmit GPS location data from a client (OsmAnd App) to a server. It is stateless and primarily uses HTTP GET requests with query parameters.
+
+== Communication Interface
+
+Transport: HTTP or HTTPS
+
+Method: GET (Default) or POST
+
+Response: The server must return HTTP 200 OK to confirm receipt. The response body is ignored by the client.
+
+== Request Structure
+
+The default request format used by the OsmAnd application is:
+
+[source, url]
+
+http://<server_address>/?id={0}&lat={1}&lon={2}&timestamp={3}&hdop={4}&altitude={5}&speed={6}&bearing={7}
+
+=== Parameters
+
+[cols="1,1,1,4,1", options="header"]
+|===
+| Parameter | Type | Required | Description | Unit
+
+| id | String | Yes | Unique device identifier. | -
+| lat | Double | Yes | Latitude in decimal degrees. | Degrees
+| lon | Double | Yes | Longitude in decimal degrees. | Degrees
+| timestamp | Long | No | Unix Epoch timestamp. | Seconds (usually)
+| speed | Double | No | Movement speed. | Meters per second (m/s)
+| bearing | Double | No | Direction of travel. | Degrees (0.0 - 360.0)
+| altitude | Double | No | Altitude above sea level (WGS84). | Meters
+| batt | Double | No | Battery level of the device. | Percentage (0-100)
+| hdop | Double | No | Horizontal Dilution of Precision. | Precision Value
+|===
+
+=== Example Request
+
+[source, http]
+
+GET /track?id=phone1&lat=52.5200&lon=13.4050&timestamp=1678886400&speed=25.0&bearing=90.0&altitude=50.0&batt=85.0 HTTP/1.1 Host: https://www.google.com/search?q=my-gps-server.com
+
+== Implementation Notes
+
+. Customization: The protocol is flexible. In the OsmAnd App (Settings -> Plugins -> Trip recording -> Online tracking), users can manually change the URL format. A server should be robust enough to handle missing optional parameters.
+
+. Timestamp: While OsmAnd typically sends seconds, some modified clients may send milliseconds. A robust server should check the magnitude of the timestamp (e.g., if timestamp > 10000000000, treat as milliseconds).
+
+. Buffering: If the client is offline, OsmAnd buffers the requests and sends them in bulk when the connection is restored. The server must respect the timestamp parameter in the URL, not the time the request was received.

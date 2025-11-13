@@ -14,7 +14,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy
 public class ApiConfig {
 
-  @Value("${traccar.host:https://demo3.traccar.org}")
+  @Value("${traccar.host:http://localhost}") // :80
   private String basePath;
 
   @Bean

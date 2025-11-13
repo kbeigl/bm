@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.10-RC</version>
+        <version>1.1.11-RC</version>
     </parent>
 
     <artifactId>traccar-rt-client</artifactId>
@@ -53,20 +53,20 @@
             <artifactId>camel-jackson-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <!-- only for 'IDE? move up ? used for scenatio.props -->
+            <!-- see ScenarioProperties @ConfigurationProperties -->
         	<groupId>org.springframework.boot</groupId>
         	<artifactId>spring-boot-configuration-processor</artifactId>
         	<optional>true</optional>
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+        </dependency>
+        <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-api-client</artifactId>
-            <version>${traccar.version}</version>
+            <version>6.10.0-RC</version>
         </dependency>
     </dependencies>
 
@@ -82,6 +82,19 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
+            </plugin>
+            <!-- Produce a test-jar so test classes/resources can be reused by other modules -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

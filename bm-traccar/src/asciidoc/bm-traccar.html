@@ -1331,9 +1331,7 @@ and inspect data with <code>plain SQL</code>, reset to scratch .. whatever.</p>
 <p>The recommended traccar docker installation is to leave the database inside the container.
 By mounting the <code>/data</code> folder we can look inside the data, which stays persistent
 after the container has stopped.<br>
-Note that the H2 database is locked as long the traccar container is working.<br>
-Find database management and manipulation
-<a href="../databaseTest.adoc">here</a> .</p>
+Note that the H2 database is locked as long the traccar container is working.<br></p>
 </div>
 </div>
 </div>
@@ -1660,7 +1658,7 @@ java -cp "$tchome/lib/h2-"*".jar" org.h2.tools.Shell -url "jdbc:h2:$tchome/data/
 <div class="content">
 <div class="paragraph">
 <p>The Traccar Clients are basically an interface between REST and Java passing Entities.
-Therefor there is no need for cumbersom JUnit test setups
+Therefor there is no need for cumbersom JUnit test setups or mocking
 to test the technology we rely on.
 The functionality is achieved by wiring diffent technology components
 together, configure and run them.</p>
@@ -1668,8 +1666,6 @@ together, configure and run them.</p>
 <div class="paragraph">
 <p>The Traccar Client is <em>not</em> a software with complex implementations of Java Units.
 Actually it is merely an interface between REST and Java passing Entities.
-Therefor there is no need for cumbersom JUnit test setups
-to test the technology we rely on.
 The functionality is achieved by wiring diffent technology components
 together, configure and run them.</p>
 </div>
@@ -1690,7 +1686,7 @@ by reacting to live information.<br>
 So we can take a broader approach to testing by setting up a Traccar Server for tests.
 This makes the actual build of the Traccar Client software faster.
 We use the Maven lifecycle to start a traccar docker container
-and apply failsafe to make sure the container is stoped after testing:</p>
+and apply failsafe to <em>make sure the container is stoped after testing</em>:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1702,7 +1698,19 @@ and apply failsafe to make sure the container is stoped after testing:</p>
 <div class="paragraph">
 <p>To speed up test development the traccar container can be started via command line
 and the Integration Tests (<strong>*IT</strong>) can be run as JUnit Tests against a running server.
-The developer can login to the Traccar Frontend to inspect test results and more.</p>
+This is a one liner <em>inside the <code>bm-traccar</code> branch</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">~/git/bm/bm-traccar$ mvn docker:run
+[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ bm-traccar ---
+[INFO] DOCKER&gt; [traccar/traccar:6.10.0-ubuntu] "traccar": Start container 6083b17b2da9
+[INFO] DOCKER&gt; [traccar/traccar:6.10.0-ubuntu] "traccar": Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER&gt; [traccar/traccar:6.10.0-ubuntu] "traccar": Waited  on url http://localhost 4954 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The developer can login to the Traccar Frontend to inspect test results and more.</p>
 </div>
 <div class="paragraph">
 <p>The botton line is that emphasis is placed on integration testing

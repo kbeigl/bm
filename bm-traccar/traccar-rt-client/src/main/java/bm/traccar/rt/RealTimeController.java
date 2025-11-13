@@ -3,10 +3,12 @@ package bm.traccar.rt;
 import bm.traccar.api.Api;
 import bm.traccar.api.ApiException;
 import bm.traccar.generated.model.dto.Device;
+import bm.traccar.generated.model.dto.Position;
 import bm.traccar.generated.model.dto.User;
 import bm.traccar.ws.TraccarWebSocketRoute;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ public class RealTimeController {
   private final RealTimeManager stateManager = RealTimeManager.getInstance();
 
   @Autowired protected Api api;
-  @Autowired private TraccarWebSocketRoute traccarLiveConnection;
+  @Autowired private TraccarWebSocketRoute liveConnection;
 
   /**
    * Authenticates with the server, loads initial data, and connects to the WebSocket.
@@ -38,6 +40,7 @@ public class RealTimeController {
     try {
       // try bad credentials
       api.setBasicAuth(admin.getEmail(), admin.getPassword());
+      // fetch current user WITH ID to verify login
       loadInitialServerEntities();
 
     } catch (ApiException e) {
@@ -46,10 +49,10 @@ public class RealTimeController {
     }
 
     // connectWebSocket
-    traccarLiveConnection.loginAndConnect(admin.getEmail(), admin.getPassword());
+    liveConnection.loginAndConnect(admin.getEmail(), admin.getPassword());
 
     // after initialization was successful
-    stateManager.loginUser(admin);
+    stateManager.setLoginUser(admin);
     logger.info(
         "User logged in: " + stateManager.getCurrentUser().map(User::getName).orElse("N/A"));
 
@@ -81,5 +84,64 @@ public class RealTimeController {
     logger.debug("Initial devices loaded: " + stateManager.getAllDevices());
 
     // Positions are not loaded and only collected live after a given timestamp, i.e. game start
+  }
+
+  public void shutdown() {
+    try {
+      String wsRouteId = "traccarWebSocketDynamicRoute";
+      if (liveConnection.getContext().getRouteController().getRouteStatus(wsRouteId) != null) {
+        liveConnection.getContext().getRouteController().stopRoute(wsRouteId);
+        liveConnection.getContext().removeRoute(wsRouteId);
+        logger.info("Stopped and removed WebSocket route: {}", wsRouteId);
+      }
+    } catch (Exception e) {
+      logger.error("Error during shutdown of WebSocket route: ", e);
+    }
+    stateManager.logoutAndClear();
+  }
+
+  // read only access methods for stateManager ------------
+
+  public void addOrUpdatePosition(Position position) {
+    stateManager.addOrUpdatePosition(position);
+  }
+
+  public void addOrUpdateDevice(Device device) {
+    stateManager.addOrUpdateDevice(device);
+  }
+
+  public Optional<User> getCurrentUser() {
+    return stateManager.getCurrentUser();
+  }
+
+  public boolean isAuthenticated() {
+    return stateManager.isAuthenticated();
+  }
+
+  public Optional<User> getUserById(long id) {
+    return stateManager.getUserById(id);
+  }
+
+  public Optional<Device> getDeviceById(long id) {
+    return stateManager.getDeviceById(id);
+  }
+
+  public Optional<Position> getPositionById(long id) {
+    return stateManager.getPositionById(id);
+  }
+
+  /** Returns a copy of the list of all users. */
+  public List<User> getAllUsers() {
+    return new ArrayList<>(stateManager.getAllUsers());
+  }
+
+  /** Returns a copy of the list of all devices. */
+  public List<Device> getAllDevices() {
+    return new ArrayList<>(stateManager.getAllDevices());
+  }
+
+  /** Get the latest position for a given device. */
+  public Optional<Position> getLatestPositionForDevice(long deviceId) {
+    return stateManager.getLatestPositionForDevice(deviceId);
   }
 }

@@ -11,27 +11,30 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 
 @SpringBootApplication
 public class RealTimeClient implements CommandLineRunner {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeClient.class);
 
   @Autowired private RealTimeController controller;
-
   @Autowired private ConfigurableApplicationContext context;
+  @Autowired private Environment environment;
 
-  // @Value("${traccar.admin.name}")
   @Value("${traccar.name}")
   private String name;
 
-  // @Value("${traccar.admin.password}")
   @Value("${traccar.password}")
   private String password;
 
-  // @Value("${traccar.admin.email}")
   @Value("${traccar.email}")
   private String email;
 
+  /**
+   * Start RealTimeClient and wait for messages
+   *
+   * @param args
+   */
   public static void main(String[] args) {
     SpringApplication app = new SpringApplication(RealTimeClient.class);
     app.setWebApplicationType(WebApplicationType.NONE);
@@ -40,6 +43,10 @@ public class RealTimeClient implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
+
+    // hook to skip run() in test context
+    if (isTestContext()) return;
+
     User admin = new User();
     admin.setName(name);
     admin.setPassword(password);
@@ -53,12 +60,23 @@ public class RealTimeClient implements CommandLineRunner {
       shutdown();
       return;
     }
+
     // Wait for manual shutdown (e.g., Ctrl+C)
     Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     logger.info("Application running. Press Ctrl+C to exit.");
     synchronized (this) {
       this.wait();
     }
+  }
+
+  /** used in test context to avoid blocking */
+  private boolean isTestContext() {
+    for (String profile : environment.getActiveProfiles()) {
+      if ("test".equals(profile)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void shutdown() {

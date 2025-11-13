@@ -1,11 +1,10 @@
-package bm.traccar.rt.scenario;
+package bm.traccar.api.scenario;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
 
-@Component
+// @Component causes bean ambiguity with ScenarioConfig
 @ConfigurationProperties(prefix = "scenario", ignoreUnknownFields = false)
 @PropertySource("classpath:scenario.properties")
 public class ScenarioProperties {

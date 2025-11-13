@@ -35,7 +35,7 @@ public final class RealTimeManager {
   // --- State Modification Methods ---
 
   /** Sets the current user after a successful login. */
-  public void loginUser(User user) {
+  public void setLoginUser(User user) {
     this.currentUser = user;
     this.isAuthenticated = true;
   }

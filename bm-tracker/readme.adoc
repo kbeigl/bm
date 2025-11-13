@@ -1,0 +1,7 @@
+
+= project documentation
+
+start with documentation overview at +
+link:./src/asciidoc/bm-tracker.html[] +
+or +
+xref:./src/asciidoc/bm-tracker.adoc[]
