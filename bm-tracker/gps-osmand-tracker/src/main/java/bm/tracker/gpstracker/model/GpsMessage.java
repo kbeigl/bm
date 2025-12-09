@@ -73,4 +73,31 @@ public class GpsMessage {
   public void setBatt(Double batt) {
     this.batt = batt;
   }
+
+  /** provides a string representation of the GpsMessage to append to the HTTP GET request */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("id=")
+        .append(id)
+        .append("&lat=")
+        .append(lat)
+        .append("&lon=")
+        .append(lon)
+        .append("&timestamp=")
+        .append(timestamp);
+    if (speed != null) {
+      sb.append("&speed=").append(speed);
+    }
+    if (bearing != null) {
+      sb.append("&bearing=").append(bearing);
+    }
+    if (altitude != null) {
+      sb.append("&altitude=").append(altitude);
+    }
+    if (batt != null) {
+      sb.append("&batt=").append(batt);
+    }
+    return sb.toString();
+  }
 }

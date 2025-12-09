@@ -56,7 +56,7 @@ public class ScenarioLoader {
 
   // createDevicesForUser(..);
 
-  Device adminDevice, managerDevice, hideDevice, seekDevice;
+  public Device realDevice, runnerDevice, chaser1Device, chaser2Device;
 
   /** This method can only be executed by an admin with rights to create users and devices. */
   private void createScenarioDevices() {
@@ -68,16 +68,16 @@ public class ScenarioLoader {
       logger.info("Created Device.id{}: {}", createdDevice.getId(), createdDevice.getName());
       switch (i) {
         case 0:
-          adminDevice = createdDevice;
+          realDevice = createdDevice;
           break;
         case 1:
-          managerDevice = createdDevice;
+          runnerDevice = createdDevice;
           break;
         case 2:
-          hideDevice = createdDevice;
+          chaser1Device = createdDevice;
           break;
         case 3:
-          seekDevice = createdDevice;
+          chaser2Device = createdDevice;
           break;
       }
     }

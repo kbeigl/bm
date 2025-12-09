@@ -1,4 +1,103 @@
 
-= spcae & time
+:toc:
 
-see Chp 4 of ROAF book
+= space & time
+
+The Maven project branch `bm-traccar` serves as the development environment for integrating with the Traccar GPS Tracking Platform. 
+We have created a `traccar-realtime-client` to mirror what's going on in the Tracking System.
+This `bm-tracker` branch is used to develop GPS Tracker Simulators which can track things by sending their positions frequently.
+
+[NOTE]
+====
+Note that we are citing original texts from  
+link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[The RealObject Application Framework]
+====
+
+[quote, The RealObject Application Framework, Chapter 4 Space & Time]
+From the abstracted project view, a GPS unit is an arbitrary technical
+system to enable electronic receivers to determine their current longitude,
+latitude, and elevation information. Part of our task is to create a GPS
+receiver for the software world, a GPS unit.
+
+== the basics
+
+The ROAF vision described in the book is based on simple and platonic rules. +
+In order to simulate things, events and interactions of the real world, +
+we will need a grid for space and time.
+
+[IMPORTANT]
+====
+Our *Space* is the surface of the big blue marble, 
+which is completly defined with only two spatial coordinates _latitude_ and _longitude_
+in only one projection, the World Geodetic System from 1984 - WGS84.
+Sometimes we will use the altitude as a third dimension, but it is less reliable in a geodetic system
+and usually provided by a barometer. +
+*Time* is defined in Universal Time Coordinate UTC as the world time. +
+====
+
+And that is all we need!
+
+For using this `bm` software you don't need to worry about geodesy, sherical calculations etc. +
+Physical events should be described in a cartesian coordinate system,
+i.e. meters for x, y and z coordinates on orthogonal axes.
+This is a complicated transformation, but we will leave it to
+the GeoTools library’s built-in `GeodeticCalculator`
+to provide distances between geographic coordinates.
+
+It is also useful to know that every GPS Unit automatically provides UTC times, +
+since this is the prerequisite to calculate locations with fast orbiting satelites.
+
+_So we want a device to send the minimum GPS information
+being latitude, longitude and UTC timestamps_. +
+By combining consecutive GPS infos we can calculate speed 
+being the ratio of space & time.
+
+With this simple tool (a tiny `jar`) we can switch from geodesy, cartography and navigation +
+to physical laws described in the language of mathematics. And vice versa.
+
+
+== mapping the world
+
+A GPS Tracker is a fascinating little matchbox to scan the world. +
+We attach it to some thing, measure its motion to explore the globe or our neighborhood. +
+Birds and Wales show us their travel around the globe for best seasonal conditions.
+
+The GPS Traces of racing cars are more than points on the racing track. +
+They imply physics like the grip of the tires, the airpressure on the vehicle 
+and much more. Just imagine some computer creating these tracks from 
+all vehicle parameters. How likely do the measured tracks match the simulated ones?
+
+A GPS Tracker Software or Simulator opens even more perspectives for a tracking tool. +
+In theory you can transform any shape defined in cartesion systems to geographic coordinates.
+It might make sense to define a house in geo coordinates as it doesn't change its locations,
+but measuring it with a GPS unit is practically impossible.
+
+It _is_ possible with much more effort, like differential GPS for centimeter precision and much more.
+Many of these efforts are made in the sciences of geodesy and cartography.
+Navigation Systems have become Driver Systems, which push the demand for high density maps.
+These include _road furniture_ and other tiny details used for driving information.
+
+By using *Digital Maps* exclusivly defined with only [_lat,lon_] points 
+we get a reliable source for the actual positions of geostationary objects.
+Open Source Platforms like OpenStreetMap have one advantage over commercial maps:
+All contributers have to agree on the final coordinates of a road or building.
+
+[IMPORTANT]
+====
+Digital Maps provide the environment, i.e. play board ;) for real world scenarios.
+====
+
+
+(Note: Mass and Dimension will be introduced with the `RealObject` and classical physics)
+
+
+== The `gps-osmand-tracker`
+
+There are countless ways to implement a GPS Tracker.
+We want to keep it simple and chose the OsmAnd Protocol via http
+to implement a simple Tracker:
+
+
+xref:./../../gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto `gps-osmand-tracker`]
+
+

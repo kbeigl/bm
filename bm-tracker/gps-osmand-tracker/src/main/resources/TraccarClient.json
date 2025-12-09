@@ -1,0 +1,25 @@
+{
+  "location": {
+    "timestamp": "2000-01-01T00:00:00.000Z", // time in ISO format
+    "coords": {
+      "latitude": 0.0,                       // latitude in degrees
+      "longitude": 0.0,                      // longitude in degrees
+      "accuracy": 0,                         // accuracy in meters
+      "speed": 0,                            // speed in m/s
+      "heading": 0,                          // heading in degrees
+      "altitude": 0                          // altitude in meters
+    },
+    "is_moving": false,                      // motion state
+    "odometer": 0,                           // device-side odometer value
+    "event": "motionchange",                 // event type
+    "battery": {
+      "level": 1,                            // battery level as a decimal value from 0 to 1
+      "is_charging": false                   // charging state
+    },
+    "activity": {
+      "type": "still"                        // activity type; examples are 'still', 'walking', 'in_vehicle'
+    },
+    "extras": {}
+  },
+  "device_id": "48241179"                    // device identifier
+}

@@ -12,14 +12,14 @@ link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-eboo
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations            === 1.1.11-RC 
-    [INFO] --- blue marble parameters             --- 1.1.11-RC 
-    [INFO] ---- traccar client implementations    --- 1.1.11-RC 
+    [INFO] === blue marble simulations               === 1.1.12 
+    [INFO] --- blue marble parameters                --- 1.1.12 
+    [INFO] ---- traccar client implementations       --- 1.1.12 
     [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
     [INFO] ..... traccar-api-client          6.10.0-RC ........ 
-    [INFO] ..... traccar-rt-client           6.10.0-RC ........ 
-    [INFO] ---- GPS Unit and Tracker              --- 1.1.11 .. 
-    [INFO] ..... gps-osmand-tracker          1.1.11-beta ...... 
+    [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
+    [INFO] ---- GPS Unit and Tracker            --- 1.1.12-beta 
+    [INFO] ..... gps-osmand-tracker        1.1.12-beta ........
 -----------------
 
 For earlier versions check the 
@@ -134,6 +134,9 @@ RealTimeClient is a Spring Boot application that:
 
   You can run the application as usual (e.g., with mvn spring-boot:run or java -jar),
   and it will log in and initialize the real-time controller using the configured admin credentials.
+
+== `/bm-tracker`
+
 
 
 

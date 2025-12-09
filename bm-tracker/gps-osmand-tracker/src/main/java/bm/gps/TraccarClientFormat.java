@@ -2,6 +2,11 @@ package bm.gps;
 
 import java.util.Map;
 
+/**
+ * Data format for Traccar Client API.
+ *
+ * <p>Generated based on TraccarClient.json in main/resources.
+ */
 public class TraccarClientFormat {
   public static class Location {
     public String timestamp;

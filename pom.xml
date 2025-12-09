@@ -23,10 +23,10 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.11-RC</version>
+    <version>1.1.12</version>
     <packaging>pom</packaging>
 
-    <name>=== blue marble simulations            ===</name>
+    <name>=== blue marble simulations               ===</name>
     <description>
         Super POM to compile, test and build ALL sources with dependencies.
     </description>

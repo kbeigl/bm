@@ -437,30 +437,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <body class="article">
 <div id="header">
 <h1>The OsmAnd GPS Tracker</h1>
-<div id="toc" class="toc">
-<div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_tracker_components">Tracker Components</a>
-<ul class="sectlevel2">
-<li><a href="#_osmand_protocol">OsmAnd Protocol</a></li>
-<li><a href="#_gps_receiver">GPS receiver</a></li>
-<li><a href="#_gsm_transmitter">GSM transmitter</a></li>
-<li><a href="#_message_buffer">Message Buffer</a></li>
-</ul>
-</li>
-<li><a href="#_implementations">Implementations</a>
-<ul class="sectlevel2">
-<li><a href="#_geo_coordinates">Geo Coordinates</a></li>
-</ul>
-</li>
-</ul>
-</div>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>gps-osm-tracker</code> is a Java Client Software to simulate
+<p>The <code>gps-osmand-tracker</code> is a Java Client Software to simulate
 a standard device that <em>collects</em> GPS locations, optionally buffer
 and send them to a server asap.
 Reporting should be configurable for time- and distance intervals,
@@ -479,9 +461,8 @@ change of direction etc.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Note that we are picking up original texts from
-<a href="https://www.amazon.com/GPS-Tracking-Java-Components-Challenges/dp/1138054941">GPS Tracking with Java EE Components</a>
-n order to progress further.</p>
+<p>Note that we are citing original texts from
+<a href="https://www.amazon.com/GPS-Tracking-Java-Components-Challenges/dp/1138054941">GPS Tracking with Java EE Components</a></p>
 </div>
 </td>
 </tr>
@@ -491,12 +472,12 @@ n order to progress further.</p>
 <blockquote>
 What exactly is a tracking device and what is its core functionality?<br>
 A tracker hardware is basically a combination of a GPS (processing) unit
-and a communication unit. The GPS receives the location via satellite and
+and a (GSM) communication unit. The GPS receives the location via satellite and
 the communication unit sends tracking messages to a server.<br>
 &#8230;<br>
  In the end every
 tracker should be able to send Coordinates, preferably WGS84 latitude and
-longitude, which the Server can use to localize the device.
+longitude and universal time, which the Server can use to localize the device.
 </blockquote>
 <div class="attribution">
 &#8212; GPS Tracking with Java EE Components<br>
@@ -523,7 +504,8 @@ A simple <code>batteryLevel</code> attribute is enough to keep track.</p>
 <p>We chose this protocol because it is very simple and it is implemented
 on the Traccar Server for the Traccar Client App.
 You can find the format (or protocol spec)
-<a href="https://www.traccar.org/osmand/">here</a>.</p>
+<a href="https://www.traccar.org/osmand/">here</a> and
+<a href="OsmAndProtocolSpecification.html">here</a>.</p>
 </div>
 <div class="paragraph">
 <p>Technically "The OsmAnd protocol processes HTTP requests
@@ -547,6 +529,16 @@ a single GPS location:</p>
            int battery) {}</code></pre>
 </div>
 </div>
+<div class="quoteblock">
+<blockquote>
+Record classes, which are a special kind of class, help to model plain data aggregates<br>
+with less ceremony than normal classes.
+</blockquote>
+<div class="attribution">
+&#8212; https://docs.oracle.com/en/java/javase/17/language/records.html<br>
+<cite>Record Classes</cite>
+</div>
+</div>
 <div class="paragraph">
 <p>Another approach would be to generate a Java Class from
 the JSON format listed on the
@@ -557,7 +549,7 @@ the JSON format listed on the
 <h3 id="_gps_receiver">GPS receiver</h3>
 <div class="paragraph">
 <p>A GPS chip receives signals from orbiting satellites to calculate
-the location on Earth - a highly mathematical number cruncher.
+the location on Earth - a highly mathematical, trigonomic number cruncher.
 The location is continuously calculated by trilateration from three satelites.
 Note that a fourth satelite is required to provide the precise time.</p>
 </div>
@@ -592,105 +584,10 @@ from the GPS, while pushing them to the server via GSM.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_implementations">Implementations</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>We have started be defining the OsmAnd GPS Message as defined for Traccar.
-That is the information and format the server accepts and understands.</p>
-</div>
-<div class="paragraph">
-<p>xxxxxxxxxxx</p>
-</div>
-<div class="paragraph">
-<p>We&#8217;ll start with a simple class definition for the Tracker Simulation</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">    public class GpsOsmTracker {
-
-      private final String serverUrl;
-      private final String deviceId;
-
-      // JTS Coordinate to hold (lon, lat, alt) -&gt; (x, y, z) mutable states
-      private final Coordinate coordinate;
-
-      // Other telemetry data (not part of geometry)
-      private long timestamp;
-      private double speed; // in meters/second
-      private double bearing; // in degrees (0-360)
-      private int batteryLevel; // 0-100
-      private double hdop; // Horizontal Dilution of Precision, i.e. accuracy</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This way the GPS unit is replaced by simply setting the GPS class members.
-So we can add getters and setters for each member.</p>
-</div>
-<div class="sect2">
-<h3 id="_geo_coordinates">Geo Coordinates</h3>
-<div class="paragraph">
-<p>Note that we are using the <code>org.locationtech.jts.geom.Coordinate</code>
-to store the <code>latitude, longitude</code> and <code>altitude</code> double values.
-This is our entry point to geographical libraries for GPS Positions,
-for dealing with Digital Maps and Geographic Information Systems.</p>
-</div>
-<div class="paragraph">
-<p>We can replace the simple double fields for the location
-with a core class from the GeoTools / JTS (Java Topology Suite) library,
-which is the standard geometry model GeoTools is built on.</p>
-</div>
-<div class="paragraph">
-<p>At this point it doesn&#8217;t seam like a big deal,
-because we simply storing three double values in one Coordinate.
-But as soon as we need to calculate <code>distance</code> and <code>bearing</code>
-we have to use a projection system.
-This is a walk in the park with
-the GeoTools library&#8217;s built-in <code>GeodeticCalculator</code>.</p>
-</div>
-<div class="sect3">
-<h4 id="_example">Example</h4>
-<div class="paragraph">
-<p>To calculate the geodesic distance in meters between two lat/lon points
-using the GeoTools GeodeticCalculator
-with the GPS standard WGS84 (EPSG:4326) system:</p>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>Define the Coordinate Reference System</p>
-</li>
-<li>
-<p>Initialize the Geodetic Calculator</p>
-</li>
-<li>
-<p>Set start- and end coordinates</p>
-</li>
-<li>
-<p>Get the orthodromic distance (distance along the ellipsoid surface)</p>
-</li>
-</ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <b class="conum">(1)</b>
-
-  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <b class="conum">(2)</b>
-
-  calculator.setStartingGeographicPoint   (lon1, lat1);          // <b class="conum">(3)</b>
-  calculator.setDestinationGeographicPoint(lon2, lat2);
-
-  return calculator.getOrthodromicDistance();                    // <b class="conum">(4)</b></code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-23 18:34:21 +0100
+Last updated 2025-12-20 13:26:34 +0100
 </div>
 </div>
 </body>

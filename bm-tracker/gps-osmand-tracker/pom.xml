@@ -25,17 +25,15 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-tracker</artifactId>
-        <version>1.1.11</version>
+        <version>1.1.12-beta</version>
     </parent>
 
     <artifactId>gps-osmand-tracker</artifactId>
-    <version>1.1.11-beta</version>
 
     <name>..... gps-osmand-tracker</name>
     <description>gps-osmand-tracker</description>
 
     <dependencies>
-        <!-- Camel Spring Boot -->
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
@@ -46,7 +44,7 @@
             <!-- to be removed, only HttpOperationFailedException used-->
         </dependency>
 
-        <!-- For tests and mocking an HTTP server -->
+        <!-- ========== Testing dependencies ========== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -57,16 +55,9 @@
             <artifactId>camel-test-spring-junit5</artifactId>
             <scope>test</scope>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>test</scope>
-        </dependency>
-        -->
 
-        <!-- Reuse scenario test classes from traccar-rt-client -->
+        <!-- Note! The gps-osmand-tracker is a standalone app and has no server dependencies. These are only added for testing! -->
+        <!-- Reuse test classes from traccar-rt-client -->
         <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-rt-client</artifactId>
@@ -78,24 +69,17 @@
         <!-- Dependencies required by scenario test classes -->
         <dependency>
             <groupId>bm</groupId>
-            <artifactId>traccar-api-generated</artifactId>
-            <version>6.10.0</version>
-        </dependency>
-        <dependency>
-            <groupId>bm</groupId>
-            <artifactId>traccar-api-client</artifactId>
+            <artifactId>traccar-rt-client</artifactId>
             <version>6.10.0-RC</version>
         </dependency>
 
-        <!-- keep only the tests-classifier dependency above; removed duplicate main artifact dependency -->
-
-        <!-- JUnit Suite API to run external test classes via a suite wrapper -->
+        <!-- JUnit Suite API to run external test classes via a suite wrapper
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite-api</artifactId>
-            <version>1.9.2</version>
             <scope>test</scope>
         </dependency>
+         -->
 
     </dependencies>
 
