@@ -1,0 +1,186 @@
+
+:toc:
+
+= Traccar Scenario
+
+For Real Time Development it makes sense to precisely define the RT environment to be observed and controlled. 
+In the context of a Tracking System we will simply define the environment as a (fixed) set of devices and call it a _Scenario_.
+These devices will represent `RealObjects` (that we will develop eventually) in the Real World.
+They can be many vehicles, some pedestrians, bicycles - if we think of a Traffic Application.
+
+== Scenario Entities
+
+In conjunction with Traccar a scenario is composed of different sets of Traccar Entities.
+
+The `RealTimeModel` (in the `traccar-realtime-client` project) will allow access to Traccar `Users`, `Devices`, 
+`Drivers` etc. to compose any scenario that fits your business.
+This `RealTimeModel` or `RealTimeManager` or `RealTimeStateManager` reflects all objects 
+of one authenticated Traccar `User` and can only see what he is allowed to see.
+This can be experienced and explored in the Traccar UI - as we proceed.
+
+
+== Scenario Properties
+
+For a concrete development approach we will define 
+a _Scenario_ simply as a (fixed) number of devices.
+All other Traccar Entities are related to these devices somehow.
+At development time we will create a complete Scenario from a `scenario.properties` file,
+which defines all actors of the - for the time being: _closed_ system.
+
+[NOTE]
+====
+For convenience the scenario is placed in the actual project packages
+and _not in the test packages_. 
+This makes it easier to be used to test higher level projects.
+====
+
+On the long run there are endless ways to persist and load a scenario.
+With `json` you can define a complete relational model to load 
+and bigger models could be retrieved from the database itself. 
+For compressed ER models 
+link:https://protobuf.dev/[Googles Protocol Buffers] could do the job,
+as we have already practiced in the JeeTS project.
+
+At dev time we will use the `scenario.properties` file to explore   
+xref:./permissions.adoc[Traccar's Permission Management].
+
+We'll start with some simple initial rules to setup a Scenario:
+
+-  `scenario.properties` _do not_ define any technical details on the Traccar Server. +
+These should remain in the `application.properties` 
+and the server should then be prepared to load a Scenario.
+Less technical and more domain-driven.
+
+- Each scenario must have (at least) one `User` (account!) as the Scenario Manager. +
+This authenticated `User` must be authorized to see the complete Scenario - 
+vice versa his view defines the Scenario.
+The smallest scenario would be one `User` with access to his own `Device`.
+
+
+So let's begin to fill the file with `Users` and  `Devices`:
+
+[source,xml]
+----
+    # basic scenario
+    ## users 
+    scenario.user[0].name=admin
+    scenario.user[0].password=admin
+    scenario.user[0].email=admin@scenario.com
+    scenario.user[0].administrator=true     <!--1-->
+    ## devices 
+    scenario.device[0].name=runner
+    scenario.device[0].uniqueId=10
+    scenario.device[0].model=ro
+----
+<1> First `user[0]` is the scenario manager, i.e. `administrator`
+
+This scenario defines one `administrator`, one `manager`, two `users` 
+and four `devices` for a start.
+
+
+=== `ScenarioProperties`
+
+Now we can apply Spring Technology to load these properties 
+with the `ScenarioProperties` class
+
+[source,java]
+----
+    @Component
+    @ConfigurationProperties(prefix = "scenario", ignoreUnknownFields = false)
+    @PropertySource("classpath:scenario.properties")
+    public class ScenarioProperties { ...
+----
+
+We are using `@ConfigurationProperties` for Type-Safe Configuration 
+for managing multiple related properties.
+The class groups all the related properties together, 
+is type-safe, less error-prone, and keeps your configuration clean.
+You can inject the entire  `ScenarioProperties` object into any other bean 
+(like a service or controller) using standard dependency injection.
+
+The configuration is set in the `ScenarioConfig` class, which can be empty:
+
+[source,java]
+----
+    @Configuration
+    @EnableConfigurationProperties(ScenarioProperties.class)
+    @PropertySource("classpath:scenario.properties")
+    public class ScenarioConfig { /* empty */ }
+----
+
+And finally we unit test the auto wiring 
+
+[source,java]
+----
+    public class ScenarioPropertiesTest {    
+      @Autowired private ScenarioProperties scenarioProperties;
+----
+
+Now we can access the `ScenarioProperties` class to pick up the objects. +
+
+
+=== `ScenarioLoader`
+
+Note that the property objects differ from the Traccar Entities.
+
+[source,java]
+----
+    bm.traccar.rt.scenario.ScenarioProperties.Device
+    bm.traccar.generated.model.dto.Device
+----
+
+So let's code a little ETL loader 
+to *Extract* the property objects,
+*Transform* them into Traccar Entities 
+and *Load* (CRUD) these to the Traccar Server.
+
+The `ScenarioLoader` reads the objects from the properties file 
+
+[source,java]
+----
+  @Autowired private ScenarioProperties props;
+----
+
+and creates the Traccar Entities on the server via `api`.
+
+[source,java]
+----
+  @Autowired protected Api api;
+----
+
+Functionality and structure are straight forward.
+
+
+=== Scenario Tests
+
+Run the tests in test package `bm.traccar.rt.scenario` 
+to go into details and debugging.
+
+In test package `bm.traccar.rt` 
+you will find a `BaseReaTimeScenarioTest` which sets up 
+the `scenario.properties @BeforeAll` testing. 
+It tears down the scenario and clears the server `@AfterAll` testing.
+This is the base for the `*IT` tests in the package.
+
+The `ReaTimeScenarioIT` sets up the scenario and 
+displays all Beans in the `ApplicationContext`.
+Here we will find all classes of the `bm-traccar` branch 
+as you can see by the package names, i.e. application layers:
+
+[source,java]
+----
+
+    bm.traccar.invoke.ApiClient             // traccar-openapitools-client
+    bm.traccar.generated.api.DevicesApi
+    ..                   and other *Apis
+    bm.traccar.api.ApiService               // traccar-api-client
+    ..
+    bm.traccar.rt.RealTimeController        // traccar-rt-client
+    ..
+    bm.traccar.ws.TraccarSessionManager     // traccar-rt-client websocket
+    bm.traccar.ws.TraccarWebSocketRoute
+----
+
+Note that the `bm.traccar.rt.RealTimeManager` is not a Spring Bean
+and is managed by the `RealTimeContoller`! 
+

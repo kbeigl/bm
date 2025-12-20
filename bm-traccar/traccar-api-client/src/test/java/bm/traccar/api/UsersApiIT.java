@@ -1,6 +1,7 @@
 package bm.traccar.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bm.traccar.generated.model.dto.User;
 import org.junit.jupiter.api.Test;
@@ -10,19 +11,64 @@ import org.slf4j.LoggerFactory;
 /**
  * Test <code>api/users</code> methods, @see <a
  * href="https://www.traccar.org/api-reference/#tag/Users">UsersApi</a> with ApiService. <br>
- * In database lingo create, update, delete User in traccar datamodel using generated entities.
+ * In database lingo create, update, delete (CRUD) User in traccar datamodel using generated
+ * entities.
  */
 public class UsersApiIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(UsersApiIT.class);
+  private Api.Users usersApi;
+
+  // managerUserLimit conclusion
+  // the created users by the manager do NOT belong to the manager, but to the admin user.
+  // login as admin to see created users AND devices
+  // the userLimit is NOT enforced via REST API createUser call as manager.
+  // clarify via permissions management !!
+  @Test
+  public void managerUserLimit() {
+    // usersApi.isAdmin(....);
+    // create manager with user limit AS ADMIN
+    api.setBasicAuth(adminMail, adminPassword);
+    usersApi = api.getUsersApi();
+    String managerPassword = "manager";
+
+    User manager = new User();
+    manager.setName("manager");
+    manager.setEmail("manager@domain.com");
+    manager.setPassword(managerPassword);
+    manager.setUserLimit(2);
+    manager = usersApi.createUser(manager);
+
+    // create regular users AS MANAGER
+    User user1, user2, user3 = null;
+    if (usersApi.isManager(manager)) {
+      api.setBasicAuth(manager.getName(), managerPassword);
+      user1 = usersApi.createUserWithCredentials("user-1", "user-1-pw", "user-1-mail", false);
+      user2 = usersApi.createUserWithCredentials("user-2", "user-2-pw", "user-2-mail", false);
+      // This should fail - limit reached
+      try {
+        user3 = usersApi.createUserWithCredentials("user-3", "user-3-pw", "user-3-mail", false);
+      } catch (ApiException e) {
+        logger.info("Expected exception creating user beyond limit: {}", e.getMessage());
+      }
+      assertTrue(usersApi.isRegularUser(user1), "user1 is not a regular user as expected");
+
+      // clean up AS ADMIN
+      // manager does not have permission to delete users!!
+      api.setBasicAuth(adminMail, adminPassword);
+      usersApi.deleteUser(manager.getId());
+      usersApi.deleteUser(user1.getId());
+      usersApi.deleteUser(user2.getId());
+      if (user3 != null) usersApi.deleteUser(user3.getId());
+    }
+  }
 
   /** Test platonic API methods from interface for User DTO */
   @Test
   public void createUpdateDeleteUser() {
-
     api.setBearerToken(virtualAdmin);
 
     // get nr of users, assert users++, back to nr
-    int userNr = api.getUsersApi().getUsers(null).size();
+    int userNr = api.getUsersApi().getAllUsers().size();
 
     // create / receive user
     User user = new User();
@@ -33,7 +79,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     User newUser = api.getUsersApi().createUser(user);
     // matching method names !!
-    assertEquals(userNr + 1, api.getUsersApi().getUsers(null).size());
+    assertEquals(userNr + 1, api.getUsersApi().getAllUsers().size());
 
     // returns the generated id (asserts not null)
     Long userId = newUser.getId();
@@ -42,11 +88,11 @@ public class UsersApiIT extends BaseIntegrationTest {
     newUser.setEmail("email-1-b");
 
     User putUser = api.getUsersApi().updateUser(userId, newUser);
-    assertEquals(userNr + 1, api.getUsersApi().getUsers(null).size());
+    assertEquals(userNr + 1, api.getUsersApi().getAllUsers().size());
 
     // delete user
     api.getUsersApi().deleteUser(putUser.getId());
-    assertEquals(userNr, api.getUsersApi().getUsers(null).size());
+    assertEquals(userNr, api.getUsersApi().getAllUsers().size());
   }
 
   /**
@@ -56,8 +102,8 @@ public class UsersApiIT extends BaseIntegrationTest {
    */
   @Test
   public void doNotUpdateDeleteUser() {
-
     api.setBearerToken(virtualAdmin);
+
     User user = new User(); // won't reach server
     // Long values out of Integer range will throw an ApiException
     Long longUserId = (long) (Integer.MAX_VALUE + 1L);
@@ -81,7 +127,6 @@ public class UsersApiIT extends BaseIntegrationTest {
 
   @Test
   public void convertLongToInt() {
-
     // positive test
     Long longVal = 12345L;
     Integer intVal = ApiHelper.toInt(longVal);

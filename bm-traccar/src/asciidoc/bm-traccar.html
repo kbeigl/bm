@@ -496,30 +496,27 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_database_testing">Database Testing</a>
 <ul class="sectlevel1">
 <li><a href="#_database_introspection">9. database introspection</a></li>
-<li><a href="#_automate_adminadmin">10. automate admin/admin</a></li>
-<li><a href="#_sql_shell">11. sql shell</a>
-<ul class="sectlevel2">
-<li><a href="#_install_in_traccarh2">11.1. install in traccar/h2/</a></li>
-</ul>
-</li>
-<li><a href="#_database_available_locked">12. database available / locked</a></li>
-<li><a href="#_hashing_the_password">13. hashing the password</a></li>
-<li><a href="#_sql_with_maven">14. sql with Maven</a></li>
+<li><a href="#_h2_tools_shell">10. <code>h2.tools.Shell</code></a></li>
+<li><a href="#_h2_tools_runscript">11. <code>h2.tools.RunScript</code></a></li>
+<li><a href="#_h2_tools_console">12. <code>h2.tools.Console</code></a></li>
+<li><a href="#_database_available_locked">13. database available / locked</a></li>
+<li><a href="#_hashing_the_password">14. hashing the password</a></li>
+<li><a href="#_sql_with_maven">15. sql with Maven</a></li>
 </ul>
 </li>
 <li><a href="#_testing_with_traccar_server">Testing with Traccar Server</a>
 <ul class="sectlevel1">
-<li><a href="#_surefire_vs_failsafe_testing_with_docker">15. surefire vs failsafe testing with docker</a></li>
-<li><a href="#_docker_maven_plugin_2">16. docker-maven-plugin</a></li>
-<li><a href="#_maven_failsafe_plugin">17. maven-failsafe-plugin</a></li>
+<li><a href="#_surefire_vs_failsafe_testing_with_docker">16. surefire vs failsafe testing with docker</a></li>
+<li><a href="#_docker_maven_plugin_2">17. docker-maven-plugin</a></li>
+<li><a href="#_maven_failsafe_plugin">18. maven-failsafe-plugin</a></li>
 </ul>
 </li>
 <li><a href="#_setup_development_environment">setup development environment</a>
 <ul class="sectlevel1">
 <li><a href="#_credentials">credentials</a></li>
-<li><a href="#_surefire_vs_failsafe">18. surefire vs failsafe</a></li>
-<li><a href="#_browser_ui">19. browser UI</a></li>
-<li><a href="#_run_integration_tests">20. run integration tests</a></li>
+<li><a href="#_surefire_vs_failsafe">19. surefire vs failsafe</a></li>
+<li><a href="#_browser_ui">20. browser UI</a></li>
+<li><a href="#_run_integration_tests">21. run integration tests</a></li>
 </ul>
 </li>
 </ul>
@@ -1284,43 +1281,9 @@ through which you can peek into the data and analyze the actions of your integra
 </div>
 <div class="paragraph">
 <p>Multiple options for handling the H2 database are scribbled here,
-including mounting external volumes, direct SQL shell access,
-and automation scripts for admin user setup.<br>
-The documentation outlines different database introspection approaches
+including mounting external volumes, direct SQL shell access.
+Kind of a cheat sheet outlining different database introspection approaches
 for development and testing.</p>
-</div>
-<div class="paragraph">
-<p>options</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>create external volume for h2 database
-   delete to create new one
-   admin/admin hen and egg problem
-   create admin/admin for template
-   apply web.serviceAccountToken on truncated db</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>do not access database as backdoor: Entities vs DTOs</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>work with Traccar Frontend with running docker</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The [DatabaseTest] setup we will look at different options to develop
-with database introspection &#8230;&#8203;</p>
-</div>
-<div class="paragraph">
-<p>You can always inspect <code>h2</code> through its console,
-as a back door directly the database model.<br>
-The default h2 database is ideal, i.e. made for testing.
-Developers can login to the traccar data base, explore the schema
-and inspect data with <code>plain SQL</code>, reset to scratch .. whatever.</p>
 </div>
 </div>
 </div>
@@ -1328,37 +1291,71 @@ and inspect data with <code>plain SQL</code>, reset to scratch .. whatever.</p>
 <h2 id="_database_introspection">9. database introspection</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The recommended traccar docker installation is to leave the database inside the container.
-By mounting the <code>/data</code> folder we can look inside the data, which stays persistent
-after the container has stopped.<br>
-Note that the H2 database is locked as long the traccar container is working.<br></p>
+<p>The recommended traccar docker installation is to leave the database inside the container.</p>
+</div>
+<div class="paragraph">
+<p>Yet by mounting the <code>/data</code> folder we can look inside the data, which stays persistent
+after the container has stopped - at development time.
+You can find the <code>data</code> mount line in the <code>docker-maven-plugin</code>
+and un/comment as required:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;volumes&gt;
+    &lt;bind&gt;
+        &lt;volume&gt;/opt/traccar/data:/opt/traccar/data:rw&lt;/volume&gt;</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The H2 database is locked
+as long the traccar container is working for its simplicity.<br>
+Developers can debug <code>*IT</code> tests running against the traccar container<br>
+and exit the test after a scenario has been setup.<br>
+Then the docker container must be stopped in order to use the h2 shell.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><a href="https://www.baeldung.com/java-h2-db-execute-sql-file">h2 access</a></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_automate_adminadmin">10. automate admin/admin</h2>
+<h2 id="_h2_tools_shell">10. <code>h2.tools.Shell</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>insert initial admin user in Dockerfile</p>
+<p>You can always inspect <code>h2</code> through its console,
+as a back door directly the database model.
+The default h2 database is ideal, i.e. made for testing.
+Developers can login to the traccar data base, explore the schema
+and inspect data with <code>plain SQL</code>, reset to scratch .. whatever is feasible for you.</p>
 </div>
 <div class="paragraph">
-<p>gemini:<br>
-API: While Traccar has a REST API, using it for initial user setup
-might be tricky since the API itself requires authentication.
-Directly database manipulation or configuration file manipulation
-is more reliable for initial setup.</p>
+<p>You will find the database in your filesystem
+in <code>/opt/traccar/data</code> as specified above.
+The following command line assumes to be in this folder.</p>
 </div>
 <div class="paragraph">
-<p>problem: schema is only created with first start of traccar-server.jar</p>
+<p>Then you need to install the h2 lib and point to the jar</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>root@d3b6ba0d8261:~# pwd
-/root
-root@d3b6ba0d8261:~# java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell
-                          -url jdbc:h2:/opt/traccar/data/database
-                          -user sa</pre>
+<pre>/opt/traccar/data$ java -cp /opt/h2/bin/h2-2.3.232.jar org.h2.tools.Shell
+                        -url jdbc:h2:./database
+                        -user sa</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>and you should get a welcome</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1366,70 +1363,8 @@ root@d3b6ba0d8261:~# java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell
 Exit with Ctrl+C</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>sql&gt; select * from tc_users
-...&gt; ;
-Error: org.h2.jdbc.JdbcSQLSyntaxErrorException:
-       Table "TC_USERS" not found (this database is empty);</pre>
-</div>
-</div>
 <div class="paragraph">
-<p>possible solution: add schema/createadmin.xml if admin doesn&#8217;t exist</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_sql_shell">11. sql shell</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p><a href="https://www.baeldung.com/java-h2-db-execute-sql-file" class="bare">https://www.baeldung.com/java-h2-db-execute-sql-file</a></p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>java -cp /path/to/h2/jar/h2-version.jar org.h2.tools.RunScript
-     -url jdbc:h2:db/server/url
-     -user sa -password password
-     -script script.sql
-     -showResults</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell
-     -url jdbc:h2:/opt/traccar/data/database
-     -user sa</pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_install_in_traccarh2">11.1. install in traccar/h2/</h3>
-<div class="literalblock">
-<div class="content">
-<pre>$ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell
-       -url jdbc:h2:/opt/traccar/data/database
-       -user sa</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>Welcome to H2 Shell 2.3.232 (2024-08-11)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>sql&gt; select * from tc_users;
-ID | NAME | EMAIL | HASHEDPASSWORD | SALT | READONLY | ADMINISTRATOR | MAP | LATITUDE | LONGITUDE | ZOOM |
-ATTRIBUTES | COORDINATEFORMAT | DISABLED | EXPIRATIONTIME | DEVICELIMIT | USERLIMIT | DEVICEREADONLY |
-PHONE | LIMITCOMMANDS | LOGIN | POILAYER | DISABLEREPORTS | FIXEDEMAIL | TOTPKEY | TEMPORARY
-(0 rows, 1 ms)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR
-  from tc_users;
-(0 rows, 1 ms)</pre>
-</div>
+<p>and start querying</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1444,21 +1379,41 @@ PHONE | LIMITCOMMANDS | LOGIN | POILAYER | DISABLEREPORTS | FIXEDEMAIL | TOTPKEY
 7  | user2   | email2 | 53e175f9ded19f065d7e483f44f540f7f8ca9c4026dd69dd | 72e2e2555df4a62c2d8ccb8fb295f7d19dc9373cfdf51772</pre>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_h2_tools_runscript">11. <code>h2.tools.RunScript</code></h2>
+<div class="sectionbody">
 <div class="literalblock">
 <div class="content">
-<pre>sql&gt; delete from tc_users where id=2;
-Error: org.h2.jdbc.JdbcSQLNonTransientException:
-**** The database is read only ****</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>&#8658; empty database schema in place</p>
+<pre>java -cp /path/to/h2/jar/h2-version.jar org.h2.tools.RunScript
+     -url jdbc:h2:db/server/url
+     -user sa -password password
+     -script script.sql
+     -showResults</pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_database_available_locked">12. database available / locked</h2>
+<h2 id="_h2_tools_console">12. <code>h2.tools.Console</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can run a console, which opens a database frontend in your browser</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>java -cp /opt/traccar.bak/h2/bin/h2-2.3.232.jar org.h2.tools.Console
+     -web
+     -tcp
+     -url jdbc:h2:./database
+     -user sa</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_database_available_locked">13. database available / locked</h2>
 <div class="sectionbody">
 <div class="literalblock">
 <div class="content">
@@ -1467,7 +1422,9 @@ Error: org.h2.jdbc.JdbcSQLNonTransientException:
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>$ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell -url jdbc:h2:/opt/traccar/data/database -user sa
+<pre>$ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell
+       -url jdbc:h2:/opt/traccar/data/database
+       -user sa
 Exception in thread "main" org.h2.jdbc.JdbcSQLNonTransientConnectionException:
   Database may be already in use: "/opt/traccar/data/database.mv.db".
   Possible solutions: close all other connection(s); use the server mode [90020-232]
@@ -1477,46 +1434,12 @@ Caused by: org.h2.mvstore.MVStoreException:
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>localhost/register -&gt; admin/admin admin@domain.org</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
 <pre>stop container</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>sql&gt; select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR from tc_users;
-NAME             | EMAIL | HASHEDPASSWORD                                   | SALT                                             |
-admin@domain.com | admin | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca |</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>READONLY | ADMINISTRATOR
-FALSE    | TRUE
-(1 row, 20 ms)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>docker run -&gt; user is available -&gt; hash &amp; salt vary !!</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>| HASHEDPASSWORD                                   | SALT
-| 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca
-| 42d4bf701495e2105dddfd66e3989919c218a6d7b99c623d | d3e47507a6fdcc624b8bd3bc85ce96bab195c335b76044a6</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>let&#8217;s see:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>sql&gt; delete from tc_users;
+<pre>sql&gt; delete from tc_users where id=2;
 Error: org.h2.jdbc.JdbcSQLNonTransientException:
 The database is read only; SQL statement: delete from tc_users [90097-232]</pre>
 </div>
@@ -1528,107 +1451,42 @@ $ sudo chmod 777 database*
 =&gt; works :)</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>prepare statement to createAdminUser.sql
-INSERT INTO tc_users (name, email, hashedpassword, salt, administrator)
-VALUES ('admin', 'admin@domain.com', '3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30', 'd4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca', true);</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>sql&gt; INSERT INTO tc_users (name, email, hashedpassword, salt, administrator)
-VALUES ('admin', 'admin@domain.com', '3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30', 'd4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca', true);
-(Update count: 1, 5 ms)</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>sql&gt; select * from tc_users;
-ID | NAME  | EMAIL            | HASHEDPASSWORD | SALT                                                                               | READONLY | ADMINISTRATOR
-2  | admin | admin@domain.com | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca | FALSE    | TRUE</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note ID++ in new db! &#8594; only apply ids after semantic lookup !</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>-&gt; mvn docker run
-   localhost/login appears :)
-   login: email: admin@domain.com pw:admind</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>I want login name/pw ..
-delete database* files
-mvn docker:run creates new database* files with empty schema</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>statement to createAdminUser.sql without email !!
-NULL not allowed for column "EMAIL";</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>-&gt; insert above again
-   mvn docker run
-   localhost/login appears :)
-   login: email: admin@domain.com pw:admind</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>sql&gt; select * from tc_users;
-    ID | NAME  | EMAIL
-    2  | admin | admin@domain.com</pre>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_hashing_the_password">13. hashing the password</h2>
+<h2 id="_hashing_the_password">14. hashing the password</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><a href="https://www.traccar.org/forums/topic/hashing-the-password/" class="bare">https://www.traccar.org/forums/topic/hashing-the-password/</a></p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre># generate a random salt
-salt="$(dd if=/dev/urandom bs=24 count=1 status=none | xxd -p)"</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre># generate the password hash from the contents of the "password" variable (which you've to set yourself to the new cleartext password)
-hash="$(openssl-3.0.1 kdf -keylen 24 -binary -kdfopt digest:sha1 -kdfopt "pass:$password" -kdfopt "hexsalt:$salt" -kdfopt iter:1000 pbkdf2 | xxd -p)"</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre># uncomment the following line to print out both the salt and the password hash (if you want to)
-#echo -e "salt: $salt\nhash: $hash"</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre># set the value of "tchome" to the path of the Traccar directory
-tchome="/opt/traccar"</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre># and finally update the password (and salt) of the default "admin" user
-java -cp "$tchome/lib/h2-"*".jar" org.h2.tools.Shell -url "jdbc:h2:$tchome/data/database" -user sa -sql "update tc_users set hashedpassword='$hash', salt='$salt' where email = 'admin';"</pre>
+<pre class="highlight"><code class="language-xml" data-lang="xml">    # generate a random salt
+    salt="$(dd if=/dev/urandom bs=24 count=1 status=none | xxd -p)"
+
+    # generate the password hash from the contents of the "password" variable
+    (which you've to set yourself to the new cleartext password)
+    hash="$(openssl-3.0.1 kdf -keylen 24 -binary -kdfopt digest:sha1
+          -kdfopt "pass:$password" -kdfopt "hexsalt:$salt" -kdfopt iter:1000 pbkdf2 | xxd -p)"
+
+    # uncomment the following line to print out both the salt and the password hash
+    #echo -e "salt: $salt\nhash: $hash"
+
+    # set the value of "tchome" to the path of the Traccar directory
+    tchome="/opt/traccar"
+
+    # and finally update the password (and salt) of the default "admin" user
+    java -cp "$tchome/lib/h2-"*".jar" org.h2.tools.Shell
+         -url "jdbc:h2:$tchome/data/database"
+         -user sa
+         -sql "update tc_users set hashedpassword='$hash', salt='$salt'
+               where email = 'admin';"</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_sql_with_maven">14. sql with Maven</h2>
+<h2 id="_sql_with_maven">15. sql with Maven</h2>
 <div class="sectionbody">
 <div class="literalblock">
 <div class="content">
@@ -1678,7 +1536,7 @@ see
 </div>
 </div>
 <div class="sect1">
-<h2 id="_surefire_vs_failsafe_testing_with_docker">15. surefire vs failsafe testing with docker</h2>
+<h2 id="_surefire_vs_failsafe_testing_with_docker">16. surefire vs failsafe testing with docker</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The aim of this project is to remote control a Traccar Server
@@ -1719,7 +1577,7 @@ using Maven’s Failsafe plugin in combination with Docker.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_docker_maven_plugin_2">16. docker-maven-plugin</h2>
+<h2 id="_docker_maven_plugin_2">17. docker-maven-plugin</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Requirements to docker are dead simple:
@@ -1756,7 +1614,7 @@ Building Images and  Running Containers.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_maven_failsafe_plugin">17. maven-failsafe-plugin</h2>
+<h2 id="_maven_failsafe_plugin">18. maven-failsafe-plugin</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>specifically for integration testing, focusing on lifecycle and reporting for integration tests.</p>
@@ -1842,7 +1700,7 @@ in the <code>application.properties</code> file</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_surefire_vs_failsafe">18. surefire vs failsafe</h2>
+<h2 id="_surefire_vs_failsafe">19. surefire vs failsafe</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can 'turn off' the docker management in the project by removing
@@ -1919,7 +1777,7 @@ i.e. set the repo back to production.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_browser_ui">19. browser UI</h2>
+<h2 id="_browser_ui">20. browser UI</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now there is one last thing to do, before running the ITests:
@@ -1977,7 +1835,7 @@ login with the new credentials</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_run_integration_tests">20. run integration tests</h2>
+<h2 id="_run_integration_tests">21. run integration tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now the repository is setup for development

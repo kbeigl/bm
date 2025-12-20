@@ -25,13 +25,14 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-tracker</artifactId>
-        <version>1.1.12-beta</version>
+        <version>1.1.13</version>
     </parent>
 
     <artifactId>gps-osmand-tracker</artifactId>
 
     <name>..... gps-osmand-tracker</name>
     <description>gps-osmand-tracker</description>
+    <version>1.1.13-beta</version>
 
     <dependencies>
         <dependency>

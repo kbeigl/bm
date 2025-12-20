@@ -37,14 +37,14 @@ public class AspectIT extends BaseIntegrationTest {
     // api.getApiClient().setBasePath(host);
 
     api.setBasicAuth(userMail, userPassword);
-    List<User> users = api.getUsersApi().getUsers(null);
+    List<User> users = api.getUsersApi().getAllUsers();
     // this only returns users as admin
     assertEquals(0, users.size());
 
     // bad password
     api.setBasicAuth(userMail, userPassword + "XXX");
     try {
-      users = api.getUsersApi().getUsers(null);
+      users = api.getUsersApi().getAllUsers();
     } catch (ApiException e) {
       logger.error("caught ApiException: {}", e.getMessage());
       assertTrue(
@@ -61,11 +61,11 @@ public class AspectIT extends BaseIntegrationTest {
     // api.getUsersApi().getUsers returns null instead of empty list !?
     // switch Auth method, login as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
-    List<User> users = api.getUsersApi().getUsers(null);
+    List<User> users = api.getUsersApi().getAllUsers();
     // assertEquals(users.size(), 0);
 
     api.setBearerToken(virtualAdmin);
-    users = api.getUsersApi().getUsers(null);
+    users = api.getUsersApi().getAllUsers();
     // assertEquals(users.size(), 1);
   }
 

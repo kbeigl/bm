@@ -23,7 +23,7 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.12</version>
+    <version>1.1.13</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations               ===</name>
@@ -53,7 +53,7 @@
         <!-- create Maven Profile -->
         <asciidoc.process.skip>true</asciidoc.process.skip>
         <!-- asciidoctor-maven-plugin:3.2.0 requires Maven version 3.8.8 -->
-        <asciidoctor.maven.version>3.1.1</asciidoctor.maven.version>
+        <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
         <asciidoc.diagram.version>3.0.1</asciidoc.diagram.version>
     </properties>

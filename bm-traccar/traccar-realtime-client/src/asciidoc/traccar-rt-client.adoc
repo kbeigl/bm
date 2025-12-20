@@ -1,0 +1,290 @@
+
+
+= The Traccar Real Time Client
+
+The `traccar-rt-client` is a Java Client Software to provide full (remote) control over
+and interact via live surveillance of your Traccar Server Scenario. 
+It can be used to observe, predict and react to live events - defined by your business.
+For exmple you can control the timing of a _rendez vous_ point for logistic vehicles.
+
+
+== Real Time Systems
+
+Modern Advanced Driver Assistant Systems (ADAS) can serve as an example of _Real Time Systems_.
+They are monitoring the vehicle _and_ observing the environment 
+every instance of the motion. With a 5 GHz network the computational power can take place
+in large server farms, while the vehicle basically provides events and values from detectors.
+
+The term _real time_ refers to the actual computational results provided _as the incident takes place_. +
+Therefor Real Time Systems are systems that can actually interfere the incident in reality.
+Today ADAS have become Self Driving Systems and can actually drive a car 
+and predict the trajectory by reading the road map.
+
+[quote, see https://en.wikipedia.org/wiki/Real-time_computing]
+____
+A real-time system has been described as one which "controls an environment by receiving data, 
+processing them, and returning the results sufficiently quickly to affect the environment at that time".
+
+A system not specified as operating in real time cannot usually guarantee a response within any timeframe, 
+although typical or expected response times may be given. 
+Real-time processing fails if not completed within a specified deadline relative to an event; 
+deadlines must always be met, regardless of system load. 
+____
+
+
+GPS Tracking usually implies _live tracking_ and allows us to locate something on a map.
+Of course _live_ is relativ and we have to rely on connectivity and accept a little latency.
+For example vehicles can not be GPS tracked in most tunnels due to missing satelite information.
+A Real Time Client could detect this and make a prediction, 
+ when the vehicle will exit the tunnel and be _GPS fixed_ again.
+
+
+== Real Timing
+
+Structuring the data for a real-time application like a Traccar Client is crucial for performance and maintainability. +
+As a development guideline we do not want to use any back doors to Traccar, like a direct database access.
+We treat Traccar as a mature component with endless configuration options and 
+we want to communicate the official way, i.e. via Traccar REST API via `traccar-api-client`.
+
+Traccar is taking care of the connectivity to all (tens of thousands of different) GPS Trackers,
+stores there info, raises events, while we only need the one connection to the Traccar Server
+to interact via REST API and retrieve real time data via Websocket.
+Even, if we would run real-time against the Traccar Database 
+this does not guarantee to be much faster. 
+And there's a risk to interfere with the Traccar controllers.
+
+We could use an in-memory-database like h2, which is also supported in Spring Boot and Maven.
+Yet this would have the draw back to create objects during the real time calculation.
+We will create a Real Time Manager that has all objects in place and state changes occur immediately
+only restricted by the CPU speed.
+
+Its a race between real time client connectivity and loading against persisting on server side.
+If you place the `traccar-rt-client` in the same environment as your Traccar server
+there are chances that the client is triggered before the database update has finished.
+Nevertheless the objects are related over Traccar Database IDs, which are indispensable.
+
+=== when and where
+
+Another important aspect about 'real time development' is the usage of the provided timestamps
+in chronological order: `fixTime`, `deviceTime` and `serverTime`. 
+The _GPS Fixtime_ describes, when the Position was calculated, fixed and saved into the devices memory. 
+This fixtime is calculated by the _GPS Unit hardware and chip_ in the field
+with the most precise atomic clocks available.
+The calculation has to be relativistic and be aware of the satelites positions and much more.
+The fix is usually made when the parameters provide a result with best accuracy
+and this can differ due to the environmental conditions.
+
+[IMPORTANT]
+====
+Real Time Developers should stick to the `fixTime` in order + 
+to get the actual universal time *when and where* + 
+the fix (or event) has occured -- *in reality*.
+====
+
+The `deviceTime` is the point in time when the position and event are sent. +
+Consecutive messages _can_ have the same `fixTime`. +
+The `serverTime` is the time, when the position and event are persisted. +
+It can provide clues about the connectivity and network latency.
+
+
+== Real Time Data Structures
+
+Traccar manages its Entities and Relations with an Entity Relational Data Model - ERM.
+So we need to define a robust data structure to work with Entities and Relations 
+in the RAM, i.e. Software.
+
+Core Design Principles
+
+* Centralized State + 
+    All data is held in a single, well-defined state object. 
+
+* Normalization +
+    Each entity type (`User, Device, Position, Geofence`..) is stored in its own "table" or `map`. 
+    Objects reference each other by `ID` rather than nesting the full object. 
+    This prevents data duplication and makes updates atomic. 
+    For example, a `Device` object will contain a `positionId` instead of the entire position object.
+
+* Maps for `O(1)` Lookups +
+    Data is stored in Maps where the key is the entity's `id`. 
+    This allows for extremely fast lookups when an update comes in, 
+    which is essential for real-time performance.
+    
+
+=== RealTimeManager
+
+<1> The `RealTimeManager` is a thread-safe Singleton class to manage 
+the real-time state of the Traccar client, also known as StateManager in RealTime context.
+
+<2> By using the `new` operator Spring mechanisms are overriden.
+
+<3> The private constructor locks external usage and only the static instance is provided. 
+
+<4> It uses ConcurrentHashMaps to allow thread safe updates 
+from WebSocket listener background threads. +
+Data is stored in maps for fast `O(1)` lookups by ID.
+
+    
+[source,java]
+----
+public final class RealTimeManager {              <!--1-->
+
+  private static final RealTimeManager INSTANCE = new RealTimeManager();   <!--2-->
+
+  private RealTimeManager() {}                                             <!--3-->
+  public static RealTimeManager getInstance() { return INSTANCE; }
+
+  private final Map<Long, User> users = new ConcurrentHashMap<>();         <!--4-->
+  private final Map<Long, Device> devices = new ConcurrentHashMap<>();
+  private final Map<Long, Position> positions = new ConcurrentHashMap<>();
+----
+
+Note that there is no API involved.
+
+
+==== Data Flow & Interaction
+
+Now we need to develop methods for state modifications. +
+We have to load initial entities and then update them 
+from the live data coming in over a websocket connection.
+
+Basically we will use the `RealTimeManager` in these sequentiell steps:
+
+1. _Authenticate_ on Traccar Server and receive a `User` object with a database ID. +
+Store `User` in  `RealTimeManager` with `loginUser(User user)`.
+
+2. _Load_ initial data for the scenario by fetching the entities from Traccar 
+and converting them to a Map. +
+Optionally collect last known `Position` objects for the `Devices`.
+
+3. _Connect_ to websocket and receive live data. +
+Traccar pushes JSON object arrays to be transformed 
+and then updated on individual entities.
+
+Have a look at these `RealTimeManagerIT` snippets to identify the steps listed above
+as you read on:
+
+[source,java]
+----
+class RealTimeManagerIT extends BaseReaTimeScenarioTest { // sets up scenario
+
+  @Autowired protected Api api;
+  private RealTimeManager stateManager = RealTimeManager.getInstance();
+  
+    // login
+    api.setBasicAuth(scenario.admin.getEmail(), scenario.admin.getPassword());
+    stateManager.loginUser(scenario.admin);
+    
+    // initialize
+    initialUsers = api.getUsersApi().getUsers(null);
+    stateManager.loadInitialUsers(initialUsers);
+    stateManager.getAllUsers() ...
+    
+    // same for devices and other entities
+----
+
+The last simulation of a server update is purely logical
+and zero websocket technology. +
+The line
+[source,java]
+----
+    stateManager.addOrUpdatePosition(newPosition);
+----
+'simulates' a `Position` that could come in via WebSocket or any other ETL 
+to a controller that invokes methods to change the real time state.
+
+Now that we can safely read from the `RealTimeManager` + 
+we will create a `RealTimeController` for synchronization.
+
+
+=== RealTimeController
+
+The `RealTimeManagerIT` test is holding the `private RealTimeManager` in order to test it's methods.
+
+The `RealTimeController` is the subsequent implementation keeping the `RealTimeManager` private
+to control it's state by synchronizing the server updates.
+The Controller encapsulates all the logic for communicating with the Traccar server.
+It handles authentication, fetches the initial state via the REST API, 
+and then connects to the WebSocket to receive and process live updates, 
+feeding everything into the thread-safe state manager.
+
+Basically the `RealTimeController` is holding 
+
+<1> the `Api` to access the server actively
+<2> the `TraccarWebSocketRoute` for updates in the background
+<3> the `RealTimeManager` to stay in sync with the server
+
+[source,java]
+----
+public class RealTimeController {
+  private final RealTimeManager stateManager = RealTimeManager.getInstance(); <!--1-->
+  @Autowired protected Api api;                                               <!--2-->
+  @Autowired private TraccarWebSocketRoute traccarLiveConnection;             <!--3-->
+----
+
+We will look at the `TraccarWebSocketRoute` soon. +
+For now you can run the `RealTimeControllerIT` 
+which basically executes the line
+
+[source,java]
+----
+  controller.loginAndInitialize(scenario.admin)
+----
+
+where the authentication, loading of initial server Entities 
+and establishing a live connection via WebSocket.
+
+==== RealTimeControllerIT
+
+This test initializes Camel and rt controller 
+
+ bm.traccar.rt.RealTimeControllerIT    : Starting RealTimeControllerIT ..
+ camel start ..
+ bm.traccar.rt.RealTimeControllerIT    : Started RealTimeControllerIT in 3.186 seconds
+
+loads the scenario on the server (base test)
+
+ bm.traccar.rt.scenario.ScenarioLoader : --- Setup scenario on server ---
+
+then the controller is authenticated via server 
+and can load the scenario in the rt manager:
+
+ bm.traccar.rt.RealTimeController      : --- Loading initial users from server...   ---
+ bm.traccar.rt.RealTimeController      : --- Loading initial devices from server... ---
+
+ 
+with server entities. +
+The we can see `TraccarWebSocketRoute` handshake to obtain a sessionId, 
+the creation of a `VertxWebsocketEndpoint` 
+and finally the user is logged in the rt controller:
+
+ bm.traccar.ws.TraccarWebSocketRoute   : Obtained JSESSIONID: node015pugc...4ehrxl88u6sl19.node0
+ o.a.c.c.v.w.VertxWebsocketEndpoint    : Connected to WebSocket on localhost:80
+ bm.traccar.rt.RealTimeController      : User logged in: admin
+
+And now the software is running an waiting for server updates:
+
+ traccarWebSocketDynamicRoute          : Received Traccar WebSocket update: {"positions":[]}
+ traccarWebSocketMessageProcessingRoute:    Process WebSocket raw  message: {"positions":[]}
+ traccarWebSocketMessageProcessingRoute:    Process WebSocket json message: {positions=[]}
+
+
+== Real Time Updates
+
+As indicated the `TraccarWebSocketRoute` updates 
+the `TraccarStateManager` similar the the controller.
+
+We already had chosen `Apache Camel` for integration purposes
+and the `TraccarWebSocketRoute` is a complete Camel implementation
+and is described in more detail 
+xref:./websocket.adoc[here].
+
+
+== conclusion
+
+This Java structure provides a clean, scalable, and safe way to manage your Traccar client's data. + 
+Your REST API client would call methods like `loginUser` and `loadInitialDevices`, +
+while your WebSocket client's `onMessage` handler would call `addOrUpdatePosition` and/or other Entities. + 
+The rest of your application can then safely read from the `TraccarStateManager` to display data.
+
+
+

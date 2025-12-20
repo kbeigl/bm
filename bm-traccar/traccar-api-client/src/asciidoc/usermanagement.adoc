@@ -1,0 +1,153 @@
+
+:toc:
+
+= Traccar User Management
+
+This is an ITest guide through 
+https://www.traccar.org/user-management/[Traccar's User Management] 
+
+== Server Roles
+
+Let's have another look at the `ScenarioLoaderIT`.
+
+@Before the tests are started the Traccar Docker Container is started.
+At this point the server is launched from its original distribution.
+This implies that there is no registered User at this point to take control.
+A hen and egg problem.
+
+=== `virtualAdmin`
+
+Therefor we have setup a `virtualAdmin`, which is predefined
+in the `traccar.xml` file with
+
+    <entry key='web.serviceAccountToken'>VIRTUAL_ADMIN_ACCESS</entry>
+
+then this value is matched in the `application.properties`
+
+    traccar.web.serviceAccountToken=VIRTUAL_ADMIN_ACCESS
+
+and we can login to the server with
+
+    api.setBearerToken(virtualAdmin);
+
+to create an Admin User defined in the prop file.
+
+=== browser validation
+
+You can debug the ITests and set a breakpoint 
+before the scenario is torn down. +
+Then you can login to the Traccar frontend via browser URL
+
+    http://localhost/?token=VIRTUAL_ADMIN_ACCESS
+
+and check the status of users and devices. +
+Don't forget to resume teardown!
+
+
+=== `User` Account
+
+The ROAF is about Tracking Devices being tracked by Traccar GTS. +
+Traccar is a multi client user system with a detailed permission structure
+that we want to use. +
+We have setup the `serviceAccount` password to access the fresh server. +
+The first step is to create a *Traccar Account* represented by a `User` 
+- the `admin`.
+
+
+=== `admin`
+
+[quote, see https://www.traccar.org/user-management/]
+____
+*Admin* - superuser with full unlimited access to the whole Traccar server.
+____
+
+The admin User is created on the server straight forward with minimal attributes
+
+[source,java]
+----
+admin = api.getUsersApi().createUserWithCredentials(name, password, email, administrator);
+----
+
+This is the technical service administrator of the Traccar GTS,
+is not part of the scenario and has no restrictions. +
+So we can leave the `virtualAdmin` behind and log in as admin
+
+    api.setBasicAuth(admin.getEmail(), props.getUser().get(0).password);
+
+Note that we fetch the password from the user in the prop file,
+since passwords are not transfered from server.
+
+
+== Scenario Users
+
+After we have setup the `admin` we will use this account 
+to setup the scenario
+
+[source,java]
+----
+    // continue as admin who is not part of the scenario!
+    api.setBasicAuth(admin.getEmail(), admin.getPassword());
+    createScenarioUsers();
+    createScenarioDevices();
+----
+
+Traccar's User Management distiguishes three user roles
+
+[quote, see https://www.traccar.org/user-management/]
+____
+Traccar user management model supports use cases from simple individual user accounts +
+to large organizations with multiple *managers, administrators* and *regular users*.
+____
+
+
+=== `manager`
+
+
+[quote, see https://www.traccar.org/user-management/]
+____
+*Manager* - user with extended capabilities allowing them +
+to manage 
+a subset of users and register new ones. +
+The difference between manager and regular user is in their user limit value. +
+A manager has the user limit not equals to 0.
+____
+
+We want one manager for each scenario.
+Or a game master for each game. +
+He can observe the scenario and interfere like a referee, 
+even disqualify and take devices out of the scenario.
+
+Again we can apply `createUserWithCredentials` to create a User
+without admin rights and then we can update/upgrade the User
+to become a manager:
+
+[source,java]
+----
+    // provide permissions
+    //  0: Cannot create any users/devices.              regular user
+    // -1: Can create an unlimited number of users/devices.   manager
+    //  N: Can create up to N users/devices.                  manager
+    manager.setUserLimit(2);
+    manager.setDeviceLimit(3);
+    api.getUsersApi().updateUser(manager.getId(), manager);
+----
+
+Now the `manager` can log into the frontend 
+and create two Users and two Devices. +
+If he tries to add another one the frontend will report
+`Manager user limit reached`.
+
+If you'll have a look at the `@Test managerUserLimit()` in
+link:../test/java/bm/traccar/api/UsersApiIT.java[UsersApiIT]
+you can see how a - technical - `admin` creates a `manager` via REST.
+Then this `manager` is authenticated and is used to create 
+*three* Users with `manager.setUserLimit(2)`!
+
+Further analysis showed that all created Users belong to the users
+marked as `admin`.
+ 
+To setup a more complex scenario with individual rights 
+we need to work with the `PermissionsApi`.
+
+xref:./permissions.adoc[continue with `PermissionsApi`]
+

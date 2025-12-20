@@ -440,13 +440,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_project_nature">project nature</a>
-<ul class="sectlevel2">
 <li><a href="#_maven_build_tool">Maven build tool</a></li>
-<li><a href="#_camel_integration_framework">Camel integration framework</a></li>
-<li><a href="#_spring_framework_and_spring_boot_application">Spring Framework and Spring Boot Application</a></li>
-</ul>
-</li>
+<li><a href="#_camel_integration_framework">Camel Integration Framework</a></li>
+<li><a href="#_camel_spring">Camel &amp; Spring</a></li>
 <li><a href="#_multi_module_projects_structure">Multi Module projects structure</a>
 <ul class="sectlevel1">
 <li><a href="#_root_project_bm_sim">root project <code>bm-sim</code></a>
@@ -477,6 +473,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_google_code_style">Google Code Style</a></li>
 </ul>
 </li>
+<li><a href="#_maven_wrapper">Maven Wrapper</a></li>
 <li><a href="#_maven_maintenance_release">Maven maintenance &amp; release</a>
 <ul class="sectlevel1">
 <li><a href="#_upgrades_and_updates">upgrades and updates</a>
@@ -484,7 +481,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_step_1_maven_versions">step 1 - maven versions</a></li>
 <li><a href="#_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</a></li>
 <li><a href="#_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</a></li>
-<li><a href="#_step_4_tracar_versions">step 4 - Tracar versions</a></li>
+<li><a href="#_step_4_traccar_versions">step 4 - Traccar versions</a></li>
 <li><a href="#_useful_mvn_commands">useful mvn commands</a></li>
 </ul>
 </li>
@@ -504,17 +501,15 @@ The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every <code>mvn</code> command executed.
 It assures that any project is build as required by another.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_project_nature">project nature</h2>
-<div class="sectionbody">
 <div class="paragraph">
 <p>This is a Java project and the development cycle
 is defined by the major components:</p>
 </div>
-<div class="sect2">
-<h3 id="_maven_build_tool">Maven build tool</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_build_tool">Maven build tool</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Implies major versioning, dependency management, plugin configuration,
 build lifecycle and finally release management.
@@ -523,37 +518,35 @@ If available and feasible external tools, i.e. plugins, like the
 are integrated into the lifecycle to generate code for subsequent modules.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_camel_integration_framework">Camel integration framework</h3>
+</div>
+<div class="sect1">
+<h2 id="_camel_integration_framework">Camel Integration Framework</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Apache Camel has a very powerful bean injection framework
-to allow developers <em>to focus on solving business problems</em>.</p>
+to allow developers <em>to focus on solving business problems</em>.
+At its core, Apache Camel is an integration engine, which can be used
+to facilitate
+interactions between a wide and varied array of technologies.
+These bridges between service- and technology <em>Endpoints</em>,
+the <em>Routes</em> are implemented on an engine - the <em>CamelContext</em>,
+and they communicate with <em>Exchange Messages</em>.</p>
 </div>
 <div class="paragraph">
-<p>At its core, Apache Camel is an integration engine, which can be used
-to facilitate interactions between a wide and varied array of technologies.
-These bridges between service- and technology Endpoints,
-the Routes are implemented on an engine - the CamelContext,
-and they communicate with “exchange messages”.</p>
+<p>In this repository Camel is used to glue independantly developed Units together.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_camel_spring">Camel &amp; Spring</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>For this repository Camel is used to glue independant Units together.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_spring_framework_and_spring_boot_application">Spring Framework and Spring Boot Application</h3>
-<div class="paragraph">
-<p>Spring context, dependency injection, and application startup.</p>
-</div>
-<div class="paragraph">
-<p><a href="https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html" class="bare">https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html</a></p>
-</div>
-<div class="paragraph">
-<p>Spring Boot component provides auto-configuration for Apache Camel.
-Our opinionated auto-configuration of the Camel context
-auto-detects Camel routes available in the Spring context
-and registers the key Camel utilities
-(like producer and consumer templates, type converters etc.) as <code>@Bean</code>.</p>
+<p><strong>Camel</strong> allows you to define your data flow as a declarative route
+for complex integration and routing work,
+and then handing off the final business logic
+to standard <strong>Spring</strong> components like Controllers or Services.
+While <strong>Spring Boot</strong> handles the lifecycle and dependency injection
+in the Spring context, dependency injection, and application startup.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -571,6 +564,16 @@ and registers the key Camel utilities
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>check out
+<a href="https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html">camel-spring-boot</a></p>
+</div>
+<div class="paragraph">
+<p>Spring Boot component provides auto-configuration for Apache Camel.
+Our opinionated auto-configuration of the Camel context
+auto-detects Camel routes available in the Spring context
+and registers the key Camel utilities
+(like <code>producer</code> and <code>consumer</code> templates, type converters etc.) as <code>@Bean</code>.</p>
 </div>
 </div>
 </div>
@@ -907,6 +910,83 @@ and automatically formats the code before compilation.</p>
 </div>
 </div>
 </div>
+<h1 id="_maven_wrapper" class="sect0">Maven Wrapper</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>To make sure that the complete project is build with a specified Maven Version
+it is possible to add a Maven Wrapper with a determined version.</p>
+</div>
+<div class="paragraph">
+<p>Simply run this from the root directory</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>~/git/bm$ mvn wrapper:wrapper -Dmaven=3.8.8</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to get</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>bm/
+├── .mvn/
+│   └── wrapper/
+│       ├── maven-wrapper.jar
+│       └── maven-wrapper.properties
+├── mvnw
+├── mvnw.cmd
+├── pom.xml (Root POM)
+├── bm-parent/
+│   └── pom.xml
+└── etc.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now we can build the complete multimodule project from the root with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/git/bm$ ./mvnw clean install</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And you can build any subproject <em>from the root</em> with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/git/bm$ ./mvnw clean install -pl bm-tracker    -am
+/git/bm$ ./mvnw clean install -pl bm:bm-tracker -am</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or, better, if you are working inside a subproject like the <code>gps-osmand-tracker</code></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>~/git/bm/bm-tracker/gps-osmand-tracker$ ../../mvnw clean install</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that you reference the <code>mvnw</code> in the root by going up two folders
+with <code>../../</code><br>
+depending on where you are working from the command line.</p>
+</div>
+<div class="paragraph">
+<p>Since this setup is generally idempotent the wrapper can be upgraded
+anytime with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>~/git/bm$ mvn wrapper:wrapper -Dmaven=3.9.2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then the next build will pick up the required files.</p>
+</div>
+</div>
+</div>
 <h1 id="_maven_maintenance_release" class="sect0">Maven maintenance &amp; release</h1>
 <div class="sect1">
 <h2 id="_upgrades_and_updates">upgrades and updates</h2>
@@ -955,7 +1035,7 @@ and lowest backward compatibility for users of the released jar files.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_step_4_tracar_versions">step 4 - Tracar versions</h3>
+<h3 id="_step_4_traccar_versions">step 4 - Traccar versions</h3>
 <div class="paragraph">
 <p>This step is more than just a change of pom coordinates.
 Traccar always has and still is evolving at a high pace and

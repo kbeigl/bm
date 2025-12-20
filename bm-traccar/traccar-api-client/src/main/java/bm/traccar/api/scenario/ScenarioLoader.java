@@ -11,13 +11,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * This is a small ETL, reading the scenario.props, tranforming props into Traccar DTOs and loading
- * them to the Traccar Server.
+ * This class takes care of getting the scenario properties via ScenarioProperties class and creates
+ * the (Test) Scenario on the Traccar Server.
  *
- * <p>Setup a minimal, but strict scenario with users and devices (for testing).
+ * <p>A little ETL, reading the scenario.props, transforming props into Traccar DTOs and loading
+ * them to the Traccar Server. i.e. setup a minimal, but strict scenario with users and devices (for
+ * testing).
  *
- * <p>This class takes care of getting the scenario properties via ScenarioProperties class and
- * creates the Test Scenario on the Traccar Server.
+ * <p>The setup is done in multiple steps, each requiring specific permissions. Therefor the
+ * scenario setup is done line by line to explore the server behavior.
  */
 @Component // @Singleton ?
 public class ScenarioLoader {
@@ -29,29 +31,74 @@ public class ScenarioLoader {
   @Autowired protected Api api;
   @Autowired private ScenarioProperties props;
 
-  public User admin;
-  User manager, hide, seek;
+  // admin is not part of the scenario!
+  // Each scenario must have a manager account with a view on all Traccar Objects.
+  public User admin, manager, hide, seek;
 
-  // setupScenario(adminMail, adminPassword);
+  // consider: setupScenario(adminMail, adminPassword);
 
-  /** Each scenario must have an admin account with a view on all Traccar Objects. */
   public void setupScenario() {
 
-    // set initial authentication - outside ?
     api.setBearerToken(virtualAdmin);
     setupServer();
-    admin = createAdminUser(props.getUser().get(0));
+
+    // virtualAdmin creates actual server admin ===========
+    ScenarioProperties.User user = props.getUser().get(0);
+    admin =
+        api.getUsersApi()
+            .createUserWithCredentials(user.name, user.password, user.email, user.administrator);
+    // for test purposes ONLY we set the password for simplicity
+    admin.setPassword(user.password);
+    logger.info("Created User.id{}: {}/{}", admin.getId(), admin.getName(), admin.getPassword());
 
     // continue as admin who is not part of the scenario!
-    api.setBasicAuth(admin.getEmail(), props.getUser().get(0).password);
+    api.setBasicAuth(admin.getEmail(), admin.getPassword());
     createScenarioUsers();
-
-    // create devices for users - as admin or user ?
-    // one user could control all detective-devices
     createScenarioDevices();
+  }
 
-    // virtualAdmin is still authorized in extending tests!
+  /**
+   * This method can only be executed by an admin with rights to create users and devices.
+   *
+   * <p>throw noPermissionException ?
+   */
+  private void createScenarioUsers() {
+    // start at 1, admin is created separately
+    for (int i = 1; i < props.getUser().size(); i++) {
+      ScenarioProperties.User u = props.getUser().get(i);
+      User createdUser =
+          api.getUsersApi().createUserWithCredentials(u.name, u.password, u.email, false);
 
+      logger.info(
+          "Created User.id{}: {}/{}", createdUser.getId(), createdUser.getName(), u.password);
+      switch (i) {
+        case 1: // manager attributes
+          manager = createdUser;
+          //  0: Cannot create any users/devices.  (default)
+          // -1: Can create an unlimited number of users/devices.
+          //  N: Can create up to N users/devices.
+          manager.setUserLimit(2);
+          manager.setDeviceLimit(3);
+          manager = api.getUsersApi().updateUser(manager.getId(), manager);
+          // server does not return password, set here for further use
+          manager.setPassword(u.password);
+          break;
+        case 2:
+          hide = createdUser;
+          // IF the user wants to create his own devices
+          hide.setDeviceLimit(1);
+          hide = api.getUsersApi().updateUser(hide.getId(), hide);
+          hide.setPassword(u.password);
+          break;
+        case 3:
+          seek = createdUser;
+          // IF the user wants to add own devices
+          seek.setDeviceLimit(3);
+          seek = api.getUsersApi().updateUser(hide.getId(), hide);
+          seek.setPassword(u.password);
+          break;
+      }
+    }
   }
 
   // createDevicesForUser(..);
@@ -68,6 +115,7 @@ public class ScenarioLoader {
       logger.info("Created Device.id{}: {}", createdDevice.getId(), createdDevice.getName());
       switch (i) {
         case 0:
+          // add real device to manager
           realDevice = createdDevice;
           break;
         case 1:
@@ -81,46 +129,6 @@ public class ScenarioLoader {
           break;
       }
     }
-  }
-
-  /** This method can only be executed by an admin with rights to create users and devices. */
-  private void createScenarioUsers() {
-    for (int i = 1; i < props.getUser().size(); i++) { // start at 1, admin is created separately
-      ScenarioProperties.User u = props.getUser().get(i);
-      User createdUser =
-          api.getUsersApi().createUserWithCredentials(u.name, u.password, u.email, false);
-      logger.info("Created User.id{}: {}", createdUser.getId(), createdUser.getName());
-      // Optionally assign to fields if needed
-      switch (i) {
-        case 1:
-          manager = createdUser;
-          break;
-        case 2:
-          hide = createdUser;
-          break;
-        case 3:
-          seek = createdUser;
-          break;
-      }
-    }
-  }
-
-  private User createAdminUser(ScenarioProperties.User user) {
-    admin =
-        api.getUsersApi()
-            .createUserWithCredentials(user.name, user.password, user.email, user.administrator);
-    // provide permissions
-    //  0: Cannot create any users/devices.  (default)
-    // -1: Can create an unlimited number of users/devices.
-    //  N: Can create up to N users/devices.
-    // this can also be applied to managers
-    admin.setUserLimit(5);
-    admin.setDeviceLimit(5);
-    api.getUsersApi().updateUser(admin.getId(), admin);
-    logger.info("Created Admin User.id{}: {}", admin.getId(), admin.getName());
-    // for test purposes we will set the password
-    admin.setPassword(user.password);
-    return admin;
   }
 
   /** This actually does not belong to the scenario itself, it's a prerequisite. */
@@ -137,9 +145,16 @@ public class ScenarioLoader {
   // delete users > imply devices and relations?
   public void teardownScenario() {
 
-    // never know who's calling
-    // api.setBearerToken(virtualAdmin);
-    api.setBasicAuth(admin.getEmail(), props.getUser().get(0).password);
+    /*
+     * scenario.setup    is called from @BeforeAll
+     * scenario.teardown is called from @AfterAll  in BaseScenarioTest
+     *
+     * The problem is that after setupScenario this instance is different! Therefor the admin
+     * user is null. So we take the admin credentials from the properties and hope the scenario was
+     * not changed.
+     */
+    // .setBasicAuth(admin.getEmail(), props.getUser().get(0).password);
+    api.setBasicAuth(props.getUser().get(0).email, props.getUser().get(0).password);
 
     logger.info("--- tear down scenario on server ---");
     // Remove devices
@@ -163,7 +178,7 @@ public class ScenarioLoader {
       ScenarioProperties.User u = props.getUser().get(i);
       try {
         // Find user by email and delete
-        for (User user : api.getUsersApi().getUsers(null)) {
+        for (User user : api.getUsersApi().getAllUsers()) {
           if (user.getEmail().equals(u.email)) {
             api.getUsersApi().deleteUser(user.getId());
             logger.info("Deleted User.id{}: {}", user.getId(), user.getEmail());
@@ -177,7 +192,7 @@ public class ScenarioLoader {
     // Remove admin user
     ScenarioProperties.User adminProp = props.getUser().get(0);
     try {
-      for (User user : api.getUsersApi().getUsers(null)) {
+      for (User user : api.getUsersApi().getAllUsers()) {
         if (user.getEmail().equals(adminProp.email)) {
           api.getUsersApi().deleteUser(user.getId());
           logger.info("Deleted Admin User.id{}: {}", user.getId(), user.getEmail());

@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.12</version>
+        <version>1.1.13</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -44,7 +44,7 @@
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
 
-        <maven-minimum-version>3.6.3</maven-minimum-version>
+        <maven-minimum-version>3.8.8</maven-minimum-version>
         <maven-enforcer-plugin-version>3.6.1</maven-enforcer-plugin-version>
         <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
         <maven-failsafe-plugin-version>3.5.3</maven-failsafe-plugin-version>
@@ -59,7 +59,7 @@
         <traccar.version>${project.version}</traccar.version> -->
         <traccar.version>6.10.0</traccar.version>
 
-        <docker.maven.plugin.version>0.46.0</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.48.0</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
@@ -69,6 +69,12 @@
         <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
         <!-- ITs are skipped, but docker is starting if above is false -->
         <integration.tests.skip>true</integration.tests.skip>
+        
+        <!-- avoid agent warning since Java 21 in surefire and failsafe testing. 
+        TODO Version should be derived from spring/camel stack!
+        see https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+         <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine> -->
+        <mockito.version>5.20.0</mockito.version>
 
     </properties>
 
@@ -101,7 +107,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- test -->
+        
+        <!-- ========== test ========== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -118,7 +125,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    
     <build>
         <pluginManagement>
             <plugins>
@@ -138,13 +145,18 @@
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin-version}</version>
+                    <configuration>
+                        <argLine>
+                            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                        </argLine>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-failsafe-plugin-version}</version>
                     <executions>
                         <execution>
-                            <id>traccar-api-itests</id>
+                            <id>traccar-itests</id>
                             <goals>
                                 <goal>integration-test</goal>
                                 <goal>verify</goal>
@@ -153,6 +165,9 @@
                                 <skipITs>${integration.tests.skip}</skipITs>
                                 <classesDirectory>
                                     ${project.build.outputDirectory}</classesDirectory>
+                                <argLine>
+                                    -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                                </argLine>
                             </configuration>
                         </execution>
                     </executions>
@@ -184,7 +199,7 @@
                                         <bind>
                                             <volume>/opt/traccar/logs:/opt/traccar/logs:rw</volume>
                                             <volume>/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
-                                            <!-- <volume>/opt/traccar/data:/opt/traccar/data:rw</volume> -->
+                                            <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
                                         </bind>
                                     </volumes>
                                     <log><!-- do not remove --></log>
@@ -263,6 +278,9 @@
                 </executions>
             </plugin>
             <!-- move to pluginManagement ! 
+            Repackage existing JAR and WAR archives so that they 
+            can be executed from the command line using java -jar. 
+            docs.spring.io/spring-boot/docs/3.2.0-SNAPSHOT/maven-plugin/reference/htmlsingle/#packaging
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

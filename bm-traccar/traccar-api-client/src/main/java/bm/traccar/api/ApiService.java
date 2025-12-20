@@ -1,10 +1,12 @@
 package bm.traccar.api;
 
 import bm.traccar.api.impl.DevicesImpl;
+import bm.traccar.api.impl.PermissionsImpl;
 import bm.traccar.api.impl.ServerImpl;
 import bm.traccar.api.impl.SessionImpl;
 import bm.traccar.api.impl.UsersImpl;
 import bm.traccar.generated.api.DevicesApi;
+import bm.traccar.generated.api.PermissionsApi;
 import bm.traccar.generated.api.ServerApi;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
@@ -24,7 +26,6 @@ import org.springframework.stereotype.Service;
  */
 @Service // ("traccarApiService")
 public class ApiService implements Api {
-  // private static final Logger logger = LoggerFactory.getLogger(ApiService.class);
 
   @Autowired private ApiClient apiClient;
 
@@ -72,22 +73,26 @@ public class ApiService implements Api {
     apiClient.setBasePath(host);
   }
 
-  /*
-   * constructor injection makes dependencies explicit and objects immutable.
-   */
+  /* constructor injection makes dependencies explicit and objects immutable. */
   public ApiService(
-      SessionApi sessionApi, UsersApi usersApi, DevicesApi devicesApi, ServerApi serverApi) {
+      SessionApi sessionApi,
+      UsersApi usersApi,
+      DevicesApi devicesApi,
+      ServerApi serverApi,
+      PermissionsApi permissionsApi) {
     // sub interface  = new sub interface implementation (wrapping generated API)
     this.session = new SessionImpl(sessionApi);
     this.users = new UsersImpl(usersApi);
     this.devices = new DevicesImpl(devicesApi);
     this.server = new ServerImpl(serverApi);
+    this.permissions = new PermissionsImpl(permissionsApi);
   }
 
   public final Api.Users users;
   public final Api.Devices devices;
   public final Api.Session session;
   public final Api.Server server;
+  public final Api.Permissions permissions;
 
   @Override
   public Api.Users getUsersApi() {
@@ -107,5 +112,10 @@ public class ApiService implements Api {
   @Override
   public Api.Server getServerApi() {
     return server;
+  }
+
+  @Override
+  public Api.Permissions getPermissionsApi() {
+    return permissions;
   }
 }

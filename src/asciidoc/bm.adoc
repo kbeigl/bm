@@ -12,14 +12,14 @@ link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-eboo
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.12 
-    [INFO] --- blue marble parameters                --- 1.1.12 
-    [INFO] ---- traccar client implementations       --- 1.1.12 
+    [INFO] === blue marble simulations               === 1.1.13 
+    [INFO] --- blue marble parameters                --- 1.1.13 
+    [INFO] ---- traccar client implementations       --- 1.1.13 
     [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
     [INFO] ..... traccar-api-client          6.10.0-RC ........ 
     [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
-    [INFO] ---- GPS Unit and Tracker            --- 1.1.12-beta 
-    [INFO] ..... gps-osmand-tracker        1.1.12-beta ........
+    [INFO] ---- GPS Unit and Tracker            --- 1.1.13-beta 
+    [INFO] ..... gps-osmand-tracker          1.1.13-beta ......
 -----------------
 
 For earlier versions check the 
@@ -30,9 +30,15 @@ xref:releases.adoc[version history]
 This `bm-sim` repository is a *Maven Multi Module* project.
 The Maven Reactor mechanism makes sure to collect all modules 
 and assert correct build order with every `mvn` command executed. 
-It assures that any project is build as required by another.  
+It assures that any project is build as required by another. 
 
-xref:../../bm-parent/src/asciidoc/bm-parent.adoc[details ...]
+If you are not sure about your Maven Version
+it is highly recommded to use the 
+xref:../../bm-parent/src/asciidoc/maven-maintenance.adoc[Maven Wrapper]   
+in the root directory!
+
+
+xref:../../bm-parent/src/asciidoc/bm-parent.adoc[bm-parent details ...]
 
 
 == `/bm-traccar`
@@ -81,64 +87,28 @@ The traccar-rt-client is a Java Client Software
 to provide full (remote) control over and interact 
 via live surveillance of your Traccar Server Scenario. 
 
-xref:../../bm-traccar/traccar-rt-client/src/asciidoc/traccar-rt-client.adoc[details ...]
+xref:../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-realtime-client.adoc[details ...]
 
-=== CLI Quick Start
-
-After creating the three layers around the `ApiClient`, `Api interface` 
-and `RealTimeManager` these are combined 
-in the `@SpringBootApplication  RealTimeClient`.
-
-==== run `RealTimeClient` CLI
-
-The `traccar-rt-client` does not provide any webservices.
-It is a plain command line interface (CLI) to connect to a traccar server 
-from the command line and read what's going on.
-
-    @SpringBootApplication
-    public class RealTimeClient implements CommandLineRunner
-
-Therefor it is a solid building block for real time applications.
-You can integrate it in your application and code against the
-`RealTimeManager` as if it was the traccar server.
-
-
-pick up the `traccar-rt-client-6.10.0-RC.jar`
-
-put it in `/someFolder/traccar-rt-client-6.10.0-RC.jar`
-
-(release url)
-
-copy app.props
-
-enter credentials
-
-run java, mvn spring:run ..
-
-start your traccar client or your tracker connected to traccar
-
-watch the console over the map
-
-If you don't have a traccar server you can sign up 
-at one of traccar's demo servers.
-
-RealTimeClient is a Spring Boot application that:
-
-    •  Starts RealTimeController on launch.
-    •  Reads admin credentials from application.properties.
-    •  Logs in as the admin user when starting.
-    •  Remains running until manually shutdown (e.g., Ctrl+C), and supports graceful shutdown.
-
-  modify RealTimeClient to a @SpringBootApplication that starts the RealTimeController
-  and log in as traccar.admin.name as provided in the application.properties and can be gracefully shutdown manually
-
-  You can run the application as usual (e.g., with mvn spring-boot:run or java -jar),
-  and it will log in and initialize the real-time controller using the configured admin credentials.
+xref:../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-rt-CLI.adoc[Quickstart]
 
 == `/bm-tracker`
 
+The Maven project branch `bm-traccar` serves as the development environment for integrating with the Traccar GPS Tracking Platform. 
+We have created a `traccar-realtime-client` to mirror what's going on in the Tracking System.
+This `bm-tracker` branch is used to develop GPS Tracker Simulators which can track things by sending their positions frequently.
+
+xref:../../bm-tracker/src/asciidoc/bm-tracker.adoc[details ...]
 
 
+=== `gps-osmand-tracker`
+
+==== The GPS OsmAnd Tracker
+
+The gps-osmand-tracker is a Java Client Software 
+to simulate a standard device that collects GPS locations, 
+optionally buffer and send them to a server asap. 
+
+xref:./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto `gps-osmand-tracker`]
 
 
 

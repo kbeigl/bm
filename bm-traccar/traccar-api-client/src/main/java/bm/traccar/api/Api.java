@@ -68,15 +68,34 @@ public interface Api {
 
     void deleteUser(Long id) throws ApiException; // DELETE
 
-    // TODO: use stricter type than String for userId
-    List<User> getUsers(String userId) throws ApiException; // GET
+    // @Deprecated
+    // List<User> getUsers(String userId) throws ApiException; // GET
 
-    // List<User> getUsers( /* no args */ ) throws ApiException; // GET
+    User getUserById(String userId) throws ApiException; // GET
+
+    //   maybe getAllMyUsers and whoAmI()
+    List<User> getAllUsers() throws ApiException; // GET
 
     // helper methods below based on generic calls above ------------
     // handle ApiException ?
 
-    User createUserWithCredentials(String usr, String pwd, String mail, Boolean admin);
+    User createUserWithCredentials(String name, String pwd, String mail, Boolean admin);
+
+    // *** apply default Implementation to avoid code duplication ***
+
+    // Return single user by id (maps to GET /users/{id})
+    //    default User getUserById(Long id) throws ApiException {
+    //      if (id == null) return null;
+    //      // delegate to the string-based getUserById (implemented by UsersImpl)
+    //      return getUserById(id.toString());
+    //    }
+
+    // helper to check User Roles (does not map to REST API)
+    boolean isAdmin(User user);
+
+    boolean isManager(User user);
+
+    boolean isRegularUser(User user);
   }
 
   Api.Devices getDevicesApi();
@@ -94,5 +113,14 @@ public interface Api {
     // helper methods below based on generic calls above ------------
 
     // Device createDeviceForUser(String name, String uniqueId, String userMail);
+  }
+
+  Api.Permissions getPermissionsApi();
+
+  interface Permissions {
+
+    void createPermission(Permission permission); // POST
+
+    void deletePermission(Permission permission); // DELETE
   }
 }

@@ -42,7 +42,7 @@ public abstract class BaseScenarioTest {
     // This class can be empty, it holds the annotations.
   }
 
-  @Autowired ScenarioLoader scenario;
+  @Autowired protected ScenarioLoader scenario;
 
   @BeforeAll
   public void setup() throws ApiException {
@@ -56,7 +56,7 @@ public abstract class BaseScenarioTest {
 
   @Autowired private ApplicationContext appContext;
 
-  /** Helper to make sure bm.traccar beans are loaded as in a @SpringBootApplication context. */
+  /** Helper to validate if bm.traccar beans are loaded as in a @SpringBootApplication context. */
   void listAllBeansInTestContext() {
 
     String[] allBeanNames = appContext.getBeanDefinitionNames();

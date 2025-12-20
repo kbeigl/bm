@@ -1,0 +1,131 @@
+
+:toc:
+
+= Traccar Permissions
+
+== Permissions
+
+https://www.traccar.org/permissions-groups/
+
+Permissions = Link an Object to another Object
+
+  => User = user account
+
+  http://localhost/api/users > all users as json
+
+Administrators and managers can control permissions for their users
+from the Users menu in the settings.
+It is accessible from the Connections menu option in the users list.
+
+Almost all entities in Traccar have associated permissions and can be linked to user accounts. It applies not only to devices, but also things like geofences, notifications etc.
+
+Link an Object to another Object
+
+https://www.traccar.org/api-reference/#tag/Permissions/paths/~1permissions/post
+
+    Authorizations:
+    BasicAuthApiKey
+    Request Body schema: application/json
+    required
+    userId  
+    integer <int64>
+    User id, can be only first parameter
+    
+    deviceId    
+    integer <int64>
+    Device id, can be first parameter or second only in combination with userId
+    
+    groupId 
+    integer <int64>
+    Group id, can be first parameter or second only in combination with userId
+    
+    geofenceId  
+    integer <int64>
+    Geofence id, can be second parameter only
+    
+    notificationId  
+    integer <int64>
+    Notification id, can be second parameter only
+    
+    calendarId  
+    integer <int64>
+    Calendar id, can be second parameter only and only in combination with userId
+    
+    attributeId 
+    integer <int64>
+    Computed attribute id, can be second parameter only
+    
+    driverId    
+    integer <int64>
+    Driver id, can be second parameter only
+    
+    managedUserId   
+    integer <int64>
+    User id, can be second parameter only and only in combination with userId
+    
+    commandId   
+    integer <int64>
+    Saved command id, can be second parameter only
+
+Link an Object to another Object
+
+    userId       deviceId
+    userId       groupId
+
+    userId      managedUserId
+
+    userId      calendarId
+
+    userId      geofenceId
+    deviceId    geofenceId
+    groupId     geofenceId
+
+    userId      notificationId
+    deviceId    notificationId
+    groupId     notificationId
+
+    userId      attributeId
+    deviceId    attributeId
+    groupId     attributeId
+
+    userId      driverId
+    deviceId    driverId
+    groupId     driverId
+
+    userId      commandId
+    deviceId    commandId
+    groupId     commandId
+
+Administrators and managers can control permissions for their users from the Users menu in the settings. It is accessible from the Connections menu option in the users list.
+
+When an object is shared between several users, they have full access to it, including the ability to delete it. If you want to avoid it, you can duplicate instances so that each user has their own object. Duplicating a device with the same unique id is not possible, so Traccar provides a special device readonly user setting to restrict users for modifying devices.
+
+== Devices
+
+Some entities can be linked to devices. For example, a geofence or a notification can be linked to a device. When linked, it means that it's associated with the device, but it does not affect user permissions. To provide user access, it also needs to be linked to the user account.
+
+For example, if a geofence is linked to a device, it means that the geofence events will be generated for this device.
+
+Linking can be done from the settings. It is accessible from the Connections menu option in the devices list.
+
+== Groups
+
+A group represent a group of devices. It is not possible to group any other entities, but you can link some entities to groups the same way you link them to devices. Same as with devices, linking to a group does not affect user permissions.
+
+For example, if a geofence is linked to a group, it means that the geofence events will be generated for all devices in the group and subgroups.
+
+Linking can be done from the settings. It is accessible from the Connections menu option in the groups list.
+
+To add a device to a group, edit the device and select the Group under the Extra section. Groups can be nested. To add a group to another group, edit the group and select the parent Group under the Extra section.
+
+https://www.traccar.org/api-reference/
+
+
+
+  setup scenario (later in BaseIT)
+  - create admin > over all users (players) and (their) devices
+  - create user/s > over his own device/s
+  - create device/s for admin/user
+  - login as admin > load all devices
+  -> one MrX and two/three Detectives
+

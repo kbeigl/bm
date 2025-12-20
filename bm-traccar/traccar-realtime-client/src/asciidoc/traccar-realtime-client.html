@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.23">
+<title>The Traccar Real Time Client</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment the following line when using as a custom stylesheet */
+/* @import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700"; */
+html{font-family:sans-serif;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+b,strong{font-weight:bold}
+abbr{font-size:.9em}
+abbr[title]{cursor:help;border-bottom:1px dotted #dddddf;text-decoration:none}
+dfn{font-style:italic}
+hr{height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type=checkbox],input[type=radio]{padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,::before,::after{box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;line-height:1;position:relative;cursor:auto;-moz-tab-size:4;-o-tab-size:4;tab-size:4;word-wrap:anywhere;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:1px solid #dedede;word-wrap:normal}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre).nobreak{word-wrap:normal}
+:not(pre).nowrap{white-space:nowrap}
+:not(pre).pre-wrap{white-space:pre-wrap}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.2),inset 0 0 0 .1em #fff;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin:0 auto;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child{border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border:1px solid #e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:none;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:hsla(0,0%,100%,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details{margin-left:1.25rem}
+details>summary{cursor:pointer;display:block;position:relative;line-height:1.6;margin-bottom:.625rem;outline:none;-webkit-tap-highlight-color:transparent}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"";border:solid transparent;border-left:solid;border-width:.3em 0 .3em .5em;position:absolute;top:.5em;left:-1.25rem;transform:translateX(15%)}
+details[open]>summary::before{border:solid transparent;border-top:solid;border-width:.5em .3em 0;transform:translateY(15%)}
+details>summary::after{content:"";width:1.25rem;height:1em;position:absolute;top:.3em;left:-1.25rem}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class=paragraph]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6);word-wrap:anywhere}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border:1px solid #e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;border-radius:4px}
+.sidebarblock{border:1px solid #dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;border-radius:4px}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:first-child,.sidebarblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child,.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{border-radius:4px;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos,pre.pygments .linenos{border-right:1px solid;opacity:.35;padding-right:.5em;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+pre.pygments span.linenos{display:inline-block;margin-right:.75em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans-serif;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;font-size:.85rem;text-align:left;margin-right:0}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content{margin-bottom:1.25em;word-wrap:anywhere}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>*>tr>*{border-width:1px}
+table.grid-cols>*>tr>*{border-width:0 1px}
+table.grid-rows>*>tr>*{border-width:1px 0}
+table.frame-all{border-width:1px}
+table.frame-ends{border-width:1px 0}
+table.frame-sides{border-width:0 1px}
+table.frame-none>colgroup+*>:first-child>*,table.frame-sides>colgroup+*>:first-child>*{border-top-width:0}
+table.frame-none>:last-child>:last-child>*,table.frame-sides>:last-child>:last-child>*{border-bottom-width:0}
+table.frame-none>*>tr>:first-child,table.frame-ends>*>tr>:first-child{border-left-width:0}
+table.frame-none>*>tr>:last-child,table.frame-ends>*>tr>:last-child{border-right-width:0}
+table.stripes-all>*>tr,table.stripes-odd>*>tr:nth-of-type(odd),table.stripes-even>*>tr:nth-of-type(even),table.stripes-hover>*>tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+li>p:empty:only-child::before{content:"";display:inline-block}
+ul.checklist>li>p:first-child{margin-left:-1em}
+ul.checklist>li>p:first-child>.fa-square-o:first-child,ul.checklist>li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist>li>p:first-child>input[type=checkbox]:first-child{margin-right:.25em}
+ul.inline{display:flex;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+td.hdlist2{word-wrap:anywhere}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:4px solid #fff;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active,#footnotes .footnote a:first-of-type:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);border-radius:50%;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt,summary{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,td.hdlist1,span.alt,summary{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]{border-bottom:1px dotted}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#header,#content,#footnotes,#footer{max-width:none}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media amzn-kf8,print{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<h1>The Traccar Real Time Client</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_real_time_systems">Real Time Systems</a></li>
+<li><a href="#_real_timing">Real Timing</a>
+<ul class="sectlevel2">
+<li><a href="#_when_and_where">when and where</a></li>
+</ul>
+</li>
+<li><a href="#_real_time_data_structures">Real Time Data Structures</a>
+<ul class="sectlevel2">
+<li><a href="#_realtimemanager">RealTimeManager</a>
+<ul class="sectlevel3">
+<li><a href="#_data_flow_interaction">Data Flow &amp; Interaction</a></li>
+</ul>
+</li>
+<li><a href="#_realtimecontroller">RealTimeController</a>
+<ul class="sectlevel3">
+<li><a href="#_realtimecontrollerit">RealTimeControllerIT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_real_time_updates">Real Time Updates</a></li>
+<li><a href="#_conclusion">conclusion</a></li>
+<li><a href="#_cli_quick_start">CLI Quick Start</a>
+<ul class="sectlevel1">
+<li><a href="#_run_realtimeclient_cli">run <code>RealTimeClient</code> CLI</a></li>
+</ul>
+</li>
+<li><a href="#_the_traccar_websocket_client">The Traccar WebSocket Client</a>
+<ul class="sectlevel1">
+<li><a href="#_the_traccar_websocket_api">The Traccar WebSocket API</a>
+<ul class="sectlevel2">
+<li><a href="#_websocket_handshake">Websocket Handshake</a>
+<ul class="sectlevel3">
+<li><a href="#_endpoint">Endpoint</a></li>
+<li><a href="#_authentication">Authentication</a></li>
+</ul>
+</li>
+<li><a href="#_websocket_component">WebSocket Component</a></li>
+</ul>
+</li>
+<li><a href="#_implementation_with_camel_routes">Implementation with Camel Routes</a>
+<ul class="sectlevel2">
+<li><a href="#_notes">Notes</a></li>
+<li><a href="#_debugging">Debugging</a>
+<ul class="sectlevel3">
+<li><a href="#_step1_http_with_curl">Step1: http with curl</a></li>
+<li><a href="#_step2_ws_with_wscat">Step2: ws with wscat</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_review_traccar_api_client">review traccar-api-client</a>
+<ul class="sectlevel2">
+<li><a href="#_simple_example_usage">simple example / usage</a></li>
+<li><a href="#_configuration">configuration</a>
+<ul class="sectlevel3">
+<li><a href="#_application_properties">application.properties</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_usage">usage</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>traccar-rt-client</code> is a Java Client Software to provide full (remote) control over
+and interact via live surveillance of your Traccar Server Scenario.
+It can be used to observe, predict and react to live events - defined by your business.
+For exmple you can control the timing of a <em>rendez vous</em> point for logistic vehicles.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_time_systems">Real Time Systems</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Modern Advanced Driver Assistant Systems (ADAS) can serve as an example of <em>Real Time Systems</em>.
+They are monitoring the vehicle <em>and</em> observing the environment
+every instance of the motion. With a 5 GHz network the computational power can take place
+in large server farms, while the vehicle basically provides events and values from detectors.</p>
+</div>
+<div class="paragraph">
+<p>The term <em>real time</em> refers to the actual computational results provided <em>as the incident takes place</em>.<br>
+Therefor Real Time Systems are systems that can actually interfere the incident in reality.
+Today ADAS have become Self Driving Systems and can actually drive a car
+and predict the trajectory by reading the road map.</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>A real-time system has been described as one which "controls an environment by receiving data,
+processing them, and returning the results sufficiently quickly to affect the environment at that time".</p>
+</div>
+<div class="paragraph">
+<p>A system not specified as operating in real time cannot usually guarantee a response within any timeframe,
+although typical or expected response times may be given.
+Real-time processing fails if not completed within a specified deadline relative to an event;
+deadlines must always be met, regardless of system load.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://en.wikipedia.org/wiki/Real-time_computing
+</div>
+</div>
+<div class="paragraph">
+<p>GPS Tracking usually implies <em>live tracking</em> and allows us to locate something on a map.
+Of course <em>live</em> is relativ and we have to rely on connectivity and accept a little latency.
+For example vehicles can not be GPS tracked in most tunnels due to missing satelite information.
+A Real Time Client could detect this and make a prediction,
+ when the vehicle will exit the tunnel and be <em>GPS fixed</em> again.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_timing">Real Timing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Structuring the data for a real-time application like a Traccar Client is crucial for performance and maintainability.<br>
+As a development guideline we do not want to use any back doors to Traccar, like a direct database access.
+We treat Traccar as a mature component with endless configuration options and
+we want to communicate the official way, i.e. via Traccar REST API via <code>traccar-api-client</code>.</p>
+</div>
+<div class="paragraph">
+<p>Traccar is taking care of the connectivity to all (tens of thousands of different) GPS Trackers,
+stores there info, raises events, while we only need the one connection to the Traccar Server
+to interact via REST API and retrieve real time data via Websocket.
+Even, if we would run real-time against the Traccar Database
+this does not guarantee to be much faster.
+And there&#8217;s a risk to interfere with the Traccar controllers.</p>
+</div>
+<div class="paragraph">
+<p>We could use an in-memory-database like h2, which is also supported in Spring Boot and Maven.
+Yet this would have the draw back to create objects during the real time calculation.
+We will create a Real Time Manager that has all objects in place and state changes occur immediately
+only restricted by the CPU speed.</p>
+</div>
+<div class="paragraph">
+<p>Its a race between real time client connectivity and loading against persisting on server side.
+If you place the <code>traccar-rt-client</code> in the same environment as your Traccar server
+there are chances that the client is triggered before the database update has finished.
+Nevertheless the objects are related over Traccar Database IDs, which are indispensable.</p>
+</div>
+<div class="sect2">
+<h3 id="_when_and_where">when and where</h3>
+<div class="paragraph">
+<p>Another important aspect about 'real time development' is the usage of the provided timestamps
+in chronological order: <code>fixTime</code>, <code>deviceTime</code> and <code>serverTime</code>.
+The <em>GPS Fixtime</em> describes, when the Position was calculated, fixed and saved into the devices memory.
+This fixtime is calculated by the <em>GPS Unit hardware and chip</em> in the field
+with the most precise atomic clocks available.
+The calculation has to be relativistic and be aware of the satelites positions and much more.
+The fix is usually made when the parameters provide a result with best accuracy
+and this can differ due to the environmental conditions.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Real Time Developers should stick to the <code>fixTime</code> in order<br>
+to get the actual universal time <strong>when and where</strong><br>
+the fix (or event) has occured&#8201;&#8212;&#8201;<strong>in reality</strong>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>deviceTime</code> is the point in time when the position and event are sent.<br>
+Consecutive messages <em>can</em> have the same <code>fixTime</code>.<br>
+The <code>serverTime</code> is the time, when the position and event are persisted.<br>
+It can provide clues about the connectivity and network latency.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_time_data_structures">Real Time Data Structures</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Traccar manages its Entities and Relations with an Entity Relational Data Model - ERM.
+So we need to define a robust data structure to work with Entities and Relations
+in the RAM, i.e. Software.</p>
+</div>
+<div class="paragraph">
+<p>Core Design Principles</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Centralized State<br>
+All data is held in a single, well-defined state object.</p>
+</li>
+<li>
+<p>Normalization<br>
+Each entity type (<code>User, Device, Position, Geofence</code>..) is stored in its own "table" or <code>map</code>.
+Objects reference each other by <code>ID</code> rather than nesting the full object.
+This prevents data duplication and makes updates atomic.
+For example, a <code>Device</code> object will contain a <code>positionId</code> instead of the entire position object.</p>
+</li>
+<li>
+<p>Maps for <code>O(1)</code> Lookups<br>
+Data is stored in Maps where the key is the entity&#8217;s <code>id</code>.
+This allows for extremely fast lookups when an update comes in,
+which is essential for real-time performance.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_realtimemanager">RealTimeManager</h3>
+<div class="colist arabic">
+<ol>
+<li>
+<p>The <code>RealTimeManager</code> is a thread-safe Singleton class to manage
+the real-time state of the Traccar client, also known as StateManager in RealTime context.</p>
+</li>
+<li>
+<p>By using the <code>new</code> operator Spring mechanisms are overriden.</p>
+</li>
+<li>
+<p>The private constructor locks external usage and only the static instance is provided.</p>
+</li>
+<li>
+<p>It uses ConcurrentHashMaps to allow thread safe updates
+from WebSocket listener background threads.<br>
+Data is stored in maps for fast <code>O(1)</code> lookups by ID.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">public final class RealTimeManager {              &lt;!--<b class="conum">(1)</b>--&gt;
+
+  private static final RealTimeManager INSTANCE = new RealTimeManager();   &lt;!--<b class="conum">(2)</b>--&gt;
+
+  private RealTimeManager() {}                                             &lt;!--<b class="conum">(3)</b>--&gt;
+  public static RealTimeManager getInstance() { return INSTANCE; }
+
+  private final Map&lt;Long, User&gt; users = new ConcurrentHashMap&lt;&gt;();         &lt;!--<b class="conum">(4)</b>--&gt;
+  private final Map&lt;Long, Device&gt; devices = new ConcurrentHashMap&lt;&gt;();
+  private final Map&lt;Long, Position&gt; positions = new ConcurrentHashMap&lt;&gt;();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that there is no API involved.</p>
+</div>
+<div class="sect3">
+<h4 id="_data_flow_interaction">Data Flow &amp; Interaction</h4>
+<div class="paragraph">
+<p>Now we need to develop methods for state modifications.<br>
+We have to load initial entities and then update them
+from the live data coming in over a websocket connection.</p>
+</div>
+<div class="paragraph">
+<p>Basically we will use the <code>RealTimeManager</code> in these sequentiell steps:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><em>Authenticate</em> on Traccar Server and receive a <code>User</code> object with a database ID.<br>
+Store <code>User</code> in  <code>RealTimeManager</code> with <code>loginUser(User user)</code>.</p>
+</li>
+<li>
+<p><em>Load</em> initial data for the scenario by fetching the entities from Traccar
+and converting them to a Map.<br>
+Optionally collect last known <code>Position</code> objects for the <code>Devices</code>.</p>
+</li>
+<li>
+<p><em>Connect</em> to websocket and receive live data.<br>
+Traccar pushes JSON object arrays to be transformed
+and then updated on individual entities.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Have a look at these <code>RealTimeManagerIT</code> snippets to identify the steps listed above
+as you read on:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">class RealTimeManagerIT extends BaseReaTimeScenarioTest { // sets up scenario
+
+  @Autowired protected Api api;
+  private RealTimeManager stateManager = RealTimeManager.getInstance();
+
+    // login
+    api.setBasicAuth(scenario.admin.getEmail(), scenario.admin.getPassword());
+    stateManager.loginUser(scenario.admin);
+
+    // initialize
+    initialUsers = api.getUsersApi().getUsers(null);
+    stateManager.loadInitialUsers(initialUsers);
+    stateManager.getAllUsers() ...
+
+    // same for devices and other entities</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last simulation of a server update is purely logical
+and zero websocket technology.<br>
+The line</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    stateManager.addOrUpdatePosition(newPosition);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>'simulates' a <code>Position</code> that could come in via WebSocket or any other ETL
+to a controller that invokes methods to change the real time state.</p>
+</div>
+<div class="paragraph">
+<p>Now that we can safely read from the <code>RealTimeManager</code><br>
+we will create a <code>RealTimeController</code> for synchronization.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_realtimecontroller">RealTimeController</h3>
+<div class="paragraph">
+<p>The <code>RealTimeManagerIT</code> test is holding the <code>private RealTimeManager</code> in order to test it&#8217;s methods.</p>
+</div>
+<div class="paragraph">
+<p>The <code>RealTimeController</code> is the subsequent implementation keeping the <code>RealTimeManager</code> private
+to control it&#8217;s state by synchronizing the server updates.
+The Controller encapsulates all the logic for communicating with the Traccar server.
+It handles authentication, fetches the initial state via the REST API,
+and then connects to the WebSocket to receive and process live updates,
+feeding everything into the thread-safe state manager.</p>
+</div>
+<div class="paragraph">
+<p>Basically the <code>RealTimeController</code> is holding</p>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>the <code>Api</code> to access the server actively</p>
+</li>
+<li>
+<p>the <code>TraccarWebSocketRoute</code> for updates in the background</p>
+</li>
+<li>
+<p>the <code>RealTimeManager</code> to stay in sync with the server</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">public class RealTimeController {
+  private final RealTimeManager stateManager = RealTimeManager.getInstance(); &lt;!--<b class="conum">(1)</b>--&gt;
+  @Autowired protected Api api;                                               &lt;!--<b class="conum">(2)</b>--&gt;
+  @Autowired private TraccarWebSocketRoute traccarLiveConnection;             &lt;!--<b class="conum">(3)</b>--&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We will look at the <code>TraccarWebSocketRoute</code> soon.<br>
+For now you can run the <code>RealTimeControllerIT</code>
+which basically executes the line</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">  controller.loginAndInitialize(scenario.admin)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>where the authentication, loading of initial server Entities
+and establishing a live connection via WebSocket.</p>
+</div>
+<div class="sect3">
+<h4 id="_realtimecontrollerit">RealTimeControllerIT</h4>
+<div class="paragraph">
+<p>This test initializes Camel and rt controller</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>bm.traccar.rt.RealTimeControllerIT    : Starting RealTimeControllerIT ..
+camel start ..
+bm.traccar.rt.RealTimeControllerIT    : Started RealTimeControllerIT in 3.186 seconds</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>loads the scenario on the server (base test)</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>bm.traccar.rt.scenario.ScenarioLoader : --- Setup scenario on server ---</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>then the controller is authenticated via server
+and can load the scenario in the rt manager:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>bm.traccar.rt.RealTimeController      : --- Loading initial users from server...   ---
+bm.traccar.rt.RealTimeController      : --- Loading initial devices from server... ---</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>with server entities.<br>
+The we can see <code>TraccarWebSocketRoute</code> handshake to obtain a sessionId,
+the creation of a <code>VertxWebsocketEndpoint</code>
+and finally the user is logged in the rt controller:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>bm.traccar.ws.TraccarWebSocketRoute   : Obtained JSESSIONID: node015pugc...4ehrxl88u6sl19.node0
+o.a.c.c.v.w.VertxWebsocketEndpoint    : Connected to WebSocket on localhost:80
+bm.traccar.rt.RealTimeController      : User logged in: admin</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And now the software is running an waiting for server updates:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>traccarWebSocketDynamicRoute          : Received Traccar WebSocket update: {"positions":[]}
+traccarWebSocketMessageProcessingRoute:    Process WebSocket raw  message: {"positions":[]}
+traccarWebSocketMessageProcessingRoute:    Process WebSocket json message: {positions=[]}</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_time_updates">Real Time Updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As indicated the <code>TraccarWebSocketRoute</code> updates
+the <code>TraccarStateManager</code> similar the the controller.</p>
+</div>
+<div class="paragraph">
+<p>We already had chosen <code>Apache Camel</code> for integration purposes
+and the <code>TraccarWebSocketRoute</code> is a complete Camel implementation
+and is described in more detail
+<a href="./websocket.html">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion">conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This Java structure provides a clean, scalable, and safe way to manage your Traccar client&#8217;s data.<br>
+Your REST API client would call methods like <code>loginUser</code> and <code>loadInitialDevices</code>,<br>
+while your WebSocket client&#8217;s <code>onMessage</code> handler would call <code>addOrUpdatePosition</code> and/or other Entities.<br>
+The rest of your application can then safely read from the <code>TraccarStateManager</code> to display data.</p>
+</div>
+</div>
+</div>
+<h1 id="_cli_quick_start" class="sect0">CLI Quick Start</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>After creating the three layers around the <code>ApiClient</code>, <code>Api interface</code>
+and <code>RealTimeManager</code> these are combined
+in the <code>@SpringBootApplication  RealTimeClient</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_run_realtimeclient_cli">run <code>RealTimeClient</code> CLI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>traccar-rt-client</code> does not provide any webservices.
+It is a plain command line interface (CLI) to connect to a traccar server
+from the command line and read what&#8217;s going on.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@SpringBootApplication
+public class RealTimeClient implements CommandLineRunner</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Therefor it is a solid building block for real time applications.
+You can integrate it in your application and code against the
+<code>RealTimeManager</code> as if it was the traccar server.</p>
+</div>
+<div class="paragraph">
+<p>pick up the <code>traccar-rt-client-6.10.0-RC.jar</code></p>
+</div>
+<div class="paragraph">
+<p>put it in <code>/someFolder/traccar-rt-client-6.10.0-RC.jar</code></p>
+</div>
+<div class="paragraph">
+<p>(release url)</p>
+</div>
+<div class="paragraph">
+<p>copy app.props</p>
+</div>
+<div class="paragraph">
+<p>enter credentials</p>
+</div>
+<div class="paragraph">
+<p>run java, mvn spring:run ..</p>
+</div>
+<div class="paragraph">
+<p>start your traccar client or your tracker connected to traccar</p>
+</div>
+<div class="paragraph">
+<p>watch the console over the map</p>
+</div>
+<div class="paragraph">
+<p>If you don&#8217;t have a traccar server you can sign up
+at one of traccar&#8217;s demo servers.</p>
+</div>
+<div class="paragraph">
+<p>RealTimeClient is a Spring Boot application that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Starts RealTimeController on launch.</p>
+</li>
+<li>
+<p>Reads admin credentials from application.properties.</p>
+</li>
+<li>
+<p>Logs in as the admin user when starting.</p>
+</li>
+<li>
+<p>Remains running until manually shutdown (e.g., Ctrl+C), and supports graceful shutdown.</p>
+<div class="literalblock">
+<div class="content">
+<pre>modify RealTimeClient to a @SpringBootApplication that starts the RealTimeController
+and log in as traccar.admin.name as provided in the application.properties and can be gracefully shutdown manually</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>You can run the application as usual (e.g., with mvn spring-boot:run or java -jar),
+and it will log in and initialize the real-time controller using the configured admin credentials.</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<h1 id="_the_traccar_websocket_client" class="sect0">The Traccar WebSocket Client</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> is a Java Client Software to <em>request</em> real time data
+from your Traccar Server. While the REST API is based on single requests,
+i.e. REST calls and responses without any session handling, i.e. stateless.</p>
+</div>
+<div class="paragraph">
+<p>Therefor this <strong>WebSocket Route/Session Manager</strong> can create a Camel channel
+for each individual registered user to manage WebSocket connections and event routing.</p>
+</div>
+<div class="paragraph">
+<p>On a higher level different websocket channels can report live events
+in a given <em>Scenario</em>. For example you could direct different vehicles
+to a rendezvous point and your software can create events as they approach each other.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_traccar_websocket_api">The Traccar WebSocket API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Our starting point is the specification at
+<a href="https://www.traccar.org/traccar-api/">Traccar WebSocket API</a>,
+which is actually so brief that we can reprint it here:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>In addition to the REST API, we provide an access to a WebSocket endpoint for live updates.<br>
+Endpoint for the WebSocket connection: <code>/api/socket</code><br>
+Session cookie is the only authorization option for the WebSocket connection.<br>
+Each message in the WebSocket stream uses the same universal JSON format:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "devices": [...],
+  "positions: [...],
+  "events": [...]
+}</code></pre>
+</div>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see www.traccar.org/traccar-api
+</div>
+</div>
+<div class="sect2">
+<h3 id="_websocket_handshake">Websocket Handshake</h3>
+<div class="paragraph">
+<p>Let&#8217;s break down the websocket spec above towards an implementation.</p>
+</div>
+<div class="sect3">
+<h4 id="_endpoint">Endpoint</h4>
+<div class="paragraph">
+<p>The primary WebSocket endpoint for Traccar is typically <code>/api/socket</code>.<br>
+The WebSocket URL would be <code>ws://your.traccar.server:8082/api/socket</code> <br>
+(or <code>wss://</code> for secure connections).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_authentication">Authentication</h4>
+<div class="paragraph">
+<p>Traccar&#8217;s WebSocket API relies solely on a session cookie <code>JSESSIONID</code> for authentication.<br>
+You cannot use Basic Auth or Bearer tokens directly with the WebSocket connection itself.</p>
+</div>
+<div class="paragraph">
+<p>In order to create a ws session you need to authenticate (as in <code>traccar-api-client</code> or <code>traccar-api-camel</code>)
+with a successful <code>HTTP POST</code> request to the Traccar <code>/api/session</code> endpoint to log in.<br>
+Then extract the <code>JSESSIONID</code> cookie from the response headers of this login request
+and use this <code>JSESSIONID</code> cookie when establishing the WebSocket connection.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_websocket_component">WebSocket Component</h3>
+<div class="paragraph">
+<p>As this repository is based on Spring Boot with Camel integration,<br>
+i.e. we are building a <strong>Camel Spring Boot WebSocket Client</strong> for Traccar.</p>
+</div>
+<div class="paragraph">
+<p>Besides Spring Boot and Camel we need to choose a websocket component.<br>
+Most popular choices are the <a href="https://vertx.io/">Eclipse Vert.x</a> and the
+<a href="https://jetty.org/docs/jetty/12/programming-guide/client/websocket.html">Eclipse Jetty WebSocket Client</a>.</p>
+</div>
+<div class="paragraph">
+<p><strong>Jetty</strong> is actually a traditional servlet-container with a thread based architecture in Java.
+As Traccar works with a Jetty Server it could be chosen for symetrie reasons.
+Anyhow we only want to rely on the specifications and not on proprietary implementations.</p>
+</div>
+<div class="paragraph">
+<p><strong>Vert.x</strong> is a modern event driven non blocking implementation comparable to <a href="https://netty.io/">netty</a>,
+which we have analyzed in depth in the jeets project.
+Vert.x has a better scalability for a larger number of connections and a lower latency.
+It also offers http, database drivers and smooth integration with other technologies.</p>
+</div>
+<div class="paragraph">
+<p>&#8230; and the winner is &#8230; <strong>Vert.x</strong><br>
+Of course we will use the camelized version with a Spring Boot Starter in Maven
+to abstract the WS component (in case we revise the decision later):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">       &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;
+    &lt;artifactId&gt;camel-vertx-websocket-starter&lt;/artifactId&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With Camel we can configure the appropriate security settings,<br>
+leverage Camel&#8217;s asynchronous nature to handle multiple WebSocket connections and messages efficiently<br>
+and implement a backpressure mechanisms in case of high message volumes.</p>
+</div>
+<div class="paragraph">
+<p>A basic route implementation looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public void configure() throws Exception {
+        from("vertx-websocket:ws://your-traccar-server:port/api/socket") <b class="conum">(1)</b>
+            .log("Received WebSocket message: ${body}")
+            .to("bean:yourMessageHandler");
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>use <code>wss://</code> for secure connections</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>But first we need to extract the <code>JSESSIONID</code> from a <code>http POST</code> and create a Cookie,<br>
+while using the http context from Spring Boot for the ws connection.</p>
+</div>
+<div class="paragraph">
+<p>Note that we will <strong>not</strong> use the <code>traccar-api-client</code> for the <code>http POST</code>,
+since we clearly want to separate the two clients for API and WebSocket.
+Our architecture does not want any dependencies between them for isolated testing etc.
+Each client represents a software <em>Unit</em> and can be tested, developed and used alone.
+And like every Unit it should be replaceble.</p>
+</div>
+<div class="paragraph">
+<p>Anyhow we can combine the two in a higher level <code>traccar-java-client</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_implementation_with_camel_routes">Implementation with Camel Routes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The core of this <code>traccar-ws-client</code> is the
+<a href="../../main/java/bm/traccar/ws/TraccarWsClientRoute.java">TraccarWsClientRoute</a>.<br>
+Here is a rough outline with three routes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Component
+public class TraccarWsClientRoute extends RouteBuilder {
+
+  @Override
+  public void configure() throws Exception {
+
+    from("timer:traccarLoginTimer?period=3600000") // every hour
+        .routeId("traccarLoginRoute") <b class="conum">(1)</b>
+          ...
+        .setBody(simple("email=" + email + "&amp;password=" + password)) // credentials
+        .toD(host + "/api/session") // login
+        .process(
+            exchange -&gt; {
+              // get 'Set-Cookie' header from response
+
+              // Extract JSESSIONID from the Set-Cookie header
+
+              // set exchange property as parameter for the next ws route
+
+              // Trigger traccarWebSocketConnectionRoute <b class="conum">(2)</b>
+            })
+          ...
+        .end();
+
+    from("direct:connectTraccarWebSocket")
+        .routeId("traccarWebSocketConnectionRoute") <b class="conum">(2)</b>
+        .process(
+            exchange -&gt; {
+              // get JSESSIONID from Route <b class="conum">(1)</b>
+
+              // set Cookie Header with JSESSIONID for initial handshake
+
+        .toD("vertx-websocket:" + traccarWebSocketUrl + "&amp;handshake.Cookie=${header.Cookie}")
+        .log("Connected to Traccar WebSocket.")
+        .to("direct:traccarWebSocketMessages"); <b class="conum">(3)</b>
+
+    from("direct:traccarWebSocketMessages")
+        .routeId("traccarWebSocketMessageProcessingRoute") <b class="conum">(3)</b>
+        .unmarshal()
+        .json(JsonLibrary.Jackson)
+        .log("Received Traccar WebSocket update: ${body}");</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Route to trigger <code>http POST</code></p>
+</li>
+<li>
+<p>Route to connect websocket with handshake</p>
+</li>
+<li>
+<p>Route to receive live data</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_notes">Notes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>The dynamic <code>vertx-websocket</code> URL is proprietary and involves the <code>handshake</code> parameter.<br>
+The Jetty component (<code>websocket</code>) handles cookies different and requires an explicit header setting.</p>
+</li>
+<li>
+<p>We are not processing Cookies with<br>
+<code>java.net.CookieHandler, CookieManager, CookieStore, CookiePolicy, HttpCookie</code> etc.<br>
+In the first <code>http</code> route we are simply applying String functions to extract the <code>JSESSIONID</code>.</p>
+</li>
+<li>
+<p>You are responsible or security using Spring Cloud Config, Kubernetes Secrets, environment variables,
+a secrets management solution like Vault or whatever you chose for your software.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_debugging">Debugging</h3>
+<div class="paragraph">
+<p>The initial <code>traccar-ws-client</code> implementation is kept as simple as it gets.
+This allows a better understanding and makes it easier to expand the component
+inside the application lifecycle development.</p>
+</div>
+<div class="paragraph">
+<p>Nevertheless networking is alway a challenge and in this case you might experience problems
+with (reverse) proxies, firewalls, closed ports, URL / URI resolution, cloud installation,
+docker, port forwarding, Traccar server settings and beware of <em>misleading AI assistance</em>.</p>
+</div>
+<div class="paragraph">
+<p>Therefor you can execute the most simple test with two cammand lines, before you drill deeper.</p>
+</div>
+<div class="paragraph">
+<p>If you run into any problems apply the command line tools
+<code>curl</code> for the <code>http POST</code> and <code>wscat</code> for the websocket connection.
+In addition you should create an account on one of the graciously sponsered
+<a href="https://www.traccar.org/demo-server/">Traccar Demo Servers</a>
+and test with <code>https</code> and <code>email/password</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_step1_http_with_curl">Step1: http with curl</h4>
+<div class="paragraph">
+<p>Compose the command line with <code>email/password/http|s/port</code>
+and check the http connection with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>curl -v POST -d "email=admin@domain.com&amp;password=admin" http://localhost:8082/api/session</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and hopefully get something like this</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&gt; POST /api/session HTTP/1.1                             <b class="conum">(1)</b>
+&gt; Host: localhost:8082
+&gt;
+&lt; Set-Cookie: JSESSIONID=node0q7h2lu4fsi40101wtkbz590i060.node0; Path=/; HttpOnly  <b class="conum">(2)</b>
+&lt; Server: Jetty(11.0.25)                                 <b class="conum">(3)</b>
+&lt;
+* Connection #1 to host localhost left intact            <b class="conum">(4)</b>
+  {...  "name":"admin",                                  <b class="conum">(5)</b>
+       "email":"admin@domain.com"  ...}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p><code>&gt;</code> for outgoing <code>POST</code></p>
+</li>
+<li>
+<p><code>&lt;</code> for incoming response with a <code>JSESSIONID</code></p>
+</li>
+<li>
+<p>Traccar&#8217;s Jetty Server version.</p>
+</li>
+<li>
+<p>make sure connection is kept up</p>
+</li>
+<li>
+<p>JSON DTO for logged user</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_step2_ws_with_wscat">Step2: ws with wscat</h4>
+<div class="paragraph">
+<p>Again, adopt your parameters and copy the <code>JSESSIONID</code> from the <code>http POST</code> above:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>wscat -c ws://localhost:8082/api/socket \
+      -H "Cookie: JSESSIONID=node0q7h2lu4fsi40101wtkbz590i060.node0"
+Connected (press CTRL+C to quit)
+&lt; {"positions":[]}
+&lt; {}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here you should get the <code>Connected</code> response and see the messages arriving in intervals
+(configured on the server).
+If you want to see actual values you might change something in the Traccar Frontend
+or register a device or the like.</p>
+</div>
+<div class="paragraph">
+<p>Introduce a typo or use a wrong <code>JSESSIONID</code> to raise</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>error: Unexpected server response: 503</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which you might find in your java stack as</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>WebSocket upgrade failure: 503</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To debug <code>UpgradeRejectedException: WebSocket upgrade failure: 503</code> on server side
+you should start here:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>AsyncSocketServlet extends JettyWebSocketServlet
+configure()
+    userId = loginService.login(token).getUser().getId();</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This way you have validated all parameters and are good to go for comparing analyses
+as you develop.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_review_traccar_api_client">review traccar-api-client</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_simple_example_usage">simple example / usage</h3>
+<div class="paragraph">
+<p>Here&#8217;s a simple example code to demo how to add the Traccar API Service
+to your company software.<br>
+First you need these prerequesites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the <code>traccar-api-client-x.y.z.jar</code> to your application.<br>
+Or add it to your <code>.m2</code> repo or nexus server, then to <em>your</em> <code>pom</code>.</p>
+</li>
+<li>
+<p>Add your Traccar Server URL and credentials to your <code>application.properties</code> file.<br>
+i.e. <code>host, user.name, user.password, user.email (, accountToken)</code>.<br>
+Or provide these values in a way that meets your security strategy (secrets etc.)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>and then the coding is straight forward:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package your.company.app...;
+
+import bm.traccar.api.ApiService            // <b class="conum">(1)</b>
+
+public class TraccarUsers {
+
+    @Autowired
+    private ApiService api;                 // <b class="conum">(1)</b>
+
+    public static void main(String[] args) {
+
+        api.setBasicAuth(mail, password);   // <b class="conum">(2)</b>
+//      api.setBearerToken(token);
+
+        User user = new User();             // <b class="conum">(3)</b>
+        user.setName("user-1");
+        user.setEmail("email-1");
+        user.setPassword("pw-1");
+
+        User userOnServer = api.users.createUser(user);     // <b class="conum">(4)</b>
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>add the <code>ApiService</code>, being a Spring <code>@Service class</code></p>
+</li>
+<li>
+<p>choose and set your authentication<br>
+and can change it any time in the program flow.</p>
+</li>
+<li>
+<p>create a <code>new User</code> (DTO) in your software for your employees</p>
+</li>
+<li>
+<p>create a <code>new User</code> (Entity) in your Traccar Server<br>
+The new User (DTO) is returned with a unique ID from the server.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>And that is all you need to create users, devices etc.
+and manage them in your code!<br>
+For more examples check the integration tests, i.e. UsersIT and others.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuration">configuration</h3>
+<div class="paragraph">
+<p>For convenience you can use the <code>application.properties</code> file
+and grab the <code>@Value</code> in your source code, depending on your security concepts.
+Check the <code>*.*IT</code> integration test files for demo code.</p>
+</div>
+<div class="sect3">
+<h4 id="_application_properties">application.properties</h4>
+<div class="literalblock">
+<div class="content">
+<pre># traccar.host=https://demo3.traccar.org
+traccar.host=http://localhost
+traccar.user.name=admin
+traccar.user.password=admin
+traccar.user.email=admin@domain.com</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>your implementation (compare ITests)</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@Value("${traccar.user.name}")     private String name;
+@Value("${traccar.user.password}") private String password;
+@Value("${traccar.user.email}")    private String mail;</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_usage">usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After adding the jar to your software or build system
+the API can easily be added to any Springboot Application as a @Service in your code</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@Autowired private ApiService api;</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2026-01-04 22:58:52 +0100
+</div>
+</div>
+</body>
+</html>

@@ -2,6 +2,6 @@
 = project documentation
 
 start with documentation overview at +
-link:./src/asciidoc/bm-parent.adoc[] +
+link:./src/asciidoc/bm-parent.html[] +
 or +
 xref:./src/asciidoc/bm-parent.adoc[]

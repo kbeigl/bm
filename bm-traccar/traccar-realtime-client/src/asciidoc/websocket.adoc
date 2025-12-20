@@ -1,0 +1,349 @@
+
+
+= The Traccar WebSocket Client
+
+
+The `traccar-api-client` is a Java Client Software to _request_ real time data 
+from your Traccar Server. While the REST API is based on single requests, 
+i.e. REST calls and responses without any session handling, i.e. stateless.
+
+Therefor this *WebSocket Route/Session Manager* can create a Camel channel 
+for each individual registered user to manage WebSocket connections and event routing.
+
+On a higher level different websocket channels can report live events 
+in a given _Scenario_. For example you could direct different vehicles 
+to a rendezvous point and your software can create events as they approach each other.
+
+
+== The Traccar WebSocket API
+
+Our starting point is the specification at 
+link:https://www.traccar.org/traccar-api/[Traccar WebSocket API],
+which is actually so brief that we can reprint it here:
+
+[quote, see www.traccar.org/traccar-api]
+____
+In addition to the REST API, we provide an access to a WebSocket endpoint for live updates. +
+Endpoint for the WebSocket connection: `/api/socket` +
+Session cookie is the only authorization option for the WebSocket connection. +
+Each message in the WebSocket stream uses the same universal JSON format:
+
+[source,json]
+----
+{
+  "devices": [...],
+  "positions: [...],
+  "events": [...]
+}
+----
+____
+
+=== Websocket Handshake
+
+Let's break down the websocket spec above towards an implementation.
+ 
+==== Endpoint
+ 
+The primary WebSocket endpoint for Traccar is typically `/api/socket`. +
+The WebSocket URL would be `ws://your.traccar.server:8082/api/socket`  +
+(or `wss://` for secure connections).
+
+==== Authentication
+
+Traccar's WebSocket API relies solely on a session cookie `JSESSIONID` for authentication. +
+You cannot use Basic Auth or Bearer tokens directly with the WebSocket connection itself. 
+
+In order to create a ws session you need to authenticate (as in `traccar-api-client` or `traccar-api-camel`) 
+with a successful `HTTP POST` request to the Traccar `/api/session` endpoint to log in. +
+Then extract the `JSESSIONID` cookie from the response headers of this login request
+and use this `JSESSIONID` cookie when establishing the WebSocket connection.
+
+=== WebSocket Component
+
+As this repository is based on Spring Boot with Camel integration, +
+i.e. we are building a *Camel Spring Boot WebSocket Client* for Traccar.
+
+Besides Spring Boot and Camel we need to choose a websocket component. +
+Most popular choices are the link:https://vertx.io/[Eclipse Vert.x] and the 
+link:https://jetty.org/docs/jetty/12/programming-guide/client/websocket.html[Eclipse Jetty WebSocket Client].
+
+*Jetty* is actually a traditional servlet-container with a thread based architecture in Java. 
+As Traccar works with a Jetty Server it could be chosen for symetrie reasons.
+Anyhow we only want to rely on the specifications and not on proprietary implementations.
+
+*Vert.x* is a modern event driven non blocking implementation comparable to link:https://netty.io/[netty],
+which we have analyzed in depth in the jeets project.
+Vert.x has a better scalability for a larger number of connections and a lower latency.
+It also offers http, database drivers and smooth integration with other technologies.
+
+&#8230; and the winner is &#8230; *Vert.x* +
+Of course we will use the camelized version with a Spring Boot Starter in Maven 
+to abstract the WS component (in case we revise the decision later):
+
+[source,xml]
+----
+       <groupId>org.apache.camel.springboot</groupId>
+    <artifactId>camel-vertx-websocket-starter</artifactId>
+----
+
+With Camel we can configure the appropriate security settings, +
+leverage Camel's asynchronous nature to handle multiple WebSocket connections and messages efficiently +
+and implement a backpressure mechanisms in case of high message volumes.
+
+A basic route implementation looks like this:
+
+[source,java]
+----
+    public void configure() throws Exception {
+        from("vertx-websocket:ws://your-traccar-server:port/api/socket") <1>
+            .log("Received WebSocket message: ${body}")
+            .to("bean:yourMessageHandler");
+    }
+----
+<1> use `wss://` for secure connections
+
+But first we need to extract the `JSESSIONID` from a `http POST` and create a Cookie, +
+while using the http context from Spring Boot for the ws connection.
+
+Note that we will *not* use the `traccar-api-client` for the `http POST`,
+since we clearly want to separate the two clients for API and WebSocket.
+Our architecture does not want any dependencies between them for isolated testing etc.
+Each client represents a software _Unit_ and can be tested, developed and used alone. 
+And like every Unit it should be replaceble.
+
+Anyhow we can combine the two in a higher level `traccar-java-client`.
+
+
+== Implementation with Camel Routes 
+
+The core of this `traccar-ws-client` is the 
+link:../../main/java/bm/traccar/ws/TraccarWsClientRoute.java[TraccarWsClientRoute]. +
+Here is a rough outline with three routes:
+
+[source,java]
+----
+@Component
+public class TraccarWsClientRoute extends RouteBuilder {
+
+  @Override
+  public void configure() throws Exception {
+
+    from("timer:traccarLoginTimer?period=3600000") // every hour
+        .routeId("traccarLoginRoute") <1>
+          ...
+        .setBody(simple("email=" + email + "&password=" + password)) // credentials
+        .toD(host + "/api/session") // login
+        .process(
+            exchange -> {
+              // get 'Set-Cookie' header from response  
+
+              // Extract JSESSIONID from the Set-Cookie header
+
+              // set exchange property as parameter for the next ws route
+
+              // Trigger traccarWebSocketConnectionRoute <2>
+            })
+          ...
+        .end();
+
+    from("direct:connectTraccarWebSocket")
+        .routeId("traccarWebSocketConnectionRoute") <2>
+        .process(
+            exchange -> {
+              // get JSESSIONID from Route <1>  
+              
+              // set Cookie Header with JSESSIONID for initial handshake
+
+        .toD("vertx-websocket:" + traccarWebSocketUrl + "&handshake.Cookie=${header.Cookie}")
+        .log("Connected to Traccar WebSocket.")
+        .to("direct:traccarWebSocketMessages"); <3>
+
+    from("direct:traccarWebSocketMessages")
+        .routeId("traccarWebSocketMessageProcessingRoute") <3>
+        .unmarshal()
+        .json(JsonLibrary.Jackson) 
+        .log("Received Traccar WebSocket update: ${body}");
+----
+<1> Route to trigger `http POST` 
+
+<2> Route to connect websocket with handshake 
+
+<3> Route to receive live data 
+
+
+=== Notes
+
+* The dynamic `vertx-websocket` URL is proprietary and involves the `handshake` parameter. +
+  The Jetty component (`websocket`) handles cookies different and requires an explicit header setting.
+
+* We are not processing Cookies with +
+    `java.net.CookieHandler, CookieManager, CookieStore, CookiePolicy, HttpCookie` etc. +
+    In the first `http` route we are simply applying String functions to extract the `JSESSIONID`.
+    
+* You are responsible or security using Spring Cloud Config, Kubernetes Secrets, environment variables, 
+  a secrets management solution like Vault or whatever you chose for your software.
+ 
+
+=== Debugging
+
+The initial `traccar-ws-client` implementation is kept as simple as it gets. 
+This allows a better understanding and makes it easier to expand the component 
+inside the application lifecycle development.
+
+Nevertheless networking is alway a challenge and in this case you might experience problems 
+with (reverse) proxies, firewalls, closed ports, URL / URI resolution, cloud installation,
+docker, port forwarding, Traccar server settings and beware of _misleading AI assistance_.
+
+Therefor you can execute the most simple test with two cammand lines, before you drill deeper.
+
+If you run into any problems apply the command line tools
+`curl` for the `http POST` and `wscat` for the websocket connection.
+In addition you should create an account on one of the graciously sponsered 
+link:https://www.traccar.org/demo-server/[Traccar Demo Servers] 
+and test with `https` and `email/password`.
+
+==== Step1: http with curl 
+
+Compose the command line with `email/password/http|s/port`
+and check the http connection with 
+
+    curl -v POST -d "email=admin@domain.com&password=admin" http://localhost:8082/api/session
+
+and hopefully get something like this
+
+[source,xml]
+----
+> POST /api/session HTTP/1.1                             <1>
+> Host: localhost:8082
+> 
+< Set-Cookie: JSESSIONID=node0q7h2lu4fsi40101wtkbz590i060.node0; Path=/; HttpOnly  <2>
+< Server: Jetty(11.0.25)                                 <3>
+< 
+* Connection #1 to host localhost left intact            <4>
+  {...  "name":"admin",                                  <5>
+       "email":"admin@domain.com"  ...}     
+----
+<1> `>` for outgoing `POST` 
+<2> `<` for incoming response with a `JSESSIONID`
+<3> Traccar's Jetty Server version.
+<4> make sure connection is kept up 
+<5> JSON DTO for logged user
+
+
+==== Step2: ws with wscat 
+
+Again, adopt your parameters and copy the `JSESSIONID` from the `http POST` above:
+
+    wscat -c ws://localhost:8082/api/socket \
+          -H "Cookie: JSESSIONID=node0q7h2lu4fsi40101wtkbz590i060.node0"
+    Connected (press CTRL+C to quit)
+    < {"positions":[]}
+    < {}
+    
+Here you should get the `Connected` response and see the messages arriving in intervals
+(configured on the server).
+If you want to see actual values you might change something in the Traccar Frontend 
+or register a device or the like.
+
+Introduce a typo or use a wrong `JSESSIONID` to raise 
+
+    error: Unexpected server response: 503
+
+which you might find in your java stack as
+
+    WebSocket upgrade failure: 503
+
+To debug `UpgradeRejectedException: WebSocket upgrade failure: 503` on server side
+you should start here:
+
+  AsyncSocketServlet extends JettyWebSocketServlet
+  configure()
+      userId = loginService.login(token).getUser().getId();
+
+This way you have validated all parameters and are good to go for comparing analyses 
+as you develop.
+
+
+== review traccar-api-client
+
+=== simple example / usage
+
+Here's a simple example code to demo how to add the Traccar API Service 
+to your company software. +
+First you need these prerequesites: 
+
+* Add the `traccar-api-client-x.y.z.jar` to your application. +
+Or add it to your `.m2` repo or nexus server, then to _your_ `pom`.
+
+* Add your Traccar Server URL and credentials to your `application.properties` file. +
+i.e. `host, user.name, user.password, user.email (, accountToken)`. +
+Or provide these values in a way that meets your security strategy (secrets etc.)
+
+and then the coding is straight forward:
+
+[source,java]
+----
+package your.company.app...;
+
+import bm.traccar.api.ApiService            // <1>
+
+public class TraccarUsers {
+
+    @Autowired
+    private ApiService api;                 // <1>
+
+    public static void main(String[] args) { 
+    
+        api.setBasicAuth(mail, password);   // <2>
+//      api.setBearerToken(token);
+        
+        User user = new User();             // <3>
+        user.setName("user-1");
+        user.setEmail("email-1");
+        user.setPassword("pw-1");
+        
+        User userOnServer = api.users.createUser(user);     // <4>
+        
+    }
+}
+----
+<1> add the `ApiService`, being a Spring `@Service class`
+
+<2> choose and set your authentication +
+and can change it any time in the program flow.
+
+<3> create a `new User` (DTO) in your software for your employees 
+
+<3> create a `new User` (Entity) in your Traccar Server +
+The new User (DTO) is returned with a unique ID from the server.  
+
+And that is all you need to create users, devices etc.
+and manage them in your code! +
+For more examples check the integration tests, i.e. UsersIT and others.
+
+=== configuration
+
+For convenience you can use the `application.properties` file 
+and grab the `@Value` in your source code, depending on your security concepts.
+Check the `*.*IT` integration test files for demo code.
+
+==== application.properties
+
+  # traccar.host=https://demo3.traccar.org
+  traccar.host=http://localhost
+  traccar.user.name=admin
+  traccar.user.password=admin
+  traccar.user.email=admin@domain.com
+
+your implementation (compare ITests)
+
+  @Value("${traccar.user.name}")     private String name;
+  @Value("${traccar.user.password}") private String password;
+  @Value("${traccar.user.email}")    private String mail;
+
+== usage
+
+After adding the jar to your software or build system 
+the API can easily be added to any Springboot Application as a @Service in your code
+
+      @Autowired private ApiService api;

@@ -1,0 +1,33 @@
+
+= Simulation Requirements
+
+see ROAF GPSinfo
+
+move ( .. ) 
+
+direction
+
+speed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

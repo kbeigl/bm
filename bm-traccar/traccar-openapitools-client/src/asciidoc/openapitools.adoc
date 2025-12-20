@@ -184,7 +184,10 @@ These `operationId` are used to create `api/` sources, tests and markdown docs
 [INFO] writing file /openapi/docs/AttributesApi.md              ===
 -----------------
 
-and finally the project generation is wrapped up with 
+After running `mvn install` you can find the generated documents 
+link:../../target/generated-sources/openapi/docs[here]
+
+Finally the project generation is wrapped up with 
 
 [source,text]
 -----------------

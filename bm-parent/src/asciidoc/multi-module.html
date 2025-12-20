@@ -449,17 +449,15 @@ The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every <code>mvn</code> command executed.
 It assures that any project is build as required by another.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_project_nature">project nature</h2>
-<div class="sectionbody">
 <div class="paragraph">
 <p>This is a Java project and the development cycle
 is defined by the major components:</p>
 </div>
-<div class="sect2">
-<h3 id="_maven_build_tool">Maven build tool</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_build_tool">Maven build tool</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Implies major versioning, dependency management, plugin configuration,
 build lifecycle and finally release management.
@@ -468,37 +466,35 @@ If available and feasible external tools, i.e. plugins, like the
 are integrated into the lifecycle to generate code for subsequent modules.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_camel_integration_framework">Camel integration framework</h3>
+</div>
+<div class="sect1">
+<h2 id="_camel_integration_framework">Camel Integration Framework</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Apache Camel has a very powerful bean injection framework
-to allow developers <em>to focus on solving business problems</em>.</p>
+to allow developers <em>to focus on solving business problems</em>.
+At its core, Apache Camel is an integration engine, which can be used
+to facilitate
+interactions between a wide and varied array of technologies.
+These bridges between service- and technology <em>Endpoints</em>,
+the <em>Routes</em> are implemented on an engine - the <em>CamelContext</em>,
+and they communicate with <em>Exchange Messages</em>.</p>
 </div>
 <div class="paragraph">
-<p>At its core, Apache Camel is an integration engine, which can be used
-to facilitate interactions between a wide and varied array of technologies.
-These bridges between service- and technology Endpoints,
-the Routes are implemented on an engine - the CamelContext,
-and they communicate with “exchange messages”.</p>
+<p>In this repository Camel is used to glue independantly developed Units together.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_camel_spring">Camel &amp; Spring</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>For this repository Camel is used to glue independant Units together.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_spring_framework_and_spring_boot_application">Spring Framework and Spring Boot Application</h3>
-<div class="paragraph">
-<p>Spring context, dependency injection, and application startup.</p>
-</div>
-<div class="paragraph">
-<p><a href="https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html" class="bare">https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html</a></p>
-</div>
-<div class="paragraph">
-<p>Spring Boot component provides auto-configuration for Apache Camel.
-Our opinionated auto-configuration of the Camel context
-auto-detects Camel routes available in the Spring context
-and registers the key Camel utilities
-(like producer and consumer templates, type converters etc.) as <code>@Bean</code>.</p>
+<p><strong>Camel</strong> allows you to define your data flow as a declarative route
+for complex integration and routing work,
+and then handing off the final business logic
+to standard <strong>Spring</strong> components like Controllers or Services.
+While <strong>Spring Boot</strong> handles the lifecycle and dependency injection
+in the Spring context, dependency injection, and application startup.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -516,13 +512,23 @@ and registers the key Camel utilities
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>check out
+<a href="https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html">camel-spring-boot</a></p>
+</div>
+<div class="paragraph">
+<p>Spring Boot component provides auto-configuration for Apache Camel.
+Our opinionated auto-configuration of the Camel context
+auto-detects Camel routes available in the Spring context
+and registers the key Camel utilities
+(like <code>producer</code> and <code>consumer</code> templates, type converters etc.) as <code>@Bean</code>.</p>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-08 12:43:45 +0100
+Last updated 2026-01-04 22:22:27 +0100
 </div>
 </div>
 </body>

@@ -1,4 +1,52 @@
 
+= Maven Wrapper
+
+To make sure that the complete project is build with a specified Maven Version
+it is possible to add a Maven Wrapper with a determined version.
+
+Simply run this from the root directory
+
+    ~/git/bm$ mvn wrapper:wrapper -Dmaven=3.8.8
+
+to get
+
+    bm/
+    ├── .mvn/
+    │   └── wrapper/
+    │       ├── maven-wrapper.jar
+    │       └── maven-wrapper.properties
+    ├── mvnw
+    ├── mvnw.cmd
+    ├── pom.xml (Root POM)
+    ├── bm-parent/
+    │   └── pom.xml
+    └── etc.
+    
+Now we can build the complete multimodule project from the root with
+
+    /git/bm$ ./mvnw clean install
+
+And you can build any subproject _from the root_ with 
+    
+    /git/bm$ ./mvnw clean install -pl bm-tracker    -am
+    /git/bm$ ./mvnw clean install -pl bm:bm-tracker -am
+    
+Or, better, if you are working inside a subproject like the `gps-osmand-tracker`
+    
+      ~/git/bm/bm-tracker/gps-osmand-tracker$ ../../mvnw clean install
+      
+Note that you reference the `mvnw` in the root by going up two folders
+with `../../` + 
+depending on where you are working from the command line.
+
+Since this setup is generally idempotent the wrapper can be upgraded
+anytime with
+
+        ~/git/bm$ mvn wrapper:wrapper -Dmaven=3.9.2
+    
+Then the next build will pick up the required files.
+
+    
 = Maven maintenance & release
 
 
@@ -31,7 +79,7 @@ and lowest backward compatibility for users of the released jar files.
 
         <jdk.version>21</jdk.version>
 
-=== step 4 - Tracar versions
+=== step 4 - Traccar versions
 
 This step is more than just a change of pom coordinates.
 Traccar always has and still is evolving at a high pace and

@@ -1,4 +1,6 @@
 
+:toc:
+
 = Database Testing
 
 After setting up the Traccar Docker Container there are different options to set up the database
@@ -6,103 +8,61 @@ according to your development focus. The Database (ERM) can be perceived as the 
 through which you can peek into the data and analyze the actions of your integration tests.
 
 Multiple options for handling the H2 database are scribbled here, 
-including mounting external volumes, direct SQL shell access, 
-and automation scripts for admin user setup. +
-The documentation outlines different database introspection approaches 
+including mounting external volumes, direct SQL shell access. 
+Kind of a cheat sheet outlining different database introspection approaches 
 for development and testing.
-
-options
-
-    create external volume for h2 database
-       delete to create new one
-       admin/admin hen and egg problem
-       create admin/admin for template
-       apply web.serviceAccountToken on truncated db
-       
-    do not access database as backdoor: Entities vs DTOs
-    
-    work with Traccar Frontend with running docker
-    
-    
-The [DatabaseTest] setup we will look at different options to develop 
-with database introspection ...
-
-You can always inspect `h2` through its console,
-as a back door directly the database model. + 
-The default h2 database is ideal, i.e. made for testing.
-Developers can login to the traccar data base, explore the schema 
-and inspect data with `plain SQL`, reset to scratch .. whatever.
 
 == database introspection
 
 The recommended traccar docker installation is to leave the database inside the container.
-By mounting the `/data` folder we can look inside the data, which stays persistent
-after the container has stopped. + 
-Note that the H2 database is locked as long the traccar container is working. + 
+
+Yet by mounting the `/data` folder we can look inside the data, which stays persistent
+after the container has stopped - at development time.
+You can find the `data` mount line in the `docker-maven-plugin`
+and un/comment as required:
+
+    <volumes>
+        <bind>
+            <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
+
+[TIP]
+====
+The H2 database is locked 
+as long the traccar container is working for its simplicity. +
+Developers can debug `*IT` tests running against the traccar container +
+and exit the test after a scenario has been setup. +
+Then the docker container must be stopped in order to use the h2 shell.
+====
+
+https://www.baeldung.com/java-h2-db-execute-sql-file[h2 access]
+    
 
 
-== automate admin/admin
+== `h2.tools.Shell`
  
-insert initial admin user in Dockerfile
+You can always inspect `h2` through its console,
+as a back door directly the database model. 
+The default h2 database is ideal, i.e. made for testing.
+Developers can login to the traccar data base, explore the schema 
+and inspect data with `plain SQL`, reset to scratch .. whatever is feasible for you.
 
-gemini: + 
-API: While Traccar has a REST API, using it for initial user setup 
-might be tricky since the API itself requires authentication. 
-Directly database manipulation or configuration file manipulation 
-is more reliable for initial setup.
+You will find the database in your filesystem 
+in `/opt/traccar/data` as specified above. 
+The following command line assumes to be in this folder.
 
-problem: schema is only created with first start of traccar-server.jar
+Then you need to install the h2 lib and point to the jar
 
-    root@d3b6ba0d8261:~# pwd
-    /root
-    root@d3b6ba0d8261:~# java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell 
-                              -url jdbc:h2:/opt/traccar/data/database 
-                              -user sa
+    /opt/traccar/data$ java -cp /opt/h2/bin/h2-2.3.232.jar org.h2.tools.Shell 
+                            -url jdbc:h2:./database 
+                            -user sa
+                            
+and you should get a welcome
     
     Welcome to H2 Shell 2.3.232 (2024-08-11)
     Exit with Ctrl+C
-    
-    sql> select * from tc_users
-    ...> ;
-    Error: org.h2.jdbc.JdbcSQLSyntaxErrorException: 
-           Table "TC_USERS" not found (this database is empty);
 
-possible solution: add schema/createadmin.xml if admin doesn't exist
+and start querying
 
-
-== sql shell
-
-https://www.baeldung.com/java-h2-db-execute-sql-file
-    
-    java -cp /path/to/h2/jar/h2-version.jar org.h2.tools.RunScript
-         -url jdbc:h2:db/server/url
-         -user sa -password password
-         -script script.sql
-         -showResults
-
-
-  java -cp /opt/traccar/lib/h2-2.3.232.jar org.h2.tools.Shell 
-       -url jdbc:h2:/opt/traccar/data/database 
-       -user sa
-       
-=== install in traccar/h2/
-
-  $ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell 
-         -url jdbc:h2:/opt/traccar/data/database 
-         -user sa
-
-  Welcome to H2 Shell 2.3.232 (2024-08-11)
-  
-  sql> select * from tc_users;
-  ID | NAME | EMAIL | HASHEDPASSWORD | SALT | READONLY | ADMINISTRATOR | MAP | LATITUDE | LONGITUDE | ZOOM |
-  ATTRIBUTES | COORDINATEFORMAT | DISABLED | EXPIRATIONTIME | DEVICELIMIT | USERLIMIT | DEVICEREADONLY |
-  PHONE | LIMITCOMMANDS | LOGIN | POILAYER | DISABLEREPORTS | FIXEDEMAIL | TOTPKEY | TEMPORARY
-  (0 rows, 1 ms)
-
-  select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR 
-    from tc_users;
-  (0 rows, 1 ms)
-  
   sql> select id, name, email, hashedpassword, salt from tc_users;
 
   ID | NAME    | EMAIL  | HASHEDPASSWORD                                   | SALT
@@ -110,107 +70,78 @@ https://www.baeldung.com/java-h2-db-execute-sql-file
   2  | newUser | email  | null                                             | null
   7  | user2   | email2 | 53e175f9ded19f065d7e483f44f540f7f8ca9c4026dd69dd | 72e2e2555df4a62c2d8ccb8fb295f7d19dc9373cfdf51772
 
-  
-  sql> delete from tc_users where id=2;
-  Error: org.h2.jdbc.JdbcSQLNonTransientException:
-  **** The database is read only ****
-  
-  
 
-=> empty database schema in place
+== `h2.tools.RunScript`
+
+    java -cp /path/to/h2/jar/h2-version.jar org.h2.tools.RunScript
+         -url jdbc:h2:db/server/url
+         -user sa -password password
+         -script script.sql
+         -showResults
+
+== `h2.tools.Console`
+
+You can run a console, which opens a database frontend in your browser
+
+    java -cp /opt/traccar.bak/h2/bin/h2-2.3.232.jar org.h2.tools.Console 
+         -web 
+         -tcp 
+         -url jdbc:h2:./database 
+         -user sa
+
 
 == database available / locked
 
   docker:run
 
-  $ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell -url jdbc:h2:/opt/traccar/data/database -user sa
+  $ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell 
+         -url jdbc:h2:/opt/traccar/data/database 
+         -user sa
   Exception in thread "main" org.h2.jdbc.JdbcSQLNonTransientConnectionException:
     Database may be already in use: "/opt/traccar/data/database.mv.db".
     Possible solutions: close all other connection(s); use the server mode [90020-232]
   Caused by: org.h2.mvstore.MVStoreException:
     The file is locked: /opt/traccar/data/database.mv.db [2.3.232/7]
 
-     localhost/register -> admin/admin admin@domain.org
-
      stop container
 
-    sql> select NAME, EMAIL, HASHEDPASSWORD, SALT, READONLY, ADMINISTRATOR from tc_users;
-    NAME             | EMAIL | HASHEDPASSWORD                                   | SALT                                             |
-    admin@domain.com | admin | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca |
-
-    READONLY | ADMINISTRATOR
-    FALSE    | TRUE
-    (1 row, 20 ms)
-
-    docker run -> user is available -> hash & salt vary !!
-
-    | HASHEDPASSWORD                                   | SALT
-    | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca
-    | 42d4bf701495e2105dddfd66e3989919c218a6d7b99c623d | d3e47507a6fdcc624b8bd3bc85ce96bab195c335b76044a6
-
-
-let's see:
-
-    sql> delete from tc_users;
-    Error: org.h2.jdbc.JdbcSQLNonTransientException:
-    The database is read only; SQL statement: delete from tc_users [90097-232]
+  sql> delete from tc_users where id=2;
+  Error: org.h2.jdbc.JdbcSQLNonTransientException:
+  The database is read only; SQL statement: delete from tc_users [90097-232]
 
     -> change access to database* files
     $ sudo chmod 777 database*
     => works :)
 
-    prepare statement to createAdminUser.sql
-    INSERT INTO tc_users (name, email, hashedpassword, salt, administrator) 
-    VALUES ('admin', 'admin@domain.com', '3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30', 'd4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca', true);
-
-    sql> INSERT INTO tc_users (name, email, hashedpassword, salt, administrator)
-    VALUES ('admin', 'admin@domain.com', '3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30', 'd4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca', true);
-    (Update count: 1, 5 ms)
-    
-    sql> select * from tc_users;
-    ID | NAME  | EMAIL            | HASHEDPASSWORD | SALT                                                                               | READONLY | ADMINISTRATOR
-    2  | admin | admin@domain.com | 3411c354bc1661db4f1e358331a6a4394e6fd1c96bc1cc30 | d4d204fce88c333de097786fd9636a656c25bc1e4ea9b5ca | FALSE    | TRUE
-
-Note ID++ in new db! -> only apply ids after semantic lookup !
-
-    -> mvn docker run
-       localhost/login appears :)
-       login: email: admin@domain.com pw:admind
-
-    I want login name/pw ..
-    delete database* files
-    mvn docker:run creates new database* files with empty schema
-
-    statement to createAdminUser.sql without email !!
-    NULL not allowed for column "EMAIL";
-
-    -> insert above again
-       mvn docker run
-       localhost/login appears :)
-       login: email: admin@domain.com pw:admind
-
-    sql> select * from tc_users;
-        ID | NAME  | EMAIL
-        2  | admin | admin@domain.com
 
 == hashing the password
 
 https://www.traccar.org/forums/topic/hashing-the-password/
 
+[source,xml]
+----
     # generate a random salt
     salt="$(dd if=/dev/urandom bs=24 count=1 status=none | xxd -p)"
     
-    # generate the password hash from the contents of the "password" variable (which you've to set yourself to the new cleartext password)
-    hash="$(openssl-3.0.1 kdf -keylen 24 -binary -kdfopt digest:sha1 -kdfopt "pass:$password" -kdfopt "hexsalt:$salt" -kdfopt iter:1000 pbkdf2 | xxd -p)"
+    # generate the password hash from the contents of the "password" variable 
+    (which you've to set yourself to the new cleartext password)
+    hash="$(openssl-3.0.1 kdf -keylen 24 -binary -kdfopt digest:sha1 
+          -kdfopt "pass:$password" -kdfopt "hexsalt:$salt" -kdfopt iter:1000 pbkdf2 | xxd -p)"
     
-    # uncomment the following line to print out both the salt and the password hash (if you want to)
+    # uncomment the following line to print out both the salt and the password hash
     #echo -e "salt: $salt\nhash: $hash"
     
     # set the value of "tchome" to the path of the Traccar directory
     tchome="/opt/traccar"
     
     # and finally update the password (and salt) of the default "admin" user
-    java -cp "$tchome/lib/h2-"*".jar" org.h2.tools.Shell -url "jdbc:h2:$tchome/data/database" -user sa -sql "update tc_users set hashedpassword='$hash', salt='$salt' where email = 'admin';"
+    java -cp "$tchome/lib/h2-"*".jar" org.h2.tools.Shell 
+         -url "jdbc:h2:$tchome/data/database" 
+         -user sa 
+         -sql "update tc_users set hashedpassword='$hash', salt='$salt' 
+               where email = 'admin';"
+----
+
 
 
 

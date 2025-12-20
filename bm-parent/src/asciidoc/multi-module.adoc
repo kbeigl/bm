@@ -8,12 +8,10 @@ The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every `mvn` command executed. 
 It assures that any project is build as required by another.
 
-== project nature
-
 This is a Java project and the development cycle 
 is defined by the major components:
 
-=== Maven build tool 
+== Maven build tool 
  
 Implies major versioning, dependency management, plugin configuration, 
 build lifecycle and finally release management.
@@ -22,33 +20,42 @@ xref:../../../bm-traccar/traccar-openapitools-client/readme.adoc[OpenAPI Generat
 are integrated into the lifecycle to generate code for subsequent modules.
 
 
-=== Camel integration framework 
+== Camel Integration Framework 
 
 Apache Camel has a very powerful bean injection framework 
 to allow developers _to focus on solving business problems_. 
-
 At its core, Apache Camel is an integration engine, which can be used 
-to facilitate interactions between a wide and varied array of technologies.
-These bridges between service- and technology Endpoints, 
-the Routes are implemented on an engine - the CamelContext, 
-and they communicate with “exchange messages”.
+to facilitate 
+interactions between a wide and varied array of technologies. 
+These bridges between service- and technology _Endpoints_, 
+the _Routes_ are implemented on an engine - the _CamelContext_,  
+and they communicate with _Exchange Messages_.
 
-For this repository Camel is used to glue independant Units together.
+In this repository Camel is used to glue independantly developed Units together.
 
+== Camel & Spring
 
-=== Spring Framework and Spring Boot Application  
- 
-Spring context, dependency injection, and application startup.
-
-https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html
-
-Spring Boot component provides auto-configuration for Apache Camel. 
-Our opinionated auto-configuration of the Camel context 
-auto-detects Camel routes available in the Spring context 
-and registers the key Camel utilities 
-(like producer and consumer templates, type converters etc.) as `@Bean`.
+*Camel* allows you to define your data flow as a declarative route 
+for complex integration and routing work,
+and then handing off the final business logic
+to standard *Spring* components like Controllers or Services.
+While *Spring Boot* handles the lifecycle and dependency injection 
+in the Spring context, dependency injection, and application startup.
 
 [NOTE]
 ====
  Spring Boot will auto-configure Camel for you.
 ====
+ 
+check out 
+https://camel.apache.org/camel-spring-boot/4.10.x/spring-boot.html[camel-spring-boot]
+
+Spring Boot component provides auto-configuration for Apache Camel. 
+Our opinionated auto-configuration of the Camel context 
+auto-detects Camel routes available in the Spring context 
+and registers the key Camel utilities 
+(like `producer` and `consumer` templates, type converters etc.) as `@Bean`.
+
+
+
+

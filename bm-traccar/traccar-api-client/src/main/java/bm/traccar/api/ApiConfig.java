@@ -1,6 +1,7 @@
 package bm.traccar.api;
 
 import bm.traccar.generated.api.DevicesApi;
+import bm.traccar.generated.api.PermissionsApi;
 import bm.traccar.generated.api.ServerApi;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
@@ -42,5 +43,10 @@ public class ApiConfig {
   @Bean
   ServerApi serverApi(ApiClient apiClient) {
     return new ServerApi(apiClient);
+  }
+
+  @Bean
+  PermissionsApi permissionsApi(ApiClient apiClient) {
+    return new PermissionsApi(apiClient);
   }
 }

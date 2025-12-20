@@ -1,0 +1,8 @@
+# Ignore Eclipse project metadata everywhere
+.project
+.settings/
+.asciidoctorconfig.adoc
+/src/asciidoc/.asciidoctor/diagram
+.classpath
+.factorypath
+target/

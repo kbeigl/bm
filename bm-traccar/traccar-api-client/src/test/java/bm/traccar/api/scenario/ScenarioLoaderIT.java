@@ -6,6 +6,7 @@ import bm.traccar.api.Api;
 import bm.traccar.api.ApiConfig;
 import bm.traccar.api.ApiService;
 import bm.traccar.generated.model.dto.Server;
+import bm.traccar.generated.model.dto.User;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -39,8 +40,12 @@ public class ScenarioLoaderIT {
 
     // verify users
     String adminId = scenarioSetup.admin.getId().toString();
-    api.getUsersApi().getUsers(adminId).stream()
-        .forEach(u -> logger.info("User{}: {}", u.getId(), u.getEmail()));
+    User serverAdmin = api.getUsersApi().getUserById(adminId);
+    logger.info(
+        "Found Admin User.id{}: {}/{}",
+        serverAdmin.getId(),
+        serverAdmin.getName(),
+        serverAdmin.getEmail());
   }
 
   // this does not run without setup, due to authentication

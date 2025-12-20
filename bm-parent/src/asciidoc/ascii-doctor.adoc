@@ -125,6 +125,11 @@ Note that we do not use `link` but the `xref` macro to reference documents!
 This ensures that you can navigate through  `html` and `adoc` file independantly,
 while the developer can change the suffix in the browser url to switch.
 
+Upgrade! +
+The html generation should now work without compilation changes, 
+like dates, and reproduce previous `*.html` output.
+Much better for versioning `;)`
+
 
 [WARNING]
 ====
@@ -273,7 +278,7 @@ This can be setup in a combined docker setting of kroki with a 'Mermaid companio
 ----
 
 `kroki-mermaid` contains a pre-installed Chromium binary that works 
-without any sandbox, without download, without /dev/shm issues.
+without any sandbox, without download, without `/dev/..` issues.
 
 and with the maven configuration
 

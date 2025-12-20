@@ -434,10 +434,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book toc2 toc-left">
 <div id="header">
 <h1>The Traccar OpenAPI Client</h1>
-<div id="toc" class="toc">
+<div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_architectural_characteristics">Architectural Characteristics</a>
@@ -451,10 +451,68 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_authentication">authentication</a></li>
 <li><a href="#_usage_example">usage example</a></li>
 <li><a href="#_mimic_url_syntax">mimic URL syntax</a></li>
-<li><a href="#_configuration">configuration</a></li>
+<li><a href="#_configuration">configuration</a>
+<ul class="sectlevel3">
+<li><a href="#_application_properties">application.properties</a></li>
+<li><a href="#_fixed_docker_authentication">fixed docker authentication</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_implementation">implementation</a></li>
+<li><a href="#_traccar_api_client_implementation"><code>traccar-api-client</code> implementation</a>
+<ul class="sectlevel1">
+<li><a href="#_openapi_generator">openapi-generator</a></li>
+<li><a href="#_traccar_rest">Traccar REST</a>
+<ul class="sectlevel2">
+<li><a href="#_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</a></li>
+<li><a href="#_are_not_system_entities">&#8230;&#8203; are not System Entities</a></li>
+</ul>
+</li>
+<li><a href="#_traccar_sub_api_implementations">Traccar sub Api implementations</a>
+<ul class="sectlevel2">
+<li><a href="#_sessionapi">SessionApi</a></li>
+</ul>
+</li>
+<li><a href="#_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></a></li>
+</ul>
+</li>
+<li><a href="#_traccar_scenario">Traccar Scenario</a>
+<ul class="sectlevel1">
+<li><a href="#_scenario_entities">Scenario Entities</a></li>
+<li><a href="#_scenario_properties">Scenario Properties</a>
+<ul class="sectlevel2">
+<li><a href="#_scenarioproperties"><code>ScenarioProperties</code></a></li>
+<li><a href="#_scenarioloader"><code>ScenarioLoader</code></a></li>
+<li><a href="#_scenario_tests">Scenario Tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_traccar_user_management">Traccar User Management</a>
+<ul class="sectlevel1">
+<li><a href="#_server_roles">Server Roles</a>
+<ul class="sectlevel2">
+<li><a href="#_virtualadmin"><code>virtualAdmin</code></a></li>
+<li><a href="#_browser_validation">browser validation</a></li>
+<li><a href="#_user_account"><code>User</code> Account</a></li>
+<li><a href="#_admin"><code>admin</code></a></li>
+</ul>
+</li>
+<li><a href="#_scenario_users">Scenario Users</a>
+<ul class="sectlevel2">
+<li><a href="#_manager"><code>manager</code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_traccar_permissions">Traccar Permissions</a>
+<ul class="sectlevel1">
+<li><a href="#_permissions">Permissions</a></li>
+<li><a href="#_devices">Devices</a></li>
+<li><a href="#_groups">Groups</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -727,10 +785,919 @@ by adding the service account token (with its risks):</p>
 </div>
 </div>
 </div>
+<h1 id="_traccar_api_client_implementation" class="sect0"><code>traccar-api-client</code> implementation</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>This software is based on a generated <strong>Java Spring REST Client</strong> from the traccar specification.
+The single package (<code>bm.traccar.api</code>) implementation wraps the Java client in a <strong>Spring</strong> @Service
+to be applied wherever feasible. The API client completely hides the REST intricities
+inside regular Java methods.</p>
+</div>
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> is basically a single package application or rather <em>service</em>.
+In addition there is a websocket package to receive live information from the Tracking System.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openapi_generator">openapi-generator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As Traccar provides a REST specification in form of a <code>yaml</code> file we faciliate the
+<a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>OpenAPI Generator allows generation of API client libraries (SDK generation),
+server stubs, documentation and configuration automatically
+given an OpenAPI Spec v3.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see github.com/OpenAPITools/openapi-generator
+</div>
+</div>
+<div class="paragraph">
+<p>Note that this Java code generation takes place in the isolated
+<a href="../../traccar-openapitools-client/readme.adoc"><code>traccar-openapitools-client</code></a>
+project. It has to run before this project which is build around the generated artifact.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>To get more details on the generation you can read the project notes:
+<a href="../../traccar-openapitools-client/readme.adoc">openapitools-client</a></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can check
+<a href="https://ademico-software.com/how-to-generate-the-client-api-for-an-openapi-rest-service/">Generate the client using Maven</a>
+for a starting point on how to apply Maven properties etc.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_traccar_rest">Traccar REST</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Traccar <code>v6.7</code> provides <strong>17 APIs</strong> (see <code>package bm.traccar.generated.api</code>)
+for all aspects of GPS Tracking.
+The <code>traccar-api-client</code> defines <em>one single (nested) API interface:</em>
+<code>bm.traccar.api.Api</code>, which allows us to switch the implementation.
+This was required, for example, when changing from swagger to OpenAPI (3 to 3.1).<br></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Therefor you should stick to the <code>bm.traccar.api.Api interface</code>
+to connect your program logic!</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</h3>
+<div class="paragraph">
+<p>In addition the <code>traccar-api-client</code> provides <strong>21 Data Transfer Objects</strong><br>
+see <code>package bm.traccar.generated.model.dto</code></p>
+</div>
+<div class="paragraph">
+<p>These DTO <em>represent</em> the different System Entities
+and are used to exchange information with the server.<br>
+For example the User API call to
+<a href="https://www.traccar.org/api-reference/#tag/Users/paths/~1users/post">Create a User</a>
+is provided as Java method by the Api interface:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public interface Api {
+           interface Users {
+                User createUser(User user) throws ApiException;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In your code you can easily create a <code>new User()</code> in your software</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    User userIN = new User();
+    userIN.setName(usr);
+    userIN.setEmail(mail);
+    userIN.setPassword(pwd);
+    userIN. ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and  then create it on server side and receive a copy:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    User userOUT =  api.users.createUser(userIN);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that <code>userIN</code> and <code>userOUT</code> are different instances.
+The latter provides the <code>userId</code> provided by the Traccar Model
+and is vital to use in the client server communication.
+The ID is usually hidden for external users (i.e. in the UI),
+but required for unambiguously user identification!</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_are_not_system_entities">&#8230;&#8203; are not System Entities</h3>
+<div class="paragraph">
+<p>Nevertheless you should always distinguish <em>Data Transfer Objects</em>
+from actual Entities in the Systems <em>Entity Relations Model</em> - ERM.
+<em>The Traccar System</em> is build around the <em>Traccar Data Model</em>,
+which is represented in the
+<a href="https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/model">model package</a>,
+while the DTOs are created in the
+<a href="https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/api/resource">resource package</a>.
+The Entities are only accessed by Traccar itself, while DTOs are snapshots of them.
+Of course you can always peek into the Traccar Database to check what&#8217;s going on.</p>
+</div>
+<div class="paragraph">
+<p>This is similar to DNA and RNA:<br>
+The DNA (ERM) is part of the <em>living</em> organic System,<br>
+while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_traccar_sub_api_implementations">Traccar sub Api implementations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project is part of a larger software and therefor the Traccar Api Endpoints (<code>operationId</code>)
+are implemented in the order required by the main application.</p>
+</div>
+<div class="sect2">
+<h3 id="_sessionapi">SessionApi</h3>
+<div class="paragraph">
+<p>We can find all generated sub APIs in the <code>bm.traccar.generated.api</code> package.
+For example we use the <code>UsersApi</code> and <code>DevicesApi</code> by setting the authentication,
+sending a request and receive entities.
+The <code>ApiClient</code> class holds the username and password.
+When you call an API method, it will automatically construct and add the Authorization header.
+This works perfectly for APIs that are stateless and check the basic auth header on every request.</p>
+</div>
+<div class="paragraph">
+<p>The <code>SessionApi</code> is a special case as <code>REST</code> and <code>HTTP</code> are defined as a stateless protocols.
+A session makes sense, if we log into the browser and keep it open.
+For the <code>traccar-api-client</code> we don&#8217;t need to establish a session for REST interactions.
+The sole purpose is to use the <code>SessionApi</code> to create a session
+and retrieve a <code>JSESSIONID</code> (Java Session Id) to be used with a websocket connection.</p>
+</div>
+<div class="paragraph">
+<p>You can make a <code>POST</code> request to the <code>/api/session</code> endpoint with the user&#8217;s email and password.
+This will create a session and return a Session Cookie managed by Jetty.
+This process is implemented in the <code>ApiService</code> and can be called with</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    String jSessionId = api.session.createSessionGetJsessionId(userMail, userPassword);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That&#8217;s all we need from the <code>SessionApi</code> and we will move on to the websocket implementation
+with the returned <code>JSESSIONID</code> for the provided User.
+When you connect to websocket endpoint <code>/api/socket</code> (Not the REST endpoint <code>/api/session</code>!),
+the server checks for the presence of a valid session cookie
+to authorize <em>the real-time data stream</em>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This API client implementation applies Aspect-Oriented Programming (AOP)
+as the technique for handling exceptions in Spring Boot applications.
+This way all exception handling happens in one central <code>ApiAspect</code> class
+and avoids code duplication.</p>
+</div>
+<div class="paragraph">
+<p>Generally any problem in the client software should through an <code>ApiException</code>
+to take over responsibility and to provide useful messages for developers
+and wrap the cause for deeper analysis.</p>
+</div>
+<div class="paragraph">
+<p>As you can see in the <code>bm.traccar.api.ApiAspect</code> class
+the <code>@Pointcut</code> includes all <code>*Api</code> classes and methods in :</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@Pointcut("execution(public * bm.traccar.generated.api.*Api.*(..))")</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and the <code>Joinpoint</code> is defined to only catch <code>RestClientExceptions</code>,
+wrap them in an <code>ApiException</code> and throw it for the method execution:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>public void afterThrowingApiMethod(JoinPoint joinPoint, RestClientException rcEx)
+    throws ApiException {</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the <code>ApiException</code> is a <code>RuntimeException</code> and
+the caller is not forced by the compiler to catch it.
+However you should handle it as good practice
+and to ensure that you have a binding communication.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">Spring AOP
+invocation order
+    invoke **UsersApi.usersPost(..) ** &lt;-------------+
+      invoke ApiClient.selectHeaderAccept(..)        |
+      invoke ApiClient.selectHeaderContentType(..)   |
+      invoke ApiClient.invokeAPI(..)                 |
+    Exception in ApiMethod: **UsersApi.usersPost(..) **</code></pre>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_traccar_scenario" class="sect0">Traccar Scenario</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>For Real Time Development it makes sense to precisely define the RT environment to be observed and controlled.
+In the context of a Tracking System we will simply define the environment as a (fixed) set of devices and call it a <em>Scenario</em>.
+These devices will represent <code>RealObjects</code> (that we will develop eventually) in the Real World.
+They can be many vehicles, some pedestrians, bicycles - if we think of a Traffic Application.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_entities">Scenario Entities</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In conjunction with Traccar a scenario is composed of different sets of Traccar Entities.</p>
+</div>
+<div class="paragraph">
+<p>The <code>RealTimeModel</code> (in the <code>traccar-realtime-client</code> project) will allow access to Traccar <code>Users</code>, <code>Devices</code>,
+<code>Drivers</code> etc. to compose any scenario that fits your business.
+This <code>RealTimeModel</code> or <code>RealTimeManager</code> or <code>RealTimeStateManager</code> reflects all objects
+of one authenticated Traccar <code>User</code> and can only see what he is allowed to see.
+This can be experienced and explored in the Traccar UI - as we proceed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_properties">Scenario Properties</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For a concrete development approach we will define
+a <em>Scenario</em> simply as a (fixed) number of devices.
+All other Traccar Entities are related to these devices somehow.
+At development time we will create a complete Scenario from a <code>scenario.properties</code> file,
+which defines all actors of the - for the time being: <em>closed</em> system.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>For convenience the scenario is placed in the actual project packages
+and <em>not in the test packages</em>.
+This makes it easier to be used to test higher level projects.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>On the long run there are endless ways to persist and load a scenario.
+With <code>json</code> you can define a complete relational model to load
+and bigger models could be retrieved from the database itself.
+For compressed ER models
+<a href="https://protobuf.dev/">Googles Protocol Buffers</a> could do the job,
+as we have already practiced in the JeeTS project.</p>
+</div>
+<div class="paragraph">
+<p>At dev time we will use the <code>scenario.properties</code> file to explore
+<a href="./permissions.html">Traccar&#8217;s Permission Management</a>.</p>
+</div>
+<div class="paragraph">
+<p>We&#8217;ll start with some simple initial rules to setup a Scenario:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>scenario.properties</code> <em>do not</em> define any technical details on the Traccar Server.<br>
+These should remain in the <code>application.properties</code>
+and the server should then be prepared to load a Scenario.
+Less technical and more domain-driven.</p>
+</li>
+<li>
+<p>Each scenario must have (at least) one <code>User</code> (account!) as the Scenario Manager.<br>
+This authenticated <code>User</code> must be authorized to see the complete Scenario -
+vice versa his view defines the Scenario.
+The smallest scenario would be one <code>User</code> with access to his own <code>Device</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So let&#8217;s begin to fill the file with <code>Users</code> and  <code>Devices</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    # basic scenario
+    ## users
+    scenario.user[0].name=admin
+    scenario.user[0].password=admin
+    scenario.user[0].email=admin@scenario.com
+    scenario.user[0].administrator=true     &lt;!--<b class="conum">(1)</b>--&gt;
+    ## devices
+    scenario.device[0].name=runner
+    scenario.device[0].uniqueId=10
+    scenario.device[0].model=ro</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>First <code>user[0]</code> is the scenario manager, i.e. <code>administrator</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This scenario defines one <code>administrator</code>, one <code>manager</code>, two <code>users</code>
+and four <code>devices</code> for a start.</p>
+</div>
+<div class="sect2">
+<h3 id="_scenarioproperties"><code>ScenarioProperties</code></h3>
+<div class="paragraph">
+<p>Now we can apply Spring Technology to load these properties
+with the <code>ScenarioProperties</code> class</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    @Component
+    @ConfigurationProperties(prefix = "scenario", ignoreUnknownFields = false)
+    @PropertySource("classpath:scenario.properties")
+    public class ScenarioProperties { ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We are using <code>@ConfigurationProperties</code> for Type-Safe Configuration
+for managing multiple related properties.
+The class groups all the related properties together,
+is type-safe, less error-prone, and keeps your configuration clean.
+You can inject the entire  <code>ScenarioProperties</code> object into any other bean
+(like a service or controller) using standard dependency injection.</p>
+</div>
+<div class="paragraph">
+<p>The configuration is set in the <code>ScenarioConfig</code> class, which can be empty:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    @Configuration
+    @EnableConfigurationProperties(ScenarioProperties.class)
+    @PropertySource("classpath:scenario.properties")
+    public class ScenarioConfig { /* empty */ }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And finally we unit test the auto wiring</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public class ScenarioPropertiesTest {
+      @Autowired private ScenarioProperties scenarioProperties;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now we can access the <code>ScenarioProperties</code> class to pick up the objects.<br></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scenarioloader"><code>ScenarioLoader</code></h3>
+<div class="paragraph">
+<p>Note that the property objects differ from the Traccar Entities.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    bm.traccar.rt.scenario.ScenarioProperties.Device
+    bm.traccar.generated.model.dto.Device</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So let&#8217;s code a little ETL loader
+to <strong>Extract</strong> the property objects,
+<strong>Transform</strong> them into Traccar Entities
+and <strong>Load</strong> (CRUD) these to the Traccar Server.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ScenarioLoader</code> reads the objects from the properties file</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">  @Autowired private ScenarioProperties props;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and creates the Traccar Entities on the server via <code>api</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">  @Autowired protected Api api;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Functionality and structure are straight forward.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scenario_tests">Scenario Tests</h3>
+<div class="paragraph">
+<p>Run the tests in test package <code>bm.traccar.rt.scenario</code>
+to go into details and debugging.</p>
+</div>
+<div class="paragraph">
+<p>In test package <code>bm.traccar.rt</code>
+you will find a <code>BaseReaTimeScenarioTest</code> which sets up
+the <code>scenario.properties @BeforeAll</code> testing.
+It tears down the scenario and clears the server <code>@AfterAll</code> testing.
+This is the base for the <code>*IT</code> tests in the package.</p>
+</div>
+<div class="paragraph">
+<p>The <code>ReaTimeScenarioIT</code> sets up the scenario and
+displays all Beans in the <code>ApplicationContext</code>.
+Here we will find all classes of the <code>bm-traccar</code> branch
+as you can see by the package names, i.e. application layers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    bm.traccar.invoke.ApiClient             // traccar-openapitools-client
+    bm.traccar.generated.api.DevicesApi
+    ..                   and other *Apis
+    bm.traccar.api.ApiService               // traccar-api-client
+    ..
+    bm.traccar.rt.RealTimeController        // traccar-rt-client
+    ..
+    bm.traccar.ws.TraccarSessionManager     // traccar-rt-client websocket
+    bm.traccar.ws.TraccarWebSocketRoute</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the <code>bm.traccar.rt.RealTimeManager</code> is not a Spring Bean
+and is managed by the <code>RealTimeContoller</code>!</p>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_traccar_user_management" class="sect0">Traccar User Management</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>This is an ITest guide through
+<a href="https://www.traccar.org/user-management/">Traccar&#8217;s User Management</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_server_roles">Server Roles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let&#8217;s have another look at the <code>ScenarioLoaderIT</code>.</p>
+</div>
+<div class="paragraph">
+<p>@Before the tests are started the Traccar Docker Container is started.
+At this point the server is launched from its original distribution.
+This implies that there is no registered User at this point to take control.
+A hen and egg problem.</p>
+</div>
+<div class="sect2">
+<h3 id="_virtualadmin"><code>virtualAdmin</code></h3>
+<div class="paragraph">
+<p>Therefor we have setup a <code>virtualAdmin</code>, which is predefined
+in the <code>traccar.xml</code> file with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;entry key='web.serviceAccountToken'&gt;VIRTUAL_ADMIN_ACCESS&lt;/entry&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>then this value is matched in the <code>application.properties</code></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>traccar.web.serviceAccountToken=VIRTUAL_ADMIN_ACCESS</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and we can login to the server with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>api.setBearerToken(virtualAdmin);</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to create an Admin User defined in the prop file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_browser_validation">browser validation</h3>
+<div class="paragraph">
+<p>You can debug the ITests and set a breakpoint
+before the scenario is torn down.<br>
+Then you can login to the Traccar frontend via browser URL</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>http://localhost/?token=VIRTUAL_ADMIN_ACCESS</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and check the status of users and devices.<br>
+Don&#8217;t forget to resume teardown!</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_user_account"><code>User</code> Account</h3>
+<div class="paragraph">
+<p>The ROAF is about Tracking Devices being tracked by Traccar GTS.<br>
+Traccar is a multi client user system with a detailed permission structure
+that we want to use.<br>
+We have setup the <code>serviceAccount</code> password to access the fresh server.<br>
+The first step is to create a <strong>Traccar Account</strong> represented by a <code>User</code>
+- the <code>admin</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_admin"><code>admin</code></h3>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p><strong>Admin</strong> - superuser with full unlimited access to the whole Traccar server.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://www.traccar.org/user-management/
+</div>
+</div>
+<div class="paragraph">
+<p>The admin User is created on the server straight forward with minimal attributes</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">admin = api.getUsersApi().createUserWithCredentials(name, password, email, administrator);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the technical service administrator of the Traccar GTS,
+is not part of the scenario and has no restrictions.<br>
+So we can leave the <code>virtualAdmin</code> behind and log in as admin</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>api.setBasicAuth(admin.getEmail(), props.getUser().get(0).password);</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that we fetch the password from the user in the prop file,
+since passwords are not transfered from server.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scenario_users">Scenario Users</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After we have setup the <code>admin</code> we will use this account
+to setup the scenario</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    // continue as admin who is not part of the scenario!
+    api.setBasicAuth(admin.getEmail(), admin.getPassword());
+    createScenarioUsers();
+    createScenarioDevices();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Traccar&#8217;s User Management distiguishes three user roles</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Traccar user management model supports use cases from simple individual user accounts<br>
+to large organizations with multiple <strong>managers, administrators</strong> and <strong>regular users</strong>.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://www.traccar.org/user-management/
+</div>
+</div>
+<div class="sect2">
+<h3 id="_manager"><code>manager</code></h3>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p><strong>Manager</strong> - user with extended capabilities allowing them<br>
+to manage
+a subset of users and register new ones.<br>
+The difference between manager and regular user is in their user limit value.<br>
+A manager has the user limit not equals to 0.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; see https://www.traccar.org/user-management/
+</div>
+</div>
+<div class="paragraph">
+<p>We want one manager for each scenario.
+Or a game master for each game.<br>
+He can observe the scenario and interfere like a referee,
+even disqualify and take devices out of the scenario.</p>
+</div>
+<div class="paragraph">
+<p>Again we can apply <code>createUserWithCredentials</code> to create a User
+without admin rights and then we can update/upgrade the User
+to become a manager:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    // provide permissions
+    //  0: Cannot create any users/devices.              regular user
+    // -1: Can create an unlimited number of users/devices.   manager
+    //  N: Can create up to N users/devices.                  manager
+    manager.setUserLimit(2);
+    manager.setDeviceLimit(3);
+    api.getUsersApi().updateUser(manager.getId(), manager);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now the <code>manager</code> can log into the frontend
+and create two Users and two Devices.<br>
+If he tries to add another one the frontend will report
+<code>Manager user limit reached</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you&#8217;ll have a look at the <code>@Test managerUserLimit()</code> in
+<a href="../test/java/bm/traccar/api/UsersApiIT.java">UsersApiIT</a>
+you can see how a - technical - <code>admin</code> creates a <code>manager</code> via REST.
+Then this <code>manager</code> is authenticated and is used to create
+<strong>three</strong> Users with <code>manager.setUserLimit(2)</code>!</p>
+</div>
+<div class="paragraph">
+<p>Further analysis showed that all created Users belong to the users
+marked as <code>admin</code>.</p>
+</div>
+<div class="paragraph">
+<p>To setup a more complex scenario with individual rights
+we need to work with the <code>PermissionsApi</code>.</p>
+</div>
+<div class="paragraph">
+<p><a href="./permissions.html">continue with <code>PermissionsApi</code></a></p>
+</div>
+</div>
+</div>
+</div>
+<h1 id="_traccar_permissions" class="sect0">Traccar Permissions</h1>
+<div class="sect1">
+<h2 id="_permissions">Permissions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://www.traccar.org/permissions-groups/" class="bare">https://www.traccar.org/permissions-groups/</a></p>
+</div>
+<div class="paragraph">
+<p>Permissions = Link an Object to another Object</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>=&gt; User = user account</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>http://localhost/api/users &gt; all users as json</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Administrators and managers can control permissions for their users
+from the Users menu in the settings.
+It is accessible from the Connections menu option in the users list.</p>
+</div>
+<div class="paragraph">
+<p>Almost all entities in Traccar have associated permissions and can be linked to user accounts. It applies not only to devices, but also things like geofences, notifications etc.</p>
+</div>
+<div class="paragraph">
+<p>Link an Object to another Object</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.traccar.org/api-reference/#tag/Permissions/paths/~1permissions/post" class="bare">https://www.traccar.org/api-reference/#tag/Permissions/paths/~1permissions/post</a></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Authorizations:
+BasicAuthApiKey
+Request Body schema: application/json
+required
+userId
+integer &lt;int64&gt;
+User id, can be only first parameter</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>deviceId
+integer &lt;int64&gt;
+Device id, can be first parameter or second only in combination with userId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>groupId
+integer &lt;int64&gt;
+Group id, can be first parameter or second only in combination with userId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>geofenceId
+integer &lt;int64&gt;
+Geofence id, can be second parameter only</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>notificationId
+integer &lt;int64&gt;
+Notification id, can be second parameter only</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>calendarId
+integer &lt;int64&gt;
+Calendar id, can be second parameter only and only in combination with userId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>attributeId
+integer &lt;int64&gt;
+Computed attribute id, can be second parameter only</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>driverId
+integer &lt;int64&gt;
+Driver id, can be second parameter only</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>managedUserId
+integer &lt;int64&gt;
+User id, can be second parameter only and only in combination with userId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>commandId
+integer &lt;int64&gt;
+Saved command id, can be second parameter only</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Link an Object to another Object</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId       deviceId
+userId       groupId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      managedUserId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      calendarId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      geofenceId
+deviceId    geofenceId
+groupId     geofenceId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      notificationId
+deviceId    notificationId
+groupId     notificationId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      attributeId
+deviceId    attributeId
+groupId     attributeId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      driverId
+deviceId    driverId
+groupId     driverId</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>userId      commandId
+deviceId    commandId
+groupId     commandId</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Administrators and managers can control permissions for their users from the Users menu in the settings. It is accessible from the Connections menu option in the users list.</p>
+</div>
+<div class="paragraph">
+<p>When an object is shared between several users, they have full access to it, including the ability to delete it. If you want to avoid it, you can duplicate instances so that each user has their own object. Duplicating a device with the same unique id is not possible, so Traccar provides a special device readonly user setting to restrict users for modifying devices.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_devices">Devices</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Some entities can be linked to devices. For example, a geofence or a notification can be linked to a device. When linked, it means that it&#8217;s associated with the device, but it does not affect user permissions. To provide user access, it also needs to be linked to the user account.</p>
+</div>
+<div class="paragraph">
+<p>For example, if a geofence is linked to a device, it means that the geofence events will be generated for this device.</p>
+</div>
+<div class="paragraph">
+<p>Linking can be done from the settings. It is accessible from the Connections menu option in the devices list.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_groups">Groups</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A group represent a group of devices. It is not possible to group any other entities, but you can link some entities to groups the same way you link them to devices. Same as with devices, linking to a group does not affect user permissions.</p>
+</div>
+<div class="paragraph">
+<p>For example, if a geofence is linked to a group, it means that the geofence events will be generated for all devices in the group and subgroups.</p>
+</div>
+<div class="paragraph">
+<p>Linking can be done from the settings. It is accessible from the Connections menu option in the groups list.</p>
+</div>
+<div class="paragraph">
+<p>To add a device to a group, edit the device and select the Group under the Extra section. Groups can be nested. To add a group to another group, edit the group and select the parent Group under the Extra section.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.traccar.org/api-reference/" class="bare">https://www.traccar.org/api-reference/</a></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>setup scenario (later in BaseIT)
+- create admin &gt; over all users (players) and (their) devices
+- create user/s &gt; over his own device/s
+- create device/s for admin/user
+- login as admin &gt; load all devices
+-&gt; one MrX and two/three Detectives</pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-13 13:07:22 +0100
+Last updated 2026-01-04 13:17:01 +0100
 </div>
 </div>
 </body>

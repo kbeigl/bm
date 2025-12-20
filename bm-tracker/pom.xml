@@ -24,15 +24,14 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.12</version>
+        <version>1.1.13</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-tracker</artifactId>
-    <version>1.1.12-beta</version>
     <packaging>pom</packaging>
 
-    <name>---- GPS Unit and Tracker            ---</name>
+    <name>---- GPS Unit and Tracker                 ---</name>
 
     <properties>
         <jts.version>1.19.0</jts.version>
