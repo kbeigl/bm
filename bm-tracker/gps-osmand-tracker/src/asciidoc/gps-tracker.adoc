@@ -1,5 +1,5 @@
 
-= The OsmAnd GPS Tracker
+= The OsmAnd Tracker
 
 The `gps-osmand-tracker` is a Java Client Software to simulate 
 a standard device that _collects_ GPS locations, optionally buffer 
@@ -23,81 +23,46 @@ A tracker hardware is basically a combination of a GPS (processing) unit
 and a (GSM) communication unit. The GPS receives the location via satellite and
 the communication unit sends tracking messages to a server. +
 &#8230; +
- In the end every
-tracker should be able to send Coordinates, preferably WGS84 latitude and
+In the end every tracker should be able to send Coordinates, preferably WGS84 latitude and
 longitude and universal time, which the Server can use to localize the device.
 
-The main components are the GPS receiver and GSM transmitter chips
+The main components are the *GPS receiver* and *GSM transmitter* chips
 for receiving and sending locations.
 Since both chips have to deal with a lot of information and technical challenges
 they can not really be synchronized.
 Therefor a third component is important: 
-A Message Buffer serves as a local database to keep the best location results
+A *Message Buffer* serves as a local database to keep the best location results
 and wait for a good connection to transmit them to the Tracking System.
 
-The fourth component, the Energy Source is vital for the hardware Tracker
-but is not needed for the software simulation.
-A simple `batteryLevel` attribute is enough to keep track.
-
-
-=== OsmAnd Protocol
-
-We chose this protocol because it is very simple and it is implemented
-on the Traccar Server for the Traccar Client App.
-You can find the format (or protocol spec) 
-link:https://www.traccar.org/osmand/[here] and
-xref:OsmAndProtocolSpecification.adoc[here].
-
-Technically "The OsmAnd protocol processes HTTP requests 
-with either query parameters or POST parameters."
-
-As we are initially interested to transmit place & time 
-we can focus on the following parameters that _could be used_
-in a simple record (immutable data class) to hold 
-a single GPS location: 
-
-[source,java]
-----
-    public record GpsData(
-        double  latitude,
-        double longitude,
-        double  altitude,
-          long timestamp,
-        double speed,
-        double bearing,
-           int battery) {}
-----
-
-[quote, https://docs.oracle.com/en/java/javase/17/language/records.html, Record Classes]
-Record classes, which are a special kind of class, help to model plain data aggregates + 
-with less ceremony than normal classes.
-
-Another approach would be to generate a Java Class from 
-the JSON format listed on the 
-link:https://www.traccar.org/osmand/[same page]. 
+The fourth component, the Energy Source is vital for the hardware Tracker.
+And similar to a mobile phone the battery is the most space consuming component,
+but luckily is not needed for the software simulation.
 
 
 === GPS receiver
 
-A GPS chip receives signals from orbiting satellites to calculate
+A GPS chip (with antenna) acquires signals from orbiting satellites to calculate
 the location on Earth - a highly mathematical, trigonomic number cruncher.
-The location is continuously calculated by trilateration from three satelites. 
+The location is continuously calculated by trilateration from (the best available) three satelites. 
 Note that a fourth satelite is required to provide the precise time.
 
 It is useful to understand that a GPS unit is primarily concerned
 to deliver `latitude, longitude` and `time`. 
-The `altitude` is more of a side effect and not as reliable.
+The `altitude` is more of a side effect and not as reliable
+due to geometric reasons.
 
-This implies that the GPS unit primarily provides point information.
+This implies that the GPS unit primarily provides _point information_.
 `speed` and `bearing` _can be_ provided, but most Tracking Systems
 calculate them from the previous to the current positon.
 
 
 === GSM transmitter
 
-The GSM is basically the entry point to the internet. 
+The GSM is basically the entry point of GPS data to the internet. 
+(There are numerous other network technologies that do the same.)
 It can send the locations over the connected network (if available) 
-and can communicate via TCP and UDP low level protocols.
+and can communicate via TCP and UDP low level protocols 
+and higher protocols, like `http/s`, on top.
 This unit is also working all the time to get a good connection
 over the air and transmitting whenever possible.
 
@@ -106,6 +71,177 @@ over the air and transmitting whenever possible.
 
 As both GPS- and GSM units are busy all the time
 the Message Buffer can collect all valid and accurate locations
-from the GPS, while pushing them to the server via GSM.
+from the GPS, while independantly pushing them to the server.
 
+
+== Communication Protocol
+
+It is important to realize that a Tracking Device *is not* an application client
+and the data transmission has nothing to do with the REST API.
+It is simply some thing (Internet of Things, IoT) that sends information,
+very often via proprietary protocols. A protocol is subdivided into _sentences_ 
+to report different concerns. The most primitive GPS Protocol is `NMEA 0183` 
+which actually describes the primitives of GPS acquisition, like the satelite constellation.
+The protocol is described in more detail in
+`The ROAF, Part II - Chapter 4.5 NAVSTAR GPS, 4.5.1 NMEA 0183`
+
+From the Tracker perspective the server *is not* the Traccar Platform,
+but simply a port to a _Device Communication Server_ (DCS) which does the ETL work.
+The DCS is implemented with 
+https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/OsmAndProtocol.java[Netty Pipelines]
+and 
+https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/OsmAndProtocolDecoder.java[the Decoder] 
+does the actual parsing targeting Traccar.
+
+
+
+=== OsmAnd Protocol
+
+Besides sentences, a number of values that belong together,
+the protocol defines the available attributes for server processing or the entire system.
+We chose the `OsmAnd` protocol because it is very simple and it is implemented
+on the Traccar Server (for the Traccar Client App).
+Or more general the Traccar Server offers a DCS 
+for this protocol on a configurable port (default 5055).
+
+You can find the format (or protocol spec) 
+link:https://www.traccar.org/osmand/[here] and
+xref:OsmAndProtocolSpecification.adoc[here].
+
+Technically "The OsmAnd protocol processes HTTP requests 
+with either query parameters or POST parameters."
+
+
+== Geo Coordinates
+
+For global positioning will use the GeoTools library.
+We are using the `org.locationtech.jts.geom.Coordinate` 
+to store the `latitude, longitude` and `altitude` double values.
+This is a mutable, lightweight class that can hold the X (Longitude), Y (Latitude), and Z (Altitude).
+It is our interface to geographical libraries for GPS Positions,
+for dealing with Digital Maps and Geographic Information Systems - GIS.
+
+We can replace the simple double fields for the location 
+with a core class from the GeoTools / Java Topology Suite (JTS) library, 
+which is the standard geometry model GeoTools is built on.
+At this point it doesn't seam like a big deal, 
+because we simply storing three double values in one Coordinate.
+
+But as soon as we need to calculate `distance` and `bearing` we have to use a projection system.
+We will look at the performances differences by comparing the formulas
+for a geographical versus a cartesian `distance`.
+Note that the Java Topology Suite is actually not working with geocoordinates
+and optimized for performance. 
+With the GeoTools library you can use the `Precision Model` and 
+the built-in `GeodeticCalculator` does not require geodetic expertise.
+
+
+
+=== Haversine Distance
+:stem: latexmath
+
+In geographic processing the most important performance aspect is mathematical. +
+Imagine you need to compare thousands of distances to operate a scenario.
+
+The geographically calculation has to consider the globe's radius, the curvature etc. +
+The *Haversine Formula* determines the great-circle distance between two points on a sphere:
+
+[stem]
+++++
+a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1) \cdot \cos(\phi_2) \cdot \sin^2\left(\frac{\Delta\lambda}{2}\right)
+++++
+
+[stem]
+++++
+c = 2 \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)
+++++
+
+[stem]
+++++
+d = R \cdot c
+++++
+
+* _d_ is the distance between the two points.
+* stem:[\phi] is latitude, stem:[\lambda] is longitude.
+* stem:[\Delta\phi = \phi_2 - \phi_1]
+* stem:[\Delta\lambda = \lambda_2 - \lambda_1]
+* stem:[R] is the radius of the sphere (Earth's mean radius is approx. 6,371 km).
+
+[TIP]
+====
+Most programming languages provide trigonometric functions that require input in radians. + 
+To convert degrees to radians, use the formula: radians = degrees * pi /180.
+====
+
+
+When _comparing_ distances their precise value does not matter, only relativity counts. +
+To calculate a distance in a cartesian plane we can also Pythagoras:
+
+=== Pythagorean Distance
+
+The Pythagorean Theorem is a fundamental principle in Euclidean geometry relating the three sides of a right triangle. 
+The theorem states that in a right-angled triangle, the area of the square whose side is 
+the hypotenuse (the side opposite the right angle) is equal to the sum of the areas of the squares on the other two sides.
+
+[stem]
+++++
+a^2 + b^2 = c^2
+++++
+
+Or simply speaking `a` and `b` are the orthogonal deltas of `lat` and `lon` and `c` is the distance,
+i.e. length of the hypotenuse.
+Calculating a comparable distance `c` is as simple as
+
+[stem]
+++++
+c = \sqrt{a^2 + b^2}
+++++
+
+By simply comparing this with the *Haversine Formula* you can sense the differences in performance.
+While the distance is simply calculating a length the real number crunching takes place
+when overlapping Geofences come into play. Note that geofence has many edges and 
+each one has to be taken into account, yet should not slow down the real time scenario.
+
+
+=== The `bm` Geodesy Standard 
+
+We don't want to be distracted by reference systems and as they say
+
+[quote]   
+The most conservative way to deal with the definition of a CoordinateReferenceSystem is not to.
+
+Throughout this `bm` repository we will use identical geodetic formulas. +
+Then the distances from `location 1` to `location 2` +
+and from `location 2` to `location 1` are guaranteed to be identical. +
+This is very important for synchronicity.
+
+Check out the 
+https://locationtech.github.io/jts/jts-features.html[JTS feature list]
+to get an idea of geometric operations.
+
+
+==== example
+
+With the GeoTools GeodeticCalculator we calculate the geodesic distance in meters 
+between two `(lat,lon)` GPS points in the standard WGS84 (EPSG:4326) system: 
+
+[source,java]
+----
+  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <1>
+
+  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <2>
+
+  calculator.setStartingGeographicPoint   (lon1, lat1);          // <3>
+  calculator.setDestinationGeographicPoint(lon2, lat2);
+
+  return calculator.getOrthodromicDistance();                    // <4>
+----
+
+<1> Define the Coordinate Reference System 
+
+<2> Initialize the Geodetic Calculator
+
+<3> Set start- and end coordinates 
+
+<4> Get the orthodromic distance (distance along the ellipsoid surface)
 

@@ -1,12 +1,12 @@
-package bm.tracker.gpstracker;
+package bm.gps.remove;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-// @ComponentScan(basePackages = {"bm.tracker.gpstracker"})
-public class GpsTrackerApplication {
+public class Application {
+
   public static void main(String[] args) {
-    SpringApplication.run(GpsTrackerApplication.class, args);
+    SpringApplication.run(Application.class, args);
   }
 }

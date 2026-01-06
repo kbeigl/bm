@@ -1,21 +1,21 @@
-package bm.tracker.gpstracker.queue;
+package bm.gps.tracker;
 
-import bm.tracker.gpstracker.model.GpsMessage;
+import bm.gps.MessageOsmand;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MessageQueue {
-  private final Queue<GpsMessage> queue = new ConcurrentLinkedQueue<>();
+  private final Queue<MessageOsmand> queue = new ConcurrentLinkedQueue<>();
 
-  public void enqueue(GpsMessage msg) {
+  public void enqueue(MessageOsmand msg) {
     if (msg != null) {
       queue.add(msg);
     }
   }
 
-  public GpsMessage poll() {
+  public MessageOsmand poll() {
     return queue.poll();
   }
 

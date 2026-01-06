@@ -2,6 +2,6 @@
 = project documentation
 
 start with documentation overview at +
-link:./src/asciidoc/gps-tracker-impl.html[] +
+link:./src/asciidoc/gps-osmand-tracker.html[] +
 or +
-xref:./src/asciidoc/gps-tracker-impl.adoc[]
+xref:./src/asciidoc/gps-osmand-tracker.adoc[]

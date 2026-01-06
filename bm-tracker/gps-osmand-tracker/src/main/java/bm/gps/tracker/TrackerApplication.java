@@ -1,12 +1,12 @@
-package bm.gps.tracker.camel;
+package bm.gps.tracker;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Application {
-
+// @ComponentScan(basePackages = {"bm.tracker.gpstracker"})
+public class TrackerApplication {
   public static void main(String[] args) {
-    SpringApplication.run(Application.class, args);
+    SpringApplication.run(TrackerApplication.class, args);
   }
 }

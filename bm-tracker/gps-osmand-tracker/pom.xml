@@ -25,14 +25,14 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-tracker</artifactId>
-        <version>1.1.13</version>
+        <version>1.1.14</version>
     </parent>
 
     <artifactId>gps-osmand-tracker</artifactId>
 
     <name>..... gps-osmand-tracker</name>
     <description>gps-osmand-tracker</description>
-    <version>1.1.13-beta</version>
+    <version>1.1.14-POC</version>
 
     <dependencies>
         <dependency>
@@ -43,6 +43,12 @@
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-http-starter</artifactId>
             <!-- to be removed, only HttpOperationFailedException used-->
+        </dependency>
+
+        <!-- Provide @PostConstruct (Jakarta) for Java 11+ -->
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
 
         <!-- ========== Testing dependencies ========== -->
@@ -72,16 +78,8 @@
             <groupId>bm</groupId>
             <artifactId>traccar-rt-client</artifactId>
             <version>6.10.0-RC</version>
+            <!-- TEST ? -->
         </dependency>
-
-        <!-- JUnit Suite API to run external test classes via a suite wrapper
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-         -->
-
     </dependencies>
 
     <build>

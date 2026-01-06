@@ -1,17 +1,18 @@
-package bm.gps.tracker.camel;
+package bm.gps.tracker.old;
 
+import bm.gps.remove.Application;
+import bm.gps.remove.SimulatorService;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * JUnit 5 test class to simulate the OsmAnd tracking process using Apache Camel. This runs the
- * Spring Boot application and its Camel routes for a controlled duration.
+ * Simulate the OsmAnd tracking process using Apache Camel. This runs the Spring Boot application
+ * and its Camel routes for a controlled duration.
  */
 @CamelSpringBootTest
 @SpringBootTest(classes = Application.class)
-class SimulatorT {
+class SimulatorTest {
 
   // @Autowired private ApplicationContext applicationContext;
 
@@ -19,7 +20,7 @@ class SimulatorT {
   // but for running, we just need the context.
   @Autowired private SimulatorService simulatorService;
 
-  @Test
+  //  @Test
   void runSimulationForFiveSeconds() throws Exception {
     System.out.println("------------------------------------------------------------------");
     System.out.println("Starting Camel Simulator Test. Route is running on a timer...");

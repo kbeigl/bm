@@ -1,78 +1,242 @@
 
 = Implementation
 
-We have started be defining the OsmAnd GPS Message as defined for Traccar.
+In the long run we want to track every _Thing_ (real physical object) acting in a scenario. + 
+Since every message implies the devices `uniqueId`, one Message Broker
+could work as _one single_ Tracker for a _complete_ scenario.
+So all simulated devices could send their messages off the same Tracker
+and _could_ be scaled and sudivided with a Message Broker like RabbitMQ, ActiveMQ etc. +
+We want to provide an independantly working GPS Tracker (simulation) for each of these things. 
+A _single_ device can be scaled with SEDA to decompose messages for event driven components.
+
+
+== The Model
+
+We have chosen the `OsmAnd` and defined the `OsmAnd` GPS Message (targeting Traccar).
 That is the information and format the server accepts and understands.
-We will use it as our Model for development.
+We will use it as our *Model* to guide Tracker development.
+The protocol defines all attributes exchanged with the GTS platform.
 
-
-
-xxxxxxxxxxx
-
-We'll start with a simple class definition for the Tracker Simulation
-
-[source,java]
-----
-    public class GpsOsmTracker {
-    
-      private final String serverUrl;
-      private final String deviceId;
-    
-      // JTS Coordinate to hold (lon, lat, alt) -> (x, y, z) mutable states
-      private final Coordinate coordinate;
-    
-      // Other telemetry data (not part of geometry)
-      private long timestamp;
-      private double speed; // in meters/second
-      private double bearing; // in degrees (0-360)
-      private int batteryLevel; // 0-100
-      private double hdop; // Horizontal Dilution of Precision, i.e. accuracy
-----
-
-This way the GPS unit is replaced by simply setting the GPS class members.
-So we can add getters and setters for each member.
-
-=== Geo Coordinates
-
-Note that we are using the `org.locationtech.jts.geom.Coordinate` 
-to store the `latitude, longitude` and `altitude` double values.
-This is our entry point to geographical libraries for GPS Positions,
-for dealing with Digital Maps and Geographic Information Systems.
-
-We can replace the simple double fields for the location 
-with a core class from the GeoTools / JTS (Java Topology Suite) library, 
-which is the standard geometry model GeoTools is built on.
-
-At this point it doesn't seam like a big deal, 
-because we simply storing three double values in one Coordinate.
-But as soon as we need to calculate `distance` and `bearing`
-we have to use a projection system.
-This is a walk in the park with 
-the GeoTools library's built-in `GeodeticCalculator`.
-
-==== Example
-
-To calculate the geodesic distance in meters between two lat/lon points 
-using the GeoTools GeodeticCalculator 
-with the GPS standard WGS84 (EPSG:4326) system: 
-
-<1> Define the Coordinate Reference System 
-
-<2> Initialize the Geodetic Calculator
-
-<3> Set start- and end coordinates 
-
-<4> Get the orthodromic distance (distance along the ellipsoid surface)
+We could generate a Java Class from the JSON format listed on the 
+link:https://www.traccar.org/osmand/[traccar osmand] page. +
+But we want to go our own way and only use GPS platonic values 
+for an initial GPS Tracker.
+We are primarily interested to transmit place & time 
+and can fix the parameters in a simple `record` to hold a single GPS snapshot. 
 
 [source,java]
 ----
-  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <1>
+package bm.gps;
 
-  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <2>
-
-  calculator.setStartingGeographicPoint   (lon1, lat1);          // <3>
-  calculator.setDestinationGeographicPoint(lon2, lat2);
-
-  return calculator.getOrthodromicDistance();                    // <4>
+    public record MessageOsmand(
+        // must have
+        String id,        // traccar device uniqueId
+        double lat,
+        double lon,
+        long timestamp,
+        // optional objects to allow null values
+        Double speed,
+        Double bearing,
+        Double altitude,
+        Double battery,
+        Double hdop) { }
 ----
+
+A `record` is an immutable data class and much easier to handle than a POJO.
+
+[quote, https://docs.oracle.com/en/java/javase/17/language/records.html, Record Classes]
+Record classes, which are a special kind of class, help to model plain data aggregates + 
+with less ceremony than normal classes.
+
+Note that the primitive values are used as the _"must haves"_ for GPS Tracking.
+At a later stage they can be abstracted to a GPS info interface
+to introduce different trackers to the same scenario.
+
+The other values are modelled as objects in order to make them optional.
+Currently the 
+link:https://www.traccar.org/osmand/[traccar osmand] page
+offers 16 different values, 
+which can be introduced while we are in the modeling phase.
+
+* For example the `hdop`, i.e. Horizontal dilution of precision 
+is not relevant for us, since it describes the quality of a message
+and we are only interested in the result.
+
+* On the other hand the `accuracy` can be _missused_ to create a circle on the map,
+which might be interesting for certain scenarios.
+
+No need for final decisions at this point.
+And after all Traccar also works with custom attributes,
+which could be sneeked into a scenario, if needed.
+
+
+== requirements
+
+First we collect the functional requirements for the core features of tracking, +
+a _Minimum Viable Product_ we can build on. +
+We have looked at the main 
+xref:./gps-tracker.adoc[Tracker Components]
+earlier to gather requirements for the implementation:
+
+=== GPS receiver
+
+- [*] Acquire GPS position (latitude, longitude, altitude)
+- [*] UTC Time 
+- [ ] incoming Message Buffer here ?
+
+=== (GSM) transitter
+
+- [*] Transmit messages (primarily location data) to a remote server (any TCP, UDP protocols)
+- [ ] configurable intervals e.g. every x seconds when moving, every y minutes when stationary etc.
+- [*] manage connection to server, reconnection
+- [*] outgoing Message Buffer
+
+=== Message Buffer
+
+- [ ] longterm target: analyze incoming data in millisecond intervals for real time events
+
+=== controller
+
+The main controller resides between receiving input and transmitting output.
+Most features of a Tracker can be implemented in it 
+and it is the place to collect system information continuously.
+
+- [ ] Store last known position (or short history) 
+- [ ] Fallback: store positions locally when no network → send burst when reconnected
+- [ ] Motion detection → change reporting frequency when moving vs. stationary
+- [ ] Determine basic movement data: speed, course/heading
+- [ ] provide basic status _events_: power on, transmitting, low battery, error.
+- [ ] Low-battery warning (send alert or change behavior)
+- [ ] Geofencing support (enter/exit alerts when crossing virtual boundaries)
+
+This list can provide a guideline for software `@Components`
+and is sufficient to create a concrete implementation without surprises.
+
+
+
+== prototyping
+
+Prototyping is the first implementation to demo the _proof of concept_
+for single component to a complete framework.
+Main Technology- and Design Decision have to be made to fullfill the POC.
+And many design candidates and technologies are sorted out.
+This way the architecture stays homogeneous over the complete repo
+to optimize tranparency for onboarding of (business) coders.
+In this case the (Java) application developer wants to create a message and send it.
+fire & forget
+
+=== Receiver
+
+Actually the receiver, i.e. GPS Unit is already completly defined with the `MessageOsmand`. +
+It specifies which attributes the Tracker can handle.
+The data acquistion can be "implemented" with `getters/setters` of the Controller.
+These will be connectors to simulations, playbacks and live tracking.
+Energy and UTC time are sponsored by the runtime environment.
+
+We can already check off some requirements :)
+
+
+=== Controller
+
+The Controller is the `Tracker` core.
+We have chosen Camel to integrate components + 
+and a Camel rider starts software design with a local `direct` Endpoint:
+
+[source,java]
+----
+      // Transmitter
+
+      from("direct:send-osmand")
+----
+    
+From this point we will send messages to the Traccar server.
+In integration terms it is a _Producer Endpoint_ to send a fixed message.
+On the other hand we want to leave all options to create messages.
+This is achieved by using the Camel Producer to send messages 
+`to` `"direct:send-osmand"`, now being a _Consumer Endpoint_.
+
+For example you can use a regular Java method and instead of `return` 
+you end the method with `sendBody`. Camel will take care of the rest.
+For the developer the message can be considered as sent.
+
+[source,java]
+----
+      // Tracker
+      
+      public void send(MessageOsmand msg) {
+      
+        // evaluations etc.
+        
+        // synchronous at dev time
+        tracker.sendBody("direct:send-osmand", msg);
+        // more traffic
+        // tracker.asyncSendBody("direct:send-osmand", msg);
+        // even more traffic
+        // tracker.asyncSendBody("seda:send-osmand", msg);
+      }
+----
+
+Now we are set to start implementing with this Endpoint .. 
+
+* as Consumer of a immutable message and
+
+* as a Producer to send this message.
+
+sounds easy, 'cause it is.
+
+
+=== Transmitter
+
+We now have Input and a Controller. Next is the Output, the messaging/transport layer to the GTS. +
+The Transmitter is responsible to submit (and acknowledge) the messages to Traccar. + 
+First we need to make sure the controllers call introduced above
+
+    // send message to transmitter
+    tracker.sendBody("direct:send-osmand", msg);
+
+is intercepted by a transmitter, so we implement a Route with
+
+    Transmitter extends RouteBuilder 
+    
+which takes care of all the Spring and Camel wiring, autodetection etc. +
+The transmission route starts with
+        
+    // send message to server
+    from("direct:send-osmand")
+
+The route then builds the URL to the server, manages http headers and properties
+and sends the message to Traccar via Dynamic Endpoint `.toD( host )`.
+
+
+==== Message Buffer
+
+The Message Queue is supposed to collect the message that could not be sent.
+It is created with the `Transmitter`
+
+    private final MessageQueue queue = new MessageQueue();
+
+For this we have created an `onException` Route, which fires, if something 
+goes wrong when sending via http. At the end of the route messages are enqueued
+
+    queue.enqueue(msg);
+
+This is a good start and the flushing can be taken from there.
+
+
+==== Tracker creation and registration
+
+If a developer creates an actor of a scenario, some Java Object,
+and wants to track it he should be enabled to create a Tracker on the fly.
+There is no static configuration and it should happen at runtime.
+
+With our components being Spring beans, we want to create and 
+register a new bean instance at runtime and then start its associated Camel route. 
+This is achieved using the `ApplicationContextAware interface` to handle the dynamic creation 
+and registration of a fully managed component. 
+With `AutowireCapableBeanFactory` the bean is created manually,
+allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).
+
+
+
+
 

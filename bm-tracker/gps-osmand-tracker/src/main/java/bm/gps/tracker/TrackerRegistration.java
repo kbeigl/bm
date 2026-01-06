@@ -1,7 +1,5 @@
-package bm.tracker.gpstracker;
+package bm.gps.tracker;
 
-import org.apache.camel.CamelContext;
-import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -14,11 +12,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TrackerRegistrationService implements ApplicationContextAware {
-  private static final Logger logger = LoggerFactory.getLogger(TrackerRegistrationService.class);
+public class TrackerRegistration implements ApplicationContextAware {
+  private static final Logger logger = LoggerFactory.getLogger(TrackerRegistration.class);
 
-  @Autowired private ProducerTemplate producer;
-  @Autowired private CamelContext camel;
   @Autowired private AutowireCapableBeanFactory beanFactory;
 
   @Value("${osmand.host}")
@@ -31,13 +27,20 @@ public class TrackerRegistrationService implements ApplicationContextAware {
     this.configurableContext = (ConfigurableApplicationContext) applicationContext;
   }
 
-  /** deviceId must match and creates the beanName "tracker-10" */
-  public OsmAndTracker registerTracker(String deviceId) throws Exception {
-    OsmAndTracker tracker = new OsmAndTracker(deviceId, osmandHost, camel, producer);
+  /** Creation and Registration of a TrackerOsmAnd instance. */
+  public TrackerOsmAnd registerTracker(String uniqueId) throws Exception {
+
+    // check if uniqueId is already registered
+
+    TrackerOsmAnd tracker = new TrackerOsmAnd(uniqueId, osmandHost);
+    // dependency injection
     beanFactory.autowireBean(tracker);
-    String beanName = "tracker-" + deviceId;
-    logger.info("Registering OsmAndTracker bean with name {} ", beanName);
+    String beanName = "tracker-" + uniqueId;
+    logger.info("Registering OsmAnd Tracker bean with name {} ", beanName);
+    // register singleton so the bean is visible in the context
     configurableContext.getBeanFactory().registerSingleton(beanName, tracker);
+    // initialize bean to trigger lifecycle callbacks (e.g. @PostConstruct)
+    beanFactory.initializeBean(tracker, beanName);
     return tracker;
   }
 }

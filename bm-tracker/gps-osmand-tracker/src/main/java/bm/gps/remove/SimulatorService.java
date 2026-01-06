@@ -1,6 +1,5 @@
-package bm.gps.tracker.camel;
+package bm.gps.remove;
 
-import bm.gps.OsmAndMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.camel.Exchange;
@@ -27,8 +26,7 @@ public class SimulatorService {
 
   // State
   private int steps = 0;
-  private OsmAndMessage lastSentData =
-      OsmAndMessage.now(CENTER_LAT, CENTER_LON, 0.0, 0.0, 50.0, 100, 0);
+  private OldMessage lastSentData = OldMessage.now(CENTER_LAT, CENTER_LON, 0.0, 0.0, 50.0, 100, 0);
 
   /**
    * Camel Handler method that simulates movement, checks distance, and updates the state. * @param
@@ -37,7 +35,7 @@ public class SimulatorService {
    * @return The new GpsData record if the distance threshold is crossed, or null otherwise.
    */
   @Handler
-  public OsmAndMessage updateLocation(Exchange exchange) {
+  public OldMessage updateLocation(Exchange exchange) {
     // --- 1. Calculate the *next potential* position ---
     double angle = Math.toRadians(steps * 0.5); // 0.5 degrees per tick
 
@@ -58,8 +56,8 @@ public class SimulatorService {
       double newBearing = (steps * 0.5 + 90) % 360; // Tangent to circle
 
       // Create new data record (this becomes the new message body)
-      OsmAndMessage newGpsData =
-          OsmAndMessage.now(
+      OldMessage newGpsData =
+          OldMessage.now(
               newLat,
               newLon,
               15.0, // Speed 15 m/s
@@ -100,11 +98,11 @@ public class SimulatorService {
     }
   }
 
-  public OsmAndMessage getLastSentData() {
+  public OldMessage getLastSentData() {
     return lastSentData;
   }
 
-  public void setLastSentData(OsmAndMessage lastSentData) {
+  public void setLastSentData(OldMessage lastSentData) {
     this.lastSentData = lastSentData;
   }
 }

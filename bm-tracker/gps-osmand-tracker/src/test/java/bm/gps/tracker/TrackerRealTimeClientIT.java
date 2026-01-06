@@ -1,14 +1,14 @@
-package bm.tracker.gpstracker;
+package bm.gps.tracker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bm.gps.MessageOsmand;
 import bm.traccar.BaseRealTimeClientTest;
-import bm.traccar.generated.model.dto.Device;
+import bm.traccar.RealTimeClient;
 import bm.traccar.generated.model.dto.User;
-import bm.tracker.gpstracker.model.GpsMessage;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,46 +27,32 @@ import org.springframework.test.context.ActiveProfiles;
  * <p>Although this is an integration test, the RealTimeClient is not started here. The focus is on
  * testing the Tracker component in a scenario with devices (and users?).
  */
-@SpringBootTest(
-    classes = {
-      bm.traccar.RealTimeClient.class,
-      bm.tracker.gpstracker.GpsOsmandTrackerTestConfig.class
-    })
+@SpringBootTest(classes = {RealTimeClient.class, GpsOsmandTrackerTestConfig.class})
 @ComponentScan(basePackages = {"bm.tracker.gpstracker"})
 @ActiveProfiles("test")
 class TrackerRealTimeClientIT extends BaseRealTimeClientTest {
   private static final Logger logger = LoggerFactory.getLogger(TrackerRealTimeClientIT.class);
 
-  @Autowired TrackerRegistrationService registrationService;
+  @Autowired TrackerRegistration registrationService;
 
   @Test
-  void sendMessagesWithDevices() throws Exception {
+  void sendMessagesWithDevice() throws Exception {
 
     logger.info("Setup scenario devices for {} ", scenario.admin);
     // devices from scenarioLoader from DB. will be RT client later
-    Device adminDevice, managerDevice, hideDevice, seekDevice;
-    OsmAndTracker client = registrationService.registerTracker("tracker-10" + System.nanoTime());
+    TrackerOsmAnd client = registrationService.registerTracker("tracker-10" + System.nanoTime());
     // listAllBeansInTestContext();
 
     // define positions according to existing tracks
-    GpsMessage m1 = new GpsMessage();
-    m1.setId("10");
-    m1.setLat(52.0);
-    m1.setLon(13.0);
-    m1.setTimestamp(System.currentTimeMillis());
+    long ts1 = System.currentTimeMillis();
+    MessageOsmand m1 = new MessageOsmand("10", 52.0, 13.0, ts1, null, null, null, null, null);
     client.send(m1);
 
-    GpsMessage m2 = new GpsMessage();
-    m2.setId("10");
-    m2.setLat(52.0001);
-    m2.setLon(13.0001);
-    m2.setTimestamp(System.currentTimeMillis());
+    long ts2 = System.currentTimeMillis();
+    MessageOsmand m2 = new MessageOsmand("10", 52.0001, 13.0001, ts2, null, null, null, null, null);
 
-    GpsMessage m3 = new GpsMessage();
-    m3.setId("10");
-    m3.setLat(52.0002);
-    m3.setLon(13.0002);
-    m3.setTimestamp(System.currentTimeMillis());
+    long ts3 = System.currentTimeMillis();
+    MessageOsmand m3 = new MessageOsmand("10", 52.0002, 13.0002, ts3, null, null, null, null, null);
 
     client.send(m2);
     client.send(m3);

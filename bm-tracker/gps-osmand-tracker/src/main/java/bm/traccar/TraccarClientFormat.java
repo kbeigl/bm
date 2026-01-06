@@ -1,4 +1,4 @@
-package bm.gps;
+package bm.traccar;
 
 import java.util.Map;
 
@@ -6,6 +6,8 @@ import java.util.Map;
  * Data format for Traccar Client API.
  *
  * <p>Generated based on TraccarClient.json in main/resources.
+ *
+ * <p>Currently this class is not used directly, but serves as documentation of the expected format.
  */
 public class TraccarClientFormat {
   public static class Location {

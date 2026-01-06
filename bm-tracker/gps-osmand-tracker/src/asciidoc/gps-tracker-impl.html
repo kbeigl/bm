@@ -442,94 +442,350 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>We have started be defining the OsmAnd GPS Message as defined for Traccar.
+<p>In the long run we want to track every <em>Thing</em> (real physical object) acting in a scenario.<br>
+Since every message implies the devices <code>uniqueId</code>, one Message Broker
+could work as <em>one single</em> Tracker for a <em>complete</em> scenario.
+So all simulated devices could send their messages off the same Tracker
+and <em>could</em> be scaled and sudivided with a Message Broker like RabbitMQ, ActiveMQ etc.<br>
+We want to provide an independantly working GPS Tracker (simulation) for each of these things.
+A <em>single</em> device can be scaled with SEDA to decompose messages for event driven components.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_model">The Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We have chosen the <code>OsmAnd</code> and defined the <code>OsmAnd</code> GPS Message (targeting Traccar).
 That is the information and format the server accepts and understands.
-We will use it as our Model for development.</p>
+We will use it as our <strong>Model</strong> to guide Tracker development.
+The protocol defines all attributes exchanged with the GTS platform.</p>
 </div>
 <div class="paragraph">
-<p>xxxxxxxxxxx</p>
-</div>
-<div class="paragraph">
-<p>We&#8217;ll start with a simple class definition for the Tracker Simulation</p>
+<p>We could generate a Java Class from the JSON format listed on the
+<a href="https://www.traccar.org/osmand/">traccar osmand</a> page.<br>
+But we want to go our own way and only use GPS platonic values
+for an initial GPS Tracker.
+We are primarily interested to transmit place &amp; time
+and can fix the parameters in a simple <code>record</code> to hold a single GPS snapshot.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">    public class GpsOsmTracker {
+<pre class="highlight"><code class="language-java" data-lang="java">package bm.gps;
 
-      private final String serverUrl;
-      private final String deviceId;
-
-      // JTS Coordinate to hold (lon, lat, alt) -&gt; (x, y, z) mutable states
-      private final Coordinate coordinate;
-
-      // Other telemetry data (not part of geometry)
-      private long timestamp;
-      private double speed; // in meters/second
-      private double bearing; // in degrees (0-360)
-      private int batteryLevel; // 0-100
-      private double hdop; // Horizontal Dilution of Precision, i.e. accuracy</code></pre>
+    public record MessageOsmand(
+        // must have
+        String id,        // traccar device uniqueId
+        double lat,
+        double lon,
+        long timestamp,
+        // optional objects to allow null values
+        Double speed,
+        Double bearing,
+        Double altitude,
+        Double battery,
+        Double hdop) { }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This way the GPS unit is replaced by simply setting the GPS class members.
-So we can add getters and setters for each member.</p>
+<p>A <code>record</code> is an immutable data class and much easier to handle than a POJO.</p>
 </div>
+<div class="quoteblock">
+<blockquote>
+Record classes, which are a special kind of class, help to model plain data aggregates<br>
+with less ceremony than normal classes.
+</blockquote>
+<div class="attribution">
+&#8212; https://docs.oracle.com/en/java/javase/17/language/records.html<br>
+<cite>Record Classes</cite>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the primitive values are used as the <em>"must haves"</em> for GPS Tracking.
+At a later stage they can be abstracted to a GPS info interface
+to introduce different trackers to the same scenario.</p>
+</div>
+<div class="paragraph">
+<p>The other values are modelled as objects in order to make them optional.
+Currently the
+<a href="https://www.traccar.org/osmand/">traccar osmand</a> page
+offers 16 different values,
+which can be introduced while we are in the modeling phase.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For example the <code>hdop</code>, i.e. Horizontal dilution of precision
+is not relevant for us, since it describes the quality of a message
+and we are only interested in the result.</p>
+</li>
+<li>
+<p>On the other hand the <code>accuracy</code> can be <em>missused</em> to create a circle on the map,
+which might be interesting for certain scenarios.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>No need for final decisions at this point.
+And after all Traccar also works with custom attributes,
+which could be sneeked into a scenario, if needed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_requirements">requirements</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First we collect the functional requirements for the core features of tracking,<br>
+a <em>Minimum Viable Product</em> we can build on.<br>
+We have looked at the main
+<a href="./gps-tracker.html">Tracker Components</a>
+earlier to gather requirements for the implementation:</p>
+</div>
+<div class="sect2">
+<h3 id="_gps_receiver">GPS receiver</h3>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10003; Acquire GPS position (latitude, longitude, altitude)</p>
+</li>
+<li>
+<p>&#10003; UTC Time</p>
+</li>
+<li>
+<p>&#10063; incoming Message Buffer here ?</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_geo_coordinates">Geo Coordinates</h3>
-<div class="paragraph">
-<p>Note that we are using the <code>org.locationtech.jts.geom.Coordinate</code>
-to store the <code>latitude, longitude</code> and <code>altitude</code> double values.
-This is our entry point to geographical libraries for GPS Positions,
-for dealing with Digital Maps and Geographic Information Systems.</p>
-</div>
-<div class="paragraph">
-<p>We can replace the simple double fields for the location
-with a core class from the GeoTools / JTS (Java Topology Suite) library,
-which is the standard geometry model GeoTools is built on.</p>
-</div>
-<div class="paragraph">
-<p>At this point it doesn&#8217;t seam like a big deal,
-because we simply storing three double values in one Coordinate.
-But as soon as we need to calculate <code>distance</code> and <code>bearing</code>
-we have to use a projection system.
-This is a walk in the park with
-the GeoTools library&#8217;s built-in <code>GeodeticCalculator</code>.</p>
-</div>
-<div class="sect3">
-<h4 id="_example">Example</h4>
-<div class="paragraph">
-<p>To calculate the geodesic distance in meters between two lat/lon points
-using the GeoTools GeodeticCalculator
-with the GPS standard WGS84 (EPSG:4326) system:</p>
-</div>
-<div class="colist arabic">
-<ol>
+<h3 id="_gsm_transitter">(GSM) transitter</h3>
+<div class="ulist checklist">
+<ul class="checklist">
 <li>
-<p>Define the Coordinate Reference System</p>
+<p>&#10003; Transmit messages (primarily location data) to a remote server (any TCP, UDP protocols)</p>
 </li>
 <li>
-<p>Initialize the Geodetic Calculator</p>
+<p>&#10063; configurable intervals e.g. every x seconds when moving, every y minutes when stationary etc.</p>
 </li>
 <li>
-<p>Set start- and end coordinates</p>
+<p>&#10003; manage connection to server, reconnection</p>
 </li>
 <li>
-<p>Get the orthodromic distance (distance along the ellipsoid surface)</p>
+<p>&#10003; outgoing Message Buffer</p>
 </li>
-</ol>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_message_buffer">Message Buffer</h3>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10063; longterm target: analyze incoming data in millisecond intervals for real time events</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_controller">controller</h3>
+<div class="paragraph">
+<p>The main controller resides between receiving input and transmitting output.
+Most features of a Tracker can be implemented in it
+and it is the place to collect system information continuously.</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10063; Store last known position (or short history)</p>
+</li>
+<li>
+<p>&#10063; Fallback: store positions locally when no network → send burst when reconnected</p>
+</li>
+<li>
+<p>&#10063; Motion detection → change reporting frequency when moving vs. stationary</p>
+</li>
+<li>
+<p>&#10063; Determine basic movement data: speed, course/heading</p>
+</li>
+<li>
+<p>&#10063; provide basic status <em>events</em>: power on, transmitting, low battery, error.</p>
+</li>
+<li>
+<p>&#10063; Low-battery warning (send alert or change behavior)</p>
+</li>
+<li>
+<p>&#10063; Geofencing support (enter/exit alerts when crossing virtual boundaries)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This list can provide a guideline for software <code>@Components</code>
+and is sufficient to create a concrete implementation without surprises.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prototyping">prototyping</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Prototyping is the first implementation to demo the <em>proof of concept</em>
+for single component to a complete framework.
+Main Technology- and Design Decision have to be made to fullfill the POC.
+And many design candidates and technologies are sorted out.
+This way the architecture stays homogeneous over the complete repo
+to optimize tranparency for onboarding of (business) coders.
+In this case the (Java) application developer wants to create a message and send it.
+fire &amp; forget</p>
+</div>
+<div class="sect2">
+<h3 id="_receiver">Receiver</h3>
+<div class="paragraph">
+<p>Actually the receiver, i.e. GPS Unit is already completly defined with the <code>MessageOsmand</code>.<br>
+It specifies which attributes the Tracker can handle.
+The data acquistion can be "implemented" with <code>getters/setters</code> of the Controller.
+These will be connectors to simulations, playbacks and live tracking.
+Energy and UTC time are sponsored by the runtime environment.</p>
+</div>
+<div class="paragraph">
+<p>We can already check off some requirements :)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_controller_2">Controller</h3>
+<div class="paragraph">
+<p>The Controller is the <code>Tracker</code> core.
+We have chosen Camel to integrate components<br>
+and a Camel rider starts software design with a local <code>direct</code> Endpoint:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <b class="conum">(1)</b>
+<pre class="highlight"><code class="language-java" data-lang="java">      // Transmitter
 
-  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <b class="conum">(2)</b>
+      from("direct:send-osmand")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From this point we will send messages to the Traccar server.
+In integration terms it is a <em>Producer Endpoint</em> to send a fixed message.
+On the other hand we want to leave all options to create messages.
+This is achieved by using the Camel Producer to send messages
+<code>to</code> <code>"direct:send-osmand"</code>, now being a <em>Consumer Endpoint</em>.</p>
+</div>
+<div class="paragraph">
+<p>For example you can use a regular Java method and instead of <code>return</code>
+you end the method with <code>sendBody</code>. Camel will take care of the rest.
+For the developer the message can be considered as sent.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">      // Tracker
 
-  calculator.setStartingGeographicPoint   (lon1, lat1);          // <b class="conum">(3)</b>
-  calculator.setDestinationGeographicPoint(lon2, lat2);
+      public void send(MessageOsmand msg) {
 
-  return calculator.getOrthodromicDistance();                    // <b class="conum">(4)</b></code></pre>
+        // evaluations etc.
+
+        // synchronous at dev time
+        tracker.sendBody("direct:send-osmand", msg);
+        // more traffic
+        // tracker.asyncSendBody("direct:send-osmand", msg);
+        // even more traffic
+        // tracker.asyncSendBody("seda:send-osmand", msg);
+      }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now we are set to start implementing with this Endpoint ..</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>as Consumer of a immutable message and</p>
+</li>
+<li>
+<p>as a Producer to send this message.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>sounds easy, 'cause it is.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_transmitter">Transmitter</h3>
+<div class="paragraph">
+<p>We now have Input and a Controller. Next is the Output, the messaging/transport layer to the GTS.<br>
+The Transmitter is responsible to submit (and acknowledge) the messages to Traccar.<br>
+First we need to make sure the controllers call introduced above</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>// send message to transmitter
+tracker.sendBody("direct:send-osmand", msg);</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>is intercepted by a transmitter, so we implement a Route with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Transmitter extends RouteBuilder</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which takes care of all the Spring and Camel wiring, autodetection etc.<br>
+The transmission route starts with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>// send message to server
+from("direct:send-osmand")</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The route then builds the URL to the server, manages http headers and properties
+and sends the message to Traccar via Dynamic Endpoint <code>.toD( host )</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_message_buffer_2">Message Buffer</h4>
+<div class="paragraph">
+<p>The Message Queue is supposed to collect the message that could not be sent.
+It is created with the <code>Transmitter</code></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>private final MessageQueue queue = new MessageQueue();</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For this we have created an <code>onException</code> Route, which fires, if something
+goes wrong when sending via http. At the end of the route messages are enqueued</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>queue.enqueue(msg);</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a good start and the flushing can be taken from there.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tracker_creation_and_registration">Tracker creation and registration</h4>
+<div class="paragraph">
+<p>If a developer creates an actor of a scenario, some Java Object,
+and wants to track it he should be enabled to create a Tracker on the fly.
+There is no static configuration and it should happen at runtime.</p>
+</div>
+<div class="paragraph">
+<p>With our components being Spring beans, we want to create and
+register a new bean instance at runtime and then start its associated Camel route.
+This is achieved using the <code>ApplicationContextAware interface</code> to handle the dynamic creation
+and registration of a fully managed component.
+With <code>AutowireCapableBeanFactory</code> the bean is created manually,
+allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).</p>
+</div>
 </div>
 </div>
 </div>
@@ -537,7 +793,7 @@ with the GPS standard WGS84 (EPSG:4326) system:</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-12-20 13:33:54 +0100
+Last updated 2026-01-21 13:27:35 +0100
 </div>
 </div>
 </body>

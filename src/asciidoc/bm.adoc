@@ -12,14 +12,14 @@ link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-eboo
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.13 
-    [INFO] --- blue marble parameters                --- 1.1.13 
-    [INFO] ---- traccar client implementations       --- 1.1.13 
+    [INFO] === blue marble simulations               === 1.1.14 
+    [INFO] --- blue marble parameters                --- 1.1.14 
+    [INFO] ---- traccar client implementations       --- 1.1.14 
     [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
     [INFO] ..... traccar-api-client          6.10.0-RC ........ 
     [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
-    [INFO] ---- GPS Unit and Tracker            --- 1.1.13-beta 
-    [INFO] ..... gps-osmand-tracker          1.1.13-beta ......
+    [INFO] ---- GPS Unit and Tracker                 --- 1.1.14 
+    [INFO] ..... gps-osmand-tracker          1.1.14-POC  ......
 -----------------
 
 For earlier versions check the 

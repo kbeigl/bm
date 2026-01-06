@@ -1,4 +1,4 @@
-package bm.tracker.gpstracker.geotools;
+package bm.gps;
 
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.GeodeticCalculator;

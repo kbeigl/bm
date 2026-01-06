@@ -1,11 +1,11 @@
 
 :toc:
 
-= space & time
+= Global Positioning
 
 The Maven project branch `bm-traccar` serves as the development environment for integrating with the Traccar GPS Tracking Platform. 
 We have created a `traccar-realtime-client` to mirror what's going on in the Tracking System.
-This `bm-tracker` branch is used to develop GPS Tracker Simulators which can track things by sending their positions frequently.
+This `bm-tracker` branch is used to develop virtual GPS Tracker Simulators which can track real things by sending their positions frequently.
 
 [NOTE]
 ====
@@ -13,50 +13,80 @@ Note that we are citing original texts from
 link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[The RealObject Application Framework]
 ====
 
-[quote, The RealObject Application Framework, Chapter 4 Space & Time]
-From the abstracted project view, a GPS unit is an arbitrary technical
-system to enable electronic receivers to determine their current longitude,
-latitude, and elevation information. Part of our task is to create a GPS
-receiver for the software world, a GPS unit.
+[quote, The RealObject Application Framework, Part II - Global Positioning]
+Physical laws of motion are generally described in isolated values,
+beginning at the (x, y, z)-coordinate (0, 0, 0) and moving along the x-axis.
+These laboratory coordinates neglect the relative where and when. In order
+to relate real-world activities, every event has to be translated into a global
+coordinate system and absolute time. Motion has to be transformed from
+spatial coordinates to metric units to reflect, for example, the speed of a
+car on a map. 
+We will build a virtual GPS unit as the heart of the ROAF to synchronize
+object motion in space and time.
 
-== the basics
+
+== space & time
 
 The ROAF vision described in the book is based on simple and platonic rules. +
 In order to simulate things, events and interactions of the real world, +
-we will need a grid for space and time.
+we will need _a grid for space and time_.
+
+=== simulation environment
 
 [IMPORTANT]
 ====
 Our *Space* is the surface of the big blue marble, 
 which is completly defined with only two spatial coordinates _latitude_ and _longitude_
-in only one projection, the World Geodetic System from 1984 - WGS84.
+in only one projection, the World Geodetic System from 1984 - *WGS84*.
 Sometimes we will use the altitude as a third dimension, but it is less reliable in a geodetic system
 and usually provided by a barometer. +
-*Time* is defined in Universal Time Coordinate UTC as the world time. +
+*Time* is defined in Universal Time Coordinate *UTC* as the world time. +
 ====
 
 And that is all we need!
 
-For using this `bm` software you don't need to worry about geodesy, sherical calculations etc. +
-Physical events should be described in a cartesian coordinate system,
-i.e. meters for x, y and z coordinates on orthogonal axes.
-This is a complicated transformation, but we will leave it to
-the GeoTools library’s built-in `GeodeticCalculator`
-to provide distances between geographic coordinates.
+
+=== physical metrics
+
+_It is vital_ (for simplicity, usability, rapid development and more) that physical events 
+must be describable in a *cartesian coordinate system*.
+i.e. *units in meters* for x, y and z coordinates on *orthogonal axes*.
+
+To integrate with this `bm` software you don't need to worry about geodesy, spherical calculations etc. 
+The transformation to and from WGS84 is a complicated and expensive mathematical transformation 
+and should be centralized and standardized. 
+This also will allow to define a granularity of a scenario as an important scaling factor!
+
+
+=== global metrics
+
+We will use the *GeoTools* library. +
+As example, the built-in `GeodeticCalculator`
+provides our standard distances between geographic coordinates.
 
 It is also useful to know that every GPS Unit automatically provides UTC times, +
 since this is the prerequisite to calculate locations with fast orbiting satelites.
 
-_So we want a device to send the minimum GPS information
+=== mission
+
+[quote, The RealObject Application Framework, Part II - Chapter 4 Space & Time]
+From the abstracted project view, a GPS unit is an arbitrary technical
+system to enable electronic receivers to determine their current longitude,
+latitude, and elevation information. Part of our task is to create a GPS
+receiver for the software world, a GPS unit.
+
+_So we need a device to send the minimum GPS information
 being latitude, longitude and UTC timestamps_. +
 By combining consecutive GPS infos we can calculate speed 
 being the ratio of space & time.
+
+see GPSinfo interface in ROAF
 
 With this simple tool (a tiny `jar`) we can switch from geodesy, cartography and navigation +
 to physical laws described in the language of mathematics. And vice versa.
 
 
-== mapping the world
+== MOVE: mapping the world
 
 A GPS Tracker is a fascinating little matchbox to scan the world. +
 We attach it to some thing, measure its motion to explore the globe or our neighborhood. +

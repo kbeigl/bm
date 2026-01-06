@@ -1,6 +1,5 @@
-package bm.gps.tracker.camel;
+package bm.gps.remove;
 
-import bm.gps.OsmAndMessage;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +33,9 @@ public class TrackingRoute extends RouteBuilder {
 
     // --- The Main Route ---
     from("timer:simTimer?period=500") // Trigger every 500ms (SIMULATION_TICK_MS)
+
+        // timer replaces / simulates 'send' endpoint
+
         .routeId("OsmAnd-Simulator-Route")
 
         // 1. Process: Run simulation logic (movement & distance check)
@@ -48,7 +50,7 @@ public class TrackingRoute extends RouteBuilder {
         // URL.
         .process(
             exchange -> {
-              OsmAndMessage data = exchange.getIn().getBody(OsmAndMessage.class);
+              OldMessage data = exchange.getIn().getBody(OldMessage.class);
               // Build the query string dynamically
               String queryString =
                   String.format(

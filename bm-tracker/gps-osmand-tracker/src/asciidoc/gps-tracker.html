@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>The OsmAnd GPS Tracker</title>
+<title>The OsmAnd Tracker</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,7 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
-<h1>The OsmAnd GPS Tracker</h1>
+<h1>The OsmAnd Tracker</h1>
 </div>
 <div id="content">
 <div id="preamble">
@@ -475,8 +475,7 @@ A tracker hardware is basically a combination of a GPS (processing) unit
 and a (GSM) communication unit. The GPS receives the location via satellite and
 the communication unit sends tracking messages to a server.<br>
 &#8230;<br>
- In the end every
-tracker should be able to send Coordinates, preferably WGS84 latitude and
+In the end every tracker should be able to send Coordinates, preferably WGS84 latitude and
 longitude and universal time, which the Server can use to localize the device.
 </blockquote>
 <div class="attribution">
@@ -485,81 +484,35 @@ longitude and universal time, which the Server can use to localize the device.
 </div>
 </div>
 <div class="paragraph">
-<p>The main components are the GPS receiver and GSM transmitter chips
+<p>The main components are the <strong>GPS receiver</strong> and <strong>GSM transmitter</strong> chips
 for receiving and sending locations.
 Since both chips have to deal with a lot of information and technical challenges
 they can not really be synchronized.
 Therefor a third component is important:
-A Message Buffer serves as a local database to keep the best location results
+A <strong>Message Buffer</strong> serves as a local database to keep the best location results
 and wait for a good connection to transmit them to the Tracking System.</p>
 </div>
 <div class="paragraph">
-<p>The fourth component, the Energy Source is vital for the hardware Tracker
-but is not needed for the software simulation.
-A simple <code>batteryLevel</code> attribute is enough to keep track.</p>
-</div>
-<div class="sect2">
-<h3 id="_osmand_protocol">OsmAnd Protocol</h3>
-<div class="paragraph">
-<p>We chose this protocol because it is very simple and it is implemented
-on the Traccar Server for the Traccar Client App.
-You can find the format (or protocol spec)
-<a href="https://www.traccar.org/osmand/">here</a> and
-<a href="OsmAndProtocolSpecification.html">here</a>.</p>
-</div>
-<div class="paragraph">
-<p>Technically "The OsmAnd protocol processes HTTP requests
-with either query parameters or POST parameters."</p>
-</div>
-<div class="paragraph">
-<p>As we are initially interested to transmit place &amp; time
-we can focus on the following parameters that <em>could be used</em>
-in a simple record (immutable data class) to hold
-a single GPS location:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">    public record GpsData(
-        double  latitude,
-        double longitude,
-        double  altitude,
-          long timestamp,
-        double speed,
-        double bearing,
-           int battery) {}</code></pre>
-</div>
-</div>
-<div class="quoteblock">
-<blockquote>
-Record classes, which are a special kind of class, help to model plain data aggregates<br>
-with less ceremony than normal classes.
-</blockquote>
-<div class="attribution">
-&#8212; https://docs.oracle.com/en/java/javase/17/language/records.html<br>
-<cite>Record Classes</cite>
-</div>
-</div>
-<div class="paragraph">
-<p>Another approach would be to generate a Java Class from
-the JSON format listed on the
-<a href="https://www.traccar.org/osmand/">same page</a>.</p>
-</div>
+<p>The fourth component, the Energy Source is vital for the hardware Tracker.
+And similar to a mobile phone the battery is the most space consuming component,
+but luckily is not needed for the software simulation.</p>
 </div>
 <div class="sect2">
 <h3 id="_gps_receiver">GPS receiver</h3>
 <div class="paragraph">
-<p>A GPS chip receives signals from orbiting satellites to calculate
+<p>A GPS chip (with antenna) acquires signals from orbiting satellites to calculate
 the location on Earth - a highly mathematical, trigonomic number cruncher.
-The location is continuously calculated by trilateration from three satelites.
+The location is continuously calculated by trilateration from (the best available) three satelites.
 Note that a fourth satelite is required to provide the precise time.</p>
 </div>
 <div class="paragraph">
 <p>It is useful to understand that a GPS unit is primarily concerned
 to deliver <code>latitude, longitude</code> and <code>time</code>.
-The <code>altitude</code> is more of a side effect and not as reliable.</p>
+The <code>altitude</code> is more of a side effect and not as reliable
+due to geometric reasons.</p>
 </div>
 <div class="paragraph">
-<p>This implies that the GPS unit primarily provides point information.
+<p>This implies that the GPS unit primarily provides <em>point information</em>.
 <code>speed</code> and <code>bearing</code> <em>can be</em> provided, but most Tracking Systems
 calculate them from the previous to the current positon.</p>
 </div>
@@ -567,9 +520,11 @@ calculate them from the previous to the current positon.</p>
 <div class="sect2">
 <h3 id="_gsm_transmitter">GSM transmitter</h3>
 <div class="paragraph">
-<p>The GSM is basically the entry point to the internet.
+<p>The GSM is basically the entry point of GPS data to the internet.
+(There are numerous other network technologies that do the same.)
 It can send the locations over the connected network (if available)
-and can communicate via TCP and UDP low level protocols.
+and can communicate via TCP and UDP low level protocols
+and higher protocols, like <code>http/s</code>, on top.
 This unit is also working all the time to get a good connection
 over the air and transmitting whenever possible.</p>
 </div>
@@ -579,7 +534,230 @@ over the air and transmitting whenever possible.</p>
 <div class="paragraph">
 <p>As both GPS- and GSM units are busy all the time
 the Message Buffer can collect all valid and accurate locations
-from the GPS, while pushing them to the server via GSM.</p>
+from the GPS, while independantly pushing them to the server.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_communication_protocol">Communication Protocol</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is important to realize that a Tracking Device <strong>is not</strong> an application client
+and the data transmission has nothing to do with the REST API.
+It is simply some thing (Internet of Things, IoT) that sends information,
+very often via proprietary protocols. A protocol is subdivided into <em>sentences</em>
+to report different concerns. The most primitive GPS Protocol is <code>NMEA 0183</code>
+which actually describes the primitives of GPS acquisition, like the satelite constellation.
+The protocol is described in more detail in
+<code>The ROAF, Part II - Chapter 4.5 NAVSTAR GPS, 4.5.1 NMEA 0183</code></p>
+</div>
+<div class="paragraph">
+<p>From the Tracker perspective the server <strong>is not</strong> the Traccar Platform,
+but simply a port to a <em>Device Communication Server</em> (DCS) which does the ETL work.
+The DCS is implemented with
+<a href="https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/OsmAndProtocol.java">Netty Pipelines</a>
+and
+<a href="https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/OsmAndProtocolDecoder.java">the Decoder</a>
+does the actual parsing targeting Traccar.</p>
+</div>
+<div class="sect2">
+<h3 id="_osmand_protocol">OsmAnd Protocol</h3>
+<div class="paragraph">
+<p>Besides sentences, a number of values that belong together,
+the protocol defines the available attributes for server processing or the entire system.
+We chose the <code>OsmAnd</code> protocol because it is very simple and it is implemented
+on the Traccar Server (for the Traccar Client App).
+Or more general the Traccar Server offers a DCS
+for this protocol on a configurable port (default 5055).</p>
+</div>
+<div class="paragraph">
+<p>You can find the format (or protocol spec)
+<a href="https://www.traccar.org/osmand/">here</a> and
+<a href="OsmAndProtocolSpecification.html">here</a>.</p>
+</div>
+<div class="paragraph">
+<p>Technically "The OsmAnd protocol processes HTTP requests
+with either query parameters or POST parameters."</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_geo_coordinates">Geo Coordinates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For global positioning will use the GeoTools library.
+We are using the <code>org.locationtech.jts.geom.Coordinate</code>
+to store the <code>latitude, longitude</code> and <code>altitude</code> double values.
+This is a mutable, lightweight class that can hold the X (Longitude), Y (Latitude), and Z (Altitude).
+It is our interface to geographical libraries for GPS Positions,
+for dealing with Digital Maps and Geographic Information Systems - GIS.</p>
+</div>
+<div class="paragraph">
+<p>We can replace the simple double fields for the location
+with a core class from the GeoTools / Java Topology Suite (JTS) library,
+which is the standard geometry model GeoTools is built on.
+At this point it doesn&#8217;t seam like a big deal,
+because we simply storing three double values in one Coordinate.</p>
+</div>
+<div class="paragraph">
+<p>But as soon as we need to calculate <code>distance</code> and <code>bearing</code> we have to use a projection system.
+We will look at the performances differences by comparing the formulas
+for a geographical versus a cartesian <code>distance</code>.
+Note that the Java Topology Suite is actually not working with geocoordinates
+and optimized for performance.
+With the GeoTools library you can use the <code>Precision Model</code> and
+the built-in <code>GeodeticCalculator</code> does not require geodetic expertise.</p>
+</div>
+<div class="sect2">
+<h3 id="_haversine_distance">Haversine Distance</h3>
+<div class="paragraph">
+<p>In geographic processing the most important performance aspect is mathematical.<br>
+Imagine you need to compare thousands of distances to operate a scenario.</p>
+</div>
+<div class="paragraph">
+<p>The geographically calculation has to consider the globe&#8217;s radius, the curvature etc.<br>
+The <strong>Haversine Formula</strong> determines the great-circle distance between two points on a sphere:</p>
+</div>
+<div class="stemblock">
+<div class="content">
+\[a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1) \cdot \cos(\phi_2) \cdot \sin^2\left(\frac{\Delta\lambda}{2}\right)\]
+</div>
+</div>
+<div class="stemblock">
+<div class="content">
+\[c = 2 \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)\]
+</div>
+</div>
+<div class="stemblock">
+<div class="content">
+\[d = R \cdot c\]
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>d</em> is the distance between the two points.</p>
+</li>
+<li>
+<p>\(\phi\) is latitude, \(\lambda\) is longitude.</p>
+</li>
+<li>
+<p>\(\Delta\phi = \phi_2 - \phi_1\)</p>
+</li>
+<li>
+<p>\(\Delta\lambda = \lambda_2 - \lambda_1\)</p>
+</li>
+<li>
+<p>\(R\) is the radius of the sphere (Earth&#8217;s mean radius is approx. 6,371 km).</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Most programming languages provide trigonometric functions that require input in radians.<br>
+To convert degrees to radians, use the formula: radians = degrees * pi /180.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When <em>comparing</em> distances their precise value does not matter, only relativity counts.<br>
+To calculate a distance in a cartesian plane we can also Pythagoras:</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pythagorean_distance">Pythagorean Distance</h3>
+<div class="paragraph">
+<p>The Pythagorean Theorem is a fundamental principle in Euclidean geometry relating the three sides of a right triangle.
+The theorem states that in a right-angled triangle, the area of the square whose side is
+the hypotenuse (the side opposite the right angle) is equal to the sum of the areas of the squares on the other two sides.</p>
+</div>
+<div class="stemblock">
+<div class="content">
+\[a^2 + b^2 = c^2\]
+</div>
+</div>
+<div class="paragraph">
+<p>Or simply speaking <code>a</code> and <code>b</code> are the orthogonal deltas of <code>lat</code> and <code>lon</code> and <code>c</code> is the distance,
+i.e. length of the hypotenuse.
+Calculating a comparable distance <code>c</code> is as simple as</p>
+</div>
+<div class="stemblock">
+<div class="content">
+\[c = \sqrt{a^2 + b^2}\]
+</div>
+</div>
+<div class="paragraph">
+<p>By simply comparing this with the <strong>Haversine Formula</strong> you can sense the differences in performance.
+While the distance is simply calculating a length the real number crunching takes place
+when overlapping Geofences come into play. Note that geofence has many edges and
+each one has to be taken into account, yet should not slow down the real time scenario.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_the_bm_geodesy_standard">The <code>bm</code> Geodesy Standard</h3>
+<div class="paragraph">
+<p>We don&#8217;t want to be distracted by reference systems and as they say</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+The most conservative way to deal with the definition of a CoordinateReferenceSystem is not to.
+</blockquote>
+</div>
+<div class="paragraph">
+<p>Throughout this <code>bm</code> repository we will use identical geodetic formulas.<br>
+Then the distances from <code>location 1</code> to <code>location 2</code><br>
+and from <code>location 2</code> to <code>location 1</code> are guaranteed to be identical.<br>
+This is very important for synchronicity.</p>
+</div>
+<div class="paragraph">
+<p>Check out the
+<a href="https://locationtech.github.io/jts/jts-features.html">JTS feature list</a>
+to get an idea of geometric operations.</p>
+</div>
+<div class="sect3">
+<h4 id="_example">example</h4>
+<div class="paragraph">
+<p>With the GeoTools GeodeticCalculator we calculate the geodesic distance in meters
+between two <code>(lat,lon)</code> GPS points in the standard WGS84 (EPSG:4326) system:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <b class="conum">(1)</b>
+
+  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <b class="conum">(2)</b>
+
+  calculator.setStartingGeographicPoint   (lon1, lat1);          // <b class="conum">(3)</b>
+  calculator.setDestinationGeographicPoint(lon2, lat2);
+
+  return calculator.getOrthodromicDistance();                    // <b class="conum">(4)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Define the Coordinate Reference System</p>
+</li>
+<li>
+<p>Initialize the Geodetic Calculator</p>
+</li>
+<li>
+<p>Set start- and end coordinates</p>
+</li>
+<li>
+<p>Get the orthodromic distance (distance along the ellipsoid surface)</p>
+</li>
+</ol>
+</div>
 </div>
 </div>
 </div>
@@ -587,8 +765,32 @@ from the GPS, while pushing them to the server via GSM.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-12-20 14:11:09 +0100
+Last updated 2026-01-21 12:56:21 +0100
 </div>
 </div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains("stemblock")) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
 </body>
 </html>
