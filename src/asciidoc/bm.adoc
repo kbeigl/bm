@@ -12,14 +12,14 @@ link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-eboo
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.14 
-    [INFO] --- blue marble parameters                --- 1.1.14 
-    [INFO] ---- traccar client implementations       --- 1.1.14 
-    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
-    [INFO] ..... traccar-api-client          6.10.0-RC ........ 
-    [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
-    [INFO] ---- GPS Unit and Tracker                 --- 1.1.14 
-    [INFO] ..... gps-osmand-tracker          1.1.14-POC  ......
+    [INFO] === blue marble simulations         === 1.1.15-alpha
+    [INFO] --- blue marble parameters          --- 1.1.15-alpha
+    [INFO] ---- traccar client implementations --- 1.1.15-alpha
+    [INFO] ..... traccar-openapitools-client 6.10.0 ...........
+    [INFO] ..... traccar-api-client          6.10.0-RC ........
+    [INFO] ..... traccar-realtime-client     6.10.0-RC ........
+    [INFO] ---- GPS Unit and Tracker           --- 1.1.15-alpha
+    [INFO] ..... gps-osmand-tracker          1.1.15-POC .......
 -----------------
 
 For earlier versions check the 
@@ -47,9 +47,9 @@ The `bm-traccar` aggregator POM is the development environment
 to code against the link:https://www.traccar.org/[Traccar GPS Tracking Platform].
 Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
 The System was thoroughly analyzed in the 
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc[Jeets Project]
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
 and
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[Jeets Book].
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book].
 
 xref:../../bm-traccar/src/asciidoc/bm-traccar.adoc[read more to setup and adopt your development environment]
 

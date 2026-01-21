@@ -1,7 +1,7 @@
 
 = The OsmAnd Tracker
 
-The `gps-osmand-tracker` is a Java Client Software to simulate 
+The `gps-osmand-tracker` is a Java Software to simulate 
 a standard device that _collects_ GPS locations, optionally buffer 
 and send them to a server asap.
 Reporting should be configurable for time- and distance intervals,
@@ -29,8 +29,7 @@ longitude and universal time, which the Server can use to localize the device.
 The main components are the *GPS receiver* and *GSM transmitter* chips
 for receiving and sending locations.
 Since both chips have to deal with a lot of information and technical challenges
-they can not really be synchronized.
-Therefor a third component is important: 
+they are synchronized on a Controller Board. 
 A *Message Buffer* serves as a local database to keep the best location results
 and wait for a good connection to transmit them to the Tracking System.
 
@@ -38,6 +37,14 @@ The fourth component, the Energy Source is vital for the hardware Tracker.
 And similar to a mobile phone the battery is the most space consuming component,
 but luckily is not needed for the software simulation.
 
+image::jeets-gps-tracker.png[JeeTS Tracker]
+
+see GPS Tracking with Java EE Components, Figure 8.1 +
+" A tracking hardware combines a GPS- and GSM unit on a
+Controller Board. The Controller evaluates sensor data to create event
+messages in the protocol format. NMEA data is constantly validated to
+provide the best position available. The messages can be sent whenever
+appropriate. "
 
 === GPS receiver
 
@@ -58,8 +65,7 @@ calculate them from the previous to the current positon.
 
 === GSM transmitter
 
-The GSM is basically the entry point of GPS data to the internet. 
-(There are numerous other network technologies that do the same.)
+The GSM or any other network technology is basically the entry point of GPS data to the internet. 
 It can send the locations over the connected network (if available) 
 and can communicate via TCP and UDP low level protocols 
 and higher protocols, like `http/s`, on top.
@@ -94,54 +100,79 @@ https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protoco
 does the actual parsing targeting Traccar.
 
 
-
 === OsmAnd Protocol
 
-Besides sentences, a number of values that belong together,
-the protocol defines the available attributes for server processing or the entire system.
+Message Sentences combine a number of values that belong together.
+A complete protocol defines the available attributes for an entire system - or scenario.
 We chose the `OsmAnd` protocol because it is very simple and it is implemented
 on the Traccar Server (for the Traccar Client App).
 Or more general the Traccar Server offers a DCS 
 for this protocol on a configurable port (default 5055).
+Technically "The OsmAnd protocol processes HTTP requests 
+with either query parameters or POST parameters."
+-- and the protocol allows to add attributes!
 
 You can find the format (or protocol spec) 
 link:https://www.traccar.org/osmand/[here] and
 xref:OsmAndProtocolSpecification.adoc[here].
 
-Technically "The OsmAnd protocol processes HTTP requests 
-with either query parameters or POST parameters."
-
 
 == Geo Coordinates
 
-For global positioning will use the GeoTools library.
-We are using the `org.locationtech.jts.geom.Coordinate` 
-to store the `latitude, longitude` and `altitude` double values.
-This is a mutable, lightweight class that can hold the X (Longitude), Y (Latitude), and Z (Altitude).
-It is our interface to geographical libraries for GPS Positions,
-for dealing with Digital Maps and Geographic Information Systems - GIS.
+For Global Positioning will use the GeoTools library
+as our interface to process _GPS Positions_,
+for dealing with _Digital Maps_ and _Geographic Information Systems_ - GIS.
+This way the Software is compatible to almost any geoengineering tool
+and to components like an embedded `h2GIS` server. usefull!
 
-We can replace the simple double fields for the location 
-with a core class from the GeoTools / Java Topology Suite (JTS) library, 
-which is the standard geometry model GeoTools is built on.
-At this point it doesn't seam like a big deal, 
-because we simply storing three double values in one Coordinate.
-
-But as soon as we need to calculate `distance` and `bearing` we have to use a projection system.
+Yet, in geographic processing the most important performance aspect is mathematical. +
+Imagine you need to _compare_ thousands of distances to operate in a scenario. +
+To calculate the exact `distance` on the globe _we have to_ use a projection system.
 We will look at the performances differences by comparing the formulas
-for a geographical versus a cartesian `distance`.
-Note that the Java Topology Suite is actually not working with geocoordinates
-and optimized for performance. 
-With the GeoTools library you can use the `Precision Model` and 
-the built-in `GeodeticCalculator` does not require geodetic expertise.
+for a geographical versus a cartesian `distance` below.
 
+The GeoTools library is tightly coupled with the 
+https://locationtech.github.io/jts/jts-features.html[Java Topology Suite (JTS) library]. 
+The `Coordinate` is a core class from the GeoTools / JTS library, 
+which is the standard geometry model GeoTools is built on.
+Note that the Java Topology Suite is actually not working with geocoordinates
+and optimized for trigonometric performance. 
+
+[quote,JTS Coordinate javadoc]   
+It is distinct from Point, which is a subclass of Geometry. 
+Unlike objects of type Point (which contain additional information 
+such as an envelope, a precision model, and spatial reference system information), 
+a Coordinate only contains ordinate values and accessor methods.
+
+Since the cartesian method is much faster we want to be able to ignore projection systems. +
+Therefore we are using the 
+https://locationtech.github.io/jts/javadoc/index.html?org/locationtech/jts/geom/Coordinate.html[Coordinate] 
+to store the `latitude, longitude` and `altitude` with `double` precision. +
+It has many useful features like the usage 2d or 3d coordinate:
+
+    // 2D Koordinate (JTS)
+    Coordinate coord2D = new Coordinate(10.0, 20.0);
+    Coordinate coord3D = new Coordinate(10.0, 20.0, 500.0); // x, y, z
+
+The `GeneralDirectPosition` is constructed the same way
+
+    // GeoTools Position (3D)
+    GeneralDirectPosition pos3D = new GeneralDirectPosition(10.0, 20.0, 500.0);
+
+but belongs to the more complex GeoTools Referencing-Framework
+and carries metadata of coordinate systems etc.
+
+We can always transform the JTS coordinates to geocoordinates (at a cost).
+With the GeoTools library you can tune the `PrecisionModel` 
+and the built-in `GeodeticCalculator` does not require geodetic expertise.
+
+At this point it doesn't seam like a big deal, 
+because we simply storing three double values in one Coordinate. +
+Let's have a look at the formulas to get a sense when to use which.
 
 
 === Haversine Distance
 :stem: latexmath
-
-In geographic processing the most important performance aspect is mathematical. +
-Imagine you need to compare thousands of distances to operate a scenario.
 
 The geographically calculation has to consider the globe's radius, the curvature etc. +
 The *Haversine Formula* determines the great-circle distance between two points on a sphere:
@@ -175,7 +206,7 @@ To convert degrees to radians, use the formula: radians = degrees * pi /180.
 
 
 When _comparing_ distances their precise value does not matter, only relativity counts. +
-To calculate a distance in a cartesian plane we can also Pythagoras:
+To calculate a distance in a cartesian plane we can also apply Pythagoras:
 
 === Pythagorean Distance
 
@@ -194,7 +225,7 @@ Calculating a comparable distance `c` is as simple as
 
 [stem]
 ++++
-c = \sqrt{a^2 + b^2}
+distance = \sqrt{\Delta lat^2 + \Delta lon^2}
 ++++
 
 By simply comparing this with the *Haversine Formula* you can sense the differences in performance.
@@ -205,10 +236,11 @@ each one has to be taken into account, yet should not slow down the real time sc
 
 === The `bm` Geodesy Standard 
 
-We don't want to be distracted by reference systems and as they say
+We don't want to be distracted by reference systems.
 
-[quote]   
-The most conservative way to deal with the definition of a CoordinateReferenceSystem is not to.
+[quote, docs.geotools.org/latest/userguide/library/referencing/crs.html]   
+The most conservative way to deal with the definition of a CoordinateReferenceSystem is not to. +
+Instead make use of an authority that provides complete definitions defined by a simple code.
 
 Throughout this `bm` repository we will use identical geodetic formulas. +
 Then the distances from `location 1` to `location 2` +
@@ -220,7 +252,7 @@ https://locationtech.github.io/jts/jts-features.html[JTS feature list]
 to get an idea of geometric operations.
 
 
-==== example
+==== Distance Example
 
 With the GeoTools GeodeticCalculator we calculate the geodesic distance in meters 
 between two `(lat,lon)` GPS points in the standard WGS84 (EPSG:4326) system: 

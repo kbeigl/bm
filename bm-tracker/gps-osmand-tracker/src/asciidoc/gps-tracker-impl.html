@@ -444,11 +444,26 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>In the long run we want to track every <em>Thing</em> (real physical object) acting in a scenario.<br>
 Since every message implies the devices <code>uniqueId</code>, one Message Broker
-could work as <em>one single</em> Tracker for a <em>complete</em> scenario.
+could operate as <em>one single</em> Tracker for a <em>complete</em> scenario.
 So all simulated devices could send their messages off the same Tracker
 and <em>could</em> be scaled and sudivided with a Message Broker like RabbitMQ, ActiveMQ etc.<br>
 We want to provide an independantly working GPS Tracker (simulation) for each of these things.
 A <em>single</em> device can be scaled with SEDA to decompose messages for event driven components.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This implementation might help you to choose a Tracker Device Type for your real time scenario.
+The chosen protocol is a easy as it gets and the creation process can serve as a guideline.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -456,7 +471,7 @@ A <em>single</em> device can be scaled with SEDA to decompose messages for event
 <h2 id="_the_model">The Model</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>We have chosen the <code>OsmAnd</code> and defined the <code>OsmAnd</code> GPS Message (targeting Traccar).
+<p>We have chosen the <code>OsmAnd</code> protocol and defined the <code>OsmAnd</code> GPS Message (targeting Traccar).
 That is the information and format the server accepts and understands.
 We will use it as our <strong>Model</strong> to guide Tracker development.
 The protocol defines all attributes exchanged with the GTS platform.</p>
@@ -467,7 +482,7 @@ The protocol defines all attributes exchanged with the GTS platform.</p>
 But we want to go our own way and only use GPS platonic values
 for an initial GPS Tracker.
 We are primarily interested to transmit place &amp; time
-and can fix the parameters in a simple <code>record</code> to hold a single GPS snapshot.</p>
+and will fix the parameters in a simple <code>record</code> to hold a single GPS snapshot:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -510,30 +525,64 @@ to introduce different trackers to the same scenario.</p>
 Currently the
 <a href="https://www.traccar.org/osmand/">traccar osmand</a> page
 offers 16 different values,
-which can be introduced while we are in the modeling phase.</p>
+which can be introduced while we are prototyping.</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p>For example the <code>hdop</code>, i.e. Horizontal dilution of precision
-is not relevant for us, since it describes the quality of a message
+is not relevant for us.<br>
+It describes the quality of a message
 and we are only interested in the result.</p>
 </li>
 <li>
-<p>On the other hand the <code>accuracy</code> can be <em>missused</em> to create a circle on the map,
+<p>On the other hand the <code>accuracy</code> can be <em>missused</em> to create a circle on the map,<br>
 which might be interesting for certain scenarios.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>No need for final decisions at this point.
-And after all Traccar also works with custom attributes,
+<p>No need for final decisions at this point.<br>
+Traccar also allows custom attributes,
 which could be sneeked into a scenario, if needed.</p>
+</div>
+<div class="sect2">
+<h3 id="_precision">precision</h3>
+<div class="paragraph">
+<p>Another thing worth mentioning is the <em>value</em>- and type safety of decimals.<br>
+The openapi generator creates the <code>Position</code> class with <code>BigDecimal</code> types</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">      private BigDecimal  latitude;
+      private BigDecimal longitude;
+      private BigDecimal  altitude;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The difference between <code>BigDecimal</code> and <code>double</code> is precision against performance.<br>
+For financial computation the precision,
+i.e. the exact sequence of numbers after the point, is indisputable.<br>
+With <code>double</code> the decimal values are not always precise.<br>
+For example, there is no precise decimal representation of one Third.<br>
+Therefor some algorithm with memory has to make sure <code>1 / 3 * 3</code> is exaclty <code>1</code>.</p>
+</div>
+<div class="paragraph">
+<p>This should be kept in the back of our mind, since it does matter
+when you want to know, if two points on a map are identical.
+Or you want to find all identical points in the complete map data.
+If the values are transfered with a string format like <code>json</code>
+they are actually converted into <em>their literal value</em>.
+To stay on the save side comparisons should always be made with tolerance.</p>
+</div>
+<div class="paragraph">
+<p>For the Tracker and the Message we will use <code>double</code>.</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_requirements">requirements</h2>
+<h2 id="_requirements">Requirements</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>First we collect the functional requirements for the core features of tracking,<br>
@@ -543,7 +592,7 @@ We have looked at the main
 earlier to gather requirements for the implementation:</p>
 </div>
 <div class="sect2">
-<h3 id="_gps_receiver">GPS receiver</h3>
+<h3 id="_gps_unit_receiver">GPS Unit / receiver</h3>
 <div class="ulist checklist">
 <ul class="checklist">
 <li>
@@ -559,7 +608,7 @@ earlier to gather requirements for the implementation:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_gsm_transitter">(GSM) transitter</h3>
+<h3 id="_gsm_transmitter">(GSM) transmitter</h3>
 <div class="ulist checklist">
 <ul class="checklist">
 <li>
@@ -578,17 +627,7 @@ earlier to gather requirements for the implementation:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_message_buffer">Message Buffer</h3>
-<div class="ulist checklist">
-<ul class="checklist">
-<li>
-<p>&#10063; longterm target: analyze incoming data in millisecond intervals for real time events</p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_controller">controller</h3>
+<h3 id="_controller">Controller</h3>
 <div class="paragraph">
 <p>The main controller resides between receiving input and transmitting output.
 Most features of a Tracker can be implemented in it
@@ -624,20 +663,64 @@ and it is the place to collect system information continuously.</p>
 and is sufficient to create a concrete implementation without surprises.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_message_buffer">Message Buffer</h3>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10063; longterm nice2have: analyze incoming data in millisecond intervals for real time events</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_prototyping">prototyping</h2>
+<h2 id="_component_architecture">Component Architecture</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Prototyping is the first implementation to demo the <em>proof of concept</em>
+<p>At this point it is important to prototype the components architecture
+as an reliable development guideline&#8201;&#8212;&#8201;and always subject to change.
+Prototyping is the first implementation to demo the <em>proof of concept</em>
 for single component to a complete framework.
 Main Technology- and Design Decision have to be made to fullfill the POC.
 And many design candidates and technologies are sorted out.
-This way the architecture stays homogeneous over the complete repo
-to optimize tranparency for onboarding of (business) coders.
-In this case the (Java) application developer wants to create a message and send it.
+This way the stack can be versioned with a <em>bill of materials</em> (BOM) over the complete repo
+to optimize transparency for (onboarding of business) coders.</p>
+</div>
+<div class="sect2">
+<h3 id="_primary_use_case">Primary Use Case</h3>
+<div class="paragraph">
+<p>the (Java) application developer,<br>
+i.e. user of the <code>gps-osmand-tracker-1.1.15-POC.jar</code><br>
+wants to create a message and send it.<br>
 fire &amp; forget</p>
+</div>
+<div class="sect3">
+<h4 id="_implementation_steps">implementation steps</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>create a Springboot application to simulate a GPS Tracker hardware.</p>
+</li>
+<li>
+<p>use the osmand protocol as used for the Traccar server.</p>
+</li>
+<li>
+<p>use the OpenTools library for GPS coordinates and distance, bearing etc.</p>
+</li>
+<li>
+<p>setters for location and fixtime</p>
+</li>
+<li>
+<p>send messages via Camel Route.</p>
+</li>
+<li>
+<p>store messages in a thread-safe queue, if server is unavailable, send later</p>
+</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_receiver">Receiver</h3>
@@ -661,7 +744,7 @@ and a Camel rider starts software design with a local <code>direct</code> Endpoi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">      // Transmitter
+<pre class="highlight"><code class="language-java" data-lang="java">      // Transmitter Component
 
       from("direct:send-osmand")</code></pre>
 </div>
@@ -674,13 +757,13 @@ This is achieved by using the Camel Producer to send messages
 <code>to</code> <code>"direct:send-osmand"</code>, now being a <em>Consumer Endpoint</em>.</p>
 </div>
 <div class="paragraph">
-<p>For example you can use a regular Java method and instead of <code>return</code>
+<p>For example you can create a regular Java method and instead of <code>return</code>
 you end the method with <code>sendBody</code>. Camel will take care of the rest.
 For the developer the message can be considered as sent.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">      // Tracker
+<pre class="highlight"><code class="language-java" data-lang="java">      // Tracker Component
 
       public void send(MessageOsmand msg) {
 
@@ -715,7 +798,8 @@ For the developer the message can be considered as sent.</p>
 <div class="sect2">
 <h3 id="_transmitter">Transmitter</h3>
 <div class="paragraph">
-<p>We now have Input and a Controller. Next is the Output, the messaging/transport layer to the GTS.<br>
+<p>We now have Input and a Controller.<br>
+Next is the Output, the messaging/transport layer to the GTS.<br>
 The Transmitter is responsible to submit (and acknowledge) the messages to Traccar.<br>
 First we need to make sure the controllers call introduced above</p>
 </div>
@@ -744,23 +828,65 @@ from("direct:send-osmand")</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The route then builds the URL to the server, manages http headers and properties
+<p>The route dynamically builds the server URL, manages http headers and properties<br>
 and sends the message to Traccar via Dynamic Endpoint <code>.toD( host )</code>.</p>
 </div>
 <div class="sect3">
-<h4 id="_message_buffer_2">Message Buffer</h4>
+<h4 id="_load_balancing">load balancing</h4>
 <div class="paragraph">
-<p>The Message Queue is supposed to collect the message that could not be sent.
-It is created with the <code>Transmitter</code></p>
+<p>In the <code>// Tracker</code> listing above different types of sending a message are indicated.
+This way the prototype leaves some room to scale implementations for a dedicated application.
+Each send type can get its own method as we widen the Software for production.</p>
+</div>
+<div class="paragraph">
+<p>Note that in the above sample we are using the routeId <code>send-osmand-route</code> as transmitter.
+This implies that <em>this very route</em> is re/created in each tracker instance.
+When Camel adds a route with the same routeId is will stop/replace the existing route.</p>
+</div>
+<div class="paragraph">
+<p>We are interested to create an independant tracker to track an independant thing.<br>
+Therefore the initial implementation will respect the <code>uniqueId</code> inside the tracker implementation.</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>private final MessageQueue queue = new MessageQueue();</pre>
+<pre>routeId("send-osmand-route-" + uniqueId)
+  from("direct:send-osmand-" + uniqueId).</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Per-tracker routes increase Camel route count with resource growth.
+For many trackers in a single application, we will consider
+a single shared Transmitter route that handles any device
+(messages carry device id) to avoid many dynamic routes.
+The <code>CamelContext</code> provides full flexibility to manage all routes
+and leaves room for load optimization - any time later.</p>
+</div>
+<div class="paragraph">
+<p>Once the tracker beta version is running there is still room for a different setup.<br>
+In the long run this could be controlled with a switch to be introduced.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_message_buffer_2">Message Buffer</h3>
+<div class="paragraph">
+<p>The Message Queue is supposed to collect the message that can not be sent.
+Since the MQ can become a backbone for high performance,
+we created a simple <code>@Component</code> as a <em>replaceable MQ implementation</em>, like a broker.</p>
+</div>
+<div class="paragraph">
+<p>It is created with the <code>Transmitter</code></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>// per-instance private queue
+private final MessageQueue queue = new MessageQueue();</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>For this we have created an <code>onException</code> Route, which fires, if something
-goes wrong when sending via http. At the end of the route messages are enqueued</p>
+goes wrong when sending via http.<br>
+At the end of the route messages are enqueued</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -771,12 +897,34 @@ goes wrong when sending via http. At the end of the route messages are enqueued<
 <p>This is a good start and the flushing can be taken from there.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_tracker_creation_and_registration">Tracker creation and registration</h4>
+<div class="sect2">
+<h3 id="_tracker_registration">Tracker Registration</h3>
+<div class="paragraph">
+<p>Now how to use the Tracker in Spring Applications?</p>
+</div>
 <div class="paragraph">
 <p>If a developer creates an actor of a scenario, some Java Object,
 and wants to track it he should be enabled to create a Tracker on the fly.
 There is no static configuration and it should happen at runtime.</p>
+</div>
+<div class="sect3">
+<h4 id="_lifecycle">lifecycle</h4>
+<div class="paragraph">
+<p>With Spring and Camel the registration lifecycle register, unregister, reregister
+can be fully managed at runtime.</p>
+</div>
+<div class="paragraph">
+<p>We register the tracker as a <code>GenericBeanDefinition</code>
+so Spring automatically wires lifecycle and destruction callbacks.
+<code>TrackerRegistration</code> registers a GenericBeanDefinition (constructor arguments <code>uniqueId, osmandHost</code>)
+with <code>DefaultListableBeanFactory</code> and then pulls the fully-initialized bean from the context.</p>
+</div>
+<div class="paragraph">
+<p>This makes Spring handle <code>@PostConstruct</code> and <code>@PreDestroy</code> automatically.
+(Calling <code>destroySingleton(beanName)</code> removes the instance but the bean definition remains.)
+On subsequent register attempts the code will see the existing bean definition and try to return/get the bean.
+Removing the bean definition after destroying the singleton fully clears Spring’s state
+for that bean name so registerTracker can create/register the bean again without conflicts.</p>
 </div>
 <div class="paragraph">
 <p>With our components being Spring beans, we want to create and
@@ -787,13 +935,73 @@ With <code>AutowireCapableBeanFactory</code> the bean is created manually,
 allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_usage">usage</h4>
+<div class="paragraph">
+<p>And this is how to use the <code>gps-osmand-tracker-1.1.15.jar</code> in your code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">// <b class="conum">(1)</b>
+  @Autowired TrackerRegistration registrationService;
+
+  void sendMessage() throws Exception {
+
+    // get uniqueId from application context
+// <b class="conum">(2)</b>
+    TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);
+// <b class="conum">(3)</b>
+    MessageOsmand msg = MessageOsmand.now(uniqueId, 52.0, 13.0, 10.0, 20.0, 30.0, null, null);
+// <b class="conum">(4)</b>
+    tracker.send(msg);
+// <b class="conum">(5)</b>
+    registrationService.unregisterTracker(uniqueId);
+
+    ...</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>provide tracker registration service</p>
+</li>
+<li>
+<p>create and register tracker for uniqueId</p>
+</li>
+<li>
+<p>create the immutable record</p>
+</li>
+<li>
+<p>send, forget and continue application context</p>
+</li>
+<li>
+<p>unregister tracker bean to clean up (and re-register)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Note that each Tracker bean is named with its identity</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>"tracker-" + uniqueId</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a simple constraint to avoid multiple Trackers with the same id.<br>
+Actually the
+<a href="https://de.wikipedia.org/wiki/International_Mobile_Equipment_Identity">IMEI</a>
+should be used for any hardware Tracker,
+since it marks the unique hardware piece.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-21 13:27:35 +0100
+Last updated 2026-02-01 14:22:48 +0100
 </div>
 </div>
 </body>

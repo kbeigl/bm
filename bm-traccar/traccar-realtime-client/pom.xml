@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.14</version>
+        <version>1.1.15-alpha</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
@@ -90,6 +90,22 @@
                 <version>3.2.2</version>
                 <executions>
                     <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Attach test-sources JAR for this module only -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-test-sources</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>test-jar</goal>
                         </goals>

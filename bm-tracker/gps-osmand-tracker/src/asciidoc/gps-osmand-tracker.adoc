@@ -6,5 +6,3 @@
 include::gps-tracker.adoc[]
 
 include::gps-tracker-impl.adoc[]
-
-include::gps-tracker-simu.adoc[]

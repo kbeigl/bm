@@ -3,16 +3,22 @@
 
 In the long run we want to track every _Thing_ (real physical object) acting in a scenario. + 
 Since every message implies the devices `uniqueId`, one Message Broker
-could work as _one single_ Tracker for a _complete_ scenario.
+could operate as _one single_ Tracker for a _complete_ scenario.
 So all simulated devices could send their messages off the same Tracker
 and _could_ be scaled and sudivided with a Message Broker like RabbitMQ, ActiveMQ etc. +
 We want to provide an independantly working GPS Tracker (simulation) for each of these things. 
 A _single_ device can be scaled with SEDA to decompose messages for event driven components.
 
+[NOTE]
+====
+This implementation might help you to choose a Tracker Device Type for your real time scenario.
+The chosen protocol is a easy as it gets and the creation process can serve as a guideline.
+====
+
 
 == The Model
 
-We have chosen the `OsmAnd` and defined the `OsmAnd` GPS Message (targeting Traccar).
+We have chosen the `OsmAnd` protocol and defined the `OsmAnd` GPS Message (targeting Traccar).
 That is the information and format the server accepts and understands.
 We will use it as our *Model* to guide Tracker development.
 The protocol defines all attributes exchanged with the GTS platform.
@@ -22,7 +28,7 @@ link:https://www.traccar.org/osmand/[traccar osmand] page. +
 But we want to go our own way and only use GPS platonic values 
 for an initial GPS Tracker.
 We are primarily interested to transmit place & time 
-and can fix the parameters in a simple `record` to hold a single GPS snapshot. 
+and will fix the parameters in a simple `record` to hold a single GPS snapshot: 
 
 [source,java]
 ----
@@ -56,21 +62,52 @@ The other values are modelled as objects in order to make them optional.
 Currently the 
 link:https://www.traccar.org/osmand/[traccar osmand] page
 offers 16 different values, 
-which can be introduced while we are in the modeling phase.
+which can be introduced while we are prototyping.
 
 * For example the `hdop`, i.e. Horizontal dilution of precision 
-is not relevant for us, since it describes the quality of a message
+is not relevant for us. +
+It describes the quality of a message
 and we are only interested in the result.
 
-* On the other hand the `accuracy` can be _missused_ to create a circle on the map,
+* On the other hand the `accuracy` can be _missused_ to create a circle on the map, +
 which might be interesting for certain scenarios.
 
-No need for final decisions at this point.
-And after all Traccar also works with custom attributes,
+No need for final decisions at this point. +
+Traccar also allows custom attributes,
 which could be sneeked into a scenario, if needed.
 
 
-== requirements
+=== precision
+
+Another thing worth mentioning is the _value_- and type safety of decimals. +
+The openapi generator creates the `Position` class with `BigDecimal` types
+
+[source,java]
+----
+      private BigDecimal  latitude;
+      private BigDecimal longitude;
+      private BigDecimal  altitude;
+----
+
+The difference between `BigDecimal` and `double` is precision against performance. +
+For financial computation the precision, 
+i.e. the exact sequence of numbers after the point, is indisputable. +
+With `double` the decimal values are not always precise. +
+For example, there is no precise decimal representation of one Third. +
+Therefor some algorithm with memory has to make sure `1 / 3 * 3` is exaclty `1`.
+
+This should be kept in the back of our mind, since it does matter
+when you want to know, if two points on a map are identical.
+Or you want to find all identical points in the complete map data.
+If the values are transfered with a string format like `json`
+they are actually converted into _their literal value_.
+To stay on the save side comparisons should always be made with tolerance.
+
+For the Tracker and the Message we will use `double`.
+
+
+
+== Requirements
 
 First we collect the functional requirements for the core features of tracking, +
 a _Minimum Viable Product_ we can build on. +
@@ -78,24 +115,20 @@ We have looked at the main
 xref:./gps-tracker.adoc[Tracker Components]
 earlier to gather requirements for the implementation:
 
-=== GPS receiver
+=== GPS Unit / receiver
 
 - [*] Acquire GPS position (latitude, longitude, altitude)
 - [*] UTC Time 
 - [ ] incoming Message Buffer here ?
 
-=== (GSM) transitter
+=== (GSM) transmitter
 
 - [*] Transmit messages (primarily location data) to a remote server (any TCP, UDP protocols)
 - [ ] configurable intervals e.g. every x seconds when moving, every y minutes when stationary etc.
 - [*] manage connection to server, reconnection
 - [*] outgoing Message Buffer
 
-=== Message Buffer
-
-- [ ] longterm target: analyze incoming data in millisecond intervals for real time events
-
-=== controller
+=== Controller
 
 The main controller resides between receiving input and transmitting output.
 Most features of a Tracker can be implemented in it 
@@ -112,18 +145,39 @@ and it is the place to collect system information continuously.
 This list can provide a guideline for software `@Components`
 and is sufficient to create a concrete implementation without surprises.
 
+=== Message Buffer
+
+- [ ] longterm nice2have: analyze incoming data in millisecond intervals for real time events
 
 
-== prototyping
 
+== Component Architecture
+
+At this point it is important to prototype the components architecture 
+as an reliable development guideline -- and always subject to change.
 Prototyping is the first implementation to demo the _proof of concept_
 for single component to a complete framework.
 Main Technology- and Design Decision have to be made to fullfill the POC.
 And many design candidates and technologies are sorted out.
-This way the architecture stays homogeneous over the complete repo
-to optimize tranparency for onboarding of (business) coders.
-In this case the (Java) application developer wants to create a message and send it.
+This way the stack can be versioned with a _bill of materials_ (BOM) over the complete repo
+to optimize transparency for (onboarding of business) coders.
+
+=== Primary Use Case
+
+the (Java) application developer, +
+i.e. user of the `gps-osmand-tracker-1.1.15-POC.jar` +
+wants to create a message and send it. +
 fire & forget
+
+==== implementation steps
+
+- create a Springboot application to simulate a GPS Tracker hardware.
+- use the osmand protocol as used for the Traccar server.
+- use the OpenTools library for GPS coordinates and distance, bearing etc.
+- setters for location and fixtime 
+- send messages via Camel Route.
+- store messages in a thread-safe queue, if server is unavailable, send later
+
 
 === Receiver
 
@@ -144,7 +198,7 @@ and a Camel rider starts software design with a local `direct` Endpoint:
 
 [source,java]
 ----
-      // Transmitter
+      // Transmitter Component
 
       from("direct:send-osmand")
 ----
@@ -155,13 +209,13 @@ On the other hand we want to leave all options to create messages.
 This is achieved by using the Camel Producer to send messages 
 `to` `"direct:send-osmand"`, now being a _Consumer Endpoint_.
 
-For example you can use a regular Java method and instead of `return` 
+For example you can create a regular Java method and instead of `return` 
 you end the method with `sendBody`. Camel will take care of the rest.
 For the developer the message can be considered as sent.
 
 [source,java]
 ----
-      // Tracker
+      // Tracker Component
       
       public void send(MessageOsmand msg) {
       
@@ -187,7 +241,8 @@ sounds easy, 'cause it is.
 
 === Transmitter
 
-We now have Input and a Controller. Next is the Output, the messaging/transport layer to the GTS. +
+We now have Input and a Controller. +
+Next is the Output, the messaging/transport layer to the GTS. +
 The Transmitter is responsible to submit (and acknowledge) the messages to Traccar. + 
 First we need to make sure the controllers call introduced above
 
@@ -204,30 +259,82 @@ The transmission route starts with
     // send message to server
     from("direct:send-osmand")
 
-The route then builds the URL to the server, manages http headers and properties
+The route dynamically builds the server URL, manages http headers and properties +
 and sends the message to Traccar via Dynamic Endpoint `.toD( host )`.
 
 
-==== Message Buffer
+==== load balancing
 
-The Message Queue is supposed to collect the message that could not be sent.
+In the `// Tracker` listing above different types of sending a message are indicated.
+This way the prototype leaves some room to scale implementations for a dedicated application.
+Each send type can get its own method as we widen the Software for production.
+
+Note that in the above sample we are using the routeId `send-osmand-route` as transmitter.
+This implies that _this very route_ is re/created in each tracker instance.
+When Camel adds a route with the same routeId is will stop/replace the existing route.
+
+We are interested to create an independant tracker to track an independant thing. +
+Therefore the initial implementation will respect the `uniqueId` inside the tracker implementation.
+
+    routeId("send-osmand-route-" + uniqueId)
+      from("direct:send-osmand-" + uniqueId).
+    
+Per-tracker routes increase Camel route count with resource growth. 
+For many trackers in a single application, we will consider 
+a single shared Transmitter route that handles any device 
+(messages carry device id) to avoid many dynamic routes.
+The `CamelContext` provides full flexibility to manage all routes
+and leaves room for load optimization - any time later.
+
+Once the tracker beta version is running there is still room for a different setup. +
+In the long run this could be controlled with a switch to be introduced.
+
+
+=== Message Buffer
+
+The Message Queue is supposed to collect the message that can not be sent.
+Since the MQ can become a backbone for high performance,
+we created a simple `@Component` as a _replaceable MQ implementation_, like a broker.
+
+
 It is created with the `Transmitter`
 
+    // per-instance private queue
     private final MessageQueue queue = new MessageQueue();
 
 For this we have created an `onException` Route, which fires, if something 
-goes wrong when sending via http. At the end of the route messages are enqueued
+goes wrong when sending via http. +
+At the end of the route messages are enqueued
 
     queue.enqueue(msg);
 
 This is a good start and the flushing can be taken from there.
 
 
-==== Tracker creation and registration
+=== Tracker Registration
+
+Now how to use the Tracker in Spring Applications?
 
 If a developer creates an actor of a scenario, some Java Object,
 and wants to track it he should be enabled to create a Tracker on the fly.
 There is no static configuration and it should happen at runtime.
+
+
+==== lifecycle
+
+With Spring and Camel the registration lifecycle register, unregister, reregister 
+can be fully managed at runtime.
+
+We register the tracker as a `GenericBeanDefinition`
+so Spring automatically wires lifecycle and destruction callbacks.
+`TrackerRegistration` registers a GenericBeanDefinition (constructor arguments `uniqueId, osmandHost`)
+with `DefaultListableBeanFactory` and then pulls the fully-initialized bean from the context.
+
+This makes Spring handle `@PostConstruct` and `@PreDestroy` automatically.
+(Calling `destroySingleton(beanName)` removes the instance but the bean definition remains.) 
+On subsequent register attempts the code will see the existing bean definition and try to return/get the bean.
+Removing the bean definition after destroying the singleton fully clears Spring’s state
+for that bean name so registerTracker can create/register the bean again without conflicts.
 
 With our components being Spring beans, we want to create and 
 register a new bean instance at runtime and then start its associated Camel route. 
@@ -237,6 +344,43 @@ With `AutowireCapableBeanFactory` the bean is created manually,
 allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).
 
 
+==== usage
 
+And this is how to use the `gps-osmand-tracker-1.1.15.jar` in your code:
 
+[source,java]
+----
+// <1>
+  @Autowired TrackerRegistration registrationService;
+
+  void sendMessage() throws Exception {
+  
+    // get uniqueId from application context
+// <2>
+    TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);
+// <3>
+    MessageOsmand msg = MessageOsmand.now(uniqueId, 52.0, 13.0, 10.0, 20.0, 30.0, null, null);
+// <4>
+    tracker.send(msg);
+// <5>
+    registrationService.unregisterTracker(uniqueId);
+
+    ...
+----
+
+<1> provide tracker registration service
+<2> create and register tracker for uniqueId
+<3> create the immutable record
+<4> send, forget and continue application context
+<5> unregister tracker bean to clean up (and re-register)
+
+Note that each Tracker bean is named with its identity
+
+    "tracker-" + uniqueId
+
+This is a simple constraint to avoid multiple Trackers with the same id. +
+Actually the 
+https://de.wikipedia.org/wiki/International_Mobile_Equipment_Identity[IMEI] 
+should be used for any hardware Tracker,
+since it marks the unique hardware piece.
 

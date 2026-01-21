@@ -29,7 +29,7 @@ public class ScenarioLoader {
   protected String virtualAdmin;
 
   @Autowired protected Api api;
-  @Autowired private ScenarioProperties props;
+  @Autowired public ScenarioProperties props;
 
   // admin is not part of the scenario!
   // Each scenario must have a manager account with a view on all Traccar Objects.
@@ -38,7 +38,7 @@ public class ScenarioLoader {
   // consider: setupScenario(adminMail, adminPassword);
 
   public void setupScenario() {
-
+    logger.info("--- Setup scenario on server ---");
     api.setBearerToken(virtualAdmin);
     setupServer();
 
@@ -55,6 +55,7 @@ public class ScenarioLoader {
     api.setBasicAuth(admin.getEmail(), admin.getPassword());
     createScenarioUsers();
     createScenarioDevices();
+    logger.info("--- Scenario setup complete ---");
   }
 
   /**
@@ -133,7 +134,6 @@ public class ScenarioLoader {
 
   /** This actually does not belong to the scenario itself, it's a prerequisite. */
   private void setupServer() {
-    logger.info("--- Setup scenario on server ---");
     Server server = api.getServerApi().getServerInfo();
     if (!server.getRegistration()) {
       server.setRegistration(true);

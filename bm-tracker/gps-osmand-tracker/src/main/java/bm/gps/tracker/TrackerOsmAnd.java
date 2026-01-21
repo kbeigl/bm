@@ -2,7 +2,7 @@ package bm.gps.tracker;
 
 import bm.gps.MessageOsmand;
 import jakarta.annotation.PostConstruct;
-import java.math.BigDecimal;
+import jakarta.annotation.PreDestroy;
 import java.time.OffsetDateTime;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
@@ -24,24 +24,29 @@ public class TrackerOsmAnd {
    * A fixed host to send messages to and the device this tracker is associated with. Can only be
    * set with constructor and uniqueId is used for all messages.
    */
+  // final for runtime ?
   private String osmandHost, uniqueId;
+
+  // Route-id sanitization: safeId uses replacement of non-alphanumeric chars with '_'
+  // to make route ids/endpoints safe.
+  private String safeId;
 
   /**
    * The user can set individual status attributes as desired. The Tracker always creates one OsmAnd
    * record at one time and transmitts it asap.
    *
-   * <p>Types according to Device and Position models.
+   * <p>Types should harmonize with Device and Position models.
    */
-  // Location/time attributes
-  // more precision than Osmand messages ?
-  private BigDecimal latitude;
+  private double latitude = Double.NaN;
 
-  private BigDecimal longitude;
-  private BigDecimal altitude;
-  private BigDecimal speed;
-  private BigDecimal bearing;
-  private BigDecimal battery;
+  private double longitude = Double.NaN;
+  // nullable values
+  private Double altitude;
+  private Double speed;
+  private Double bearing;
+  private Double battery;
   private OffsetDateTime fixTime;
+  // TODO private OffsetDateTime deviceTime;
 
   @Autowired private ProducerTemplate tracker;
   @Autowired private CamelContext camel;
@@ -51,10 +56,42 @@ public class TrackerOsmAnd {
   public TrackerOsmAnd(String uniqueId, String osmandHost) {
     this.uniqueId = uniqueId;
     this.osmandHost = osmandHost;
+    this.safeId = uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_");
+  }
+
+  @PreDestroy
+  private void destroyRoutes() {
+    logger.debug("Destroying TrackerOsmAnd routes for uniqueId={}", uniqueId);
+
+    if (camel == null) return;
+
+    String routeId =
+        "send-osmand-route-"
+            + (safeId == null
+                ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
+                : safeId);
+    try {
+      if (camel.getRouteController().getRouteStatus(routeId) != null) {
+        camel.getRouteController().stopRoute(routeId);
+        camel.removeRoute(routeId);
+        logger.info("Stopped and removed tracker route {}", routeId);
+      }
+    } catch (Exception e) {
+      logger.warn("Failed to remove tracker route {}: {}", routeId, e.getMessage());
+    }
+  }
+
+  // Getters only for fixed attributes
+  public String getOsmandHost() {
+    return osmandHost;
+  }
+
+  public String getUniqueId() {
+    return uniqueId;
   }
 
   // Getters and setters for location/time attributes
-  public BigDecimal getLatitude() {
+  public double getLatitude() {
     return latitude;
   }
 
@@ -62,53 +99,53 @@ public class TrackerOsmAnd {
   // JTS Coordinate to hold (lon, lat, alt) -> (x, y, z) mutable states
   // private final Coordinate coordinate;
 
-  public void setLatitude(BigDecimal latitude) {
+  public void setLatitude(double latitude) {
     this.latitude = latitude;
   }
 
-  public BigDecimal getLongitude() {
+  public double getLongitude() {
     return longitude;
   }
 
-  public void setLongitude(BigDecimal longitude) {
+  public void setLongitude(double longitude) {
     this.longitude = longitude;
   }
 
-  public BigDecimal getAltitude() {
+  public Double getAltitude() {
     return altitude;
   }
 
-  public void setAltitude(BigDecimal altitude) {
+  public void setAltitude(Double altitude) {
     this.altitude = altitude;
   }
 
   // ------------------------------------------------------
   // Other telemetry data (not part of geometry)
 
-  public BigDecimal getSpeed() {
+  public Double getSpeed() {
     return speed;
   }
 
   // meters/second ?
-  public void setSpeed(BigDecimal speed) {
+  public void setSpeed(Double speed) {
     this.speed = speed;
   }
 
-  public BigDecimal getBearing() {
+  public Double getBearing() {
     return bearing;
   }
 
   // degrees (0-360)
-  public void setBearing(BigDecimal bearing) {
+  public void setBearing(Double bearing) {
     this.bearing = bearing;
   }
 
-  public BigDecimal getBattery() {
+  public Double getBattery() {
     return battery;
   }
 
   // 0-100
-  public void setBattery(BigDecimal battery) {
+  public void setBattery(Double battery) {
     this.battery = battery;
   }
 
@@ -129,12 +166,12 @@ public class TrackerOsmAnd {
 
   MessageOsmand lastMessageSent = null;
 
-  private void createMessage() {
+  private MessageOsmand createMessage() {
 
     if (uniqueId == null || uniqueId.isEmpty()) {
       throw new IllegalStateException("Tracker uniqueId is not set");
     }
-    if (latitude == null || longitude == null) {
+    if (Double.isNaN(latitude) || Double.isNaN(longitude)) {
       throw new IllegalStateException("Tracker latitude or longitude is not set");
     }
 
@@ -145,46 +182,44 @@ public class TrackerOsmAnd {
     if (fixTime == null) {
       // MessageOsmand.now requires primitive values for speed/bearing/altitude, use 0.0 when
       // missing
-      MessageOsmand msg =
-          MessageOsmand.now(
-              uniqueId,
-              latitude.doubleValue(),
-              longitude.doubleValue(),
-              speed == null ? 0.0 : speed.doubleValue(),
-              bearing == null ? 0.0 : bearing.doubleValue(),
-              altitude == null ? 0.0 : altitude.doubleValue(),
-              battery == null ? null : battery.doubleValue(),
-              null);
-      lastMessageSent = msg;
+      return MessageOsmand.now(
+          uniqueId,
+          latitude,
+          longitude,
+          speed == null ? 0.0 : speed.doubleValue(),
+          bearing == null ? 0.0 : bearing.doubleValue(),
+          altitude == null ? 0.0 : altitude.doubleValue(),
+          battery, // can be null
+          null);
     } else {
-      MessageOsmand msg =
-          new MessageOsmand(
-              uniqueId,
-              latitude.doubleValue(),
-              longitude.doubleValue(),
-              fixTime.toEpochSecond(),
-              speed == null ? null : Double.valueOf(speed.doubleValue()),
-              bearing == null ? null : Double.valueOf(bearing.doubleValue()),
-              altitude == null ? null : Double.valueOf(altitude.doubleValue()),
-              battery == null ? null : battery.doubleValue(),
-              null);
-      lastMessageSent = msg;
+      return new MessageOsmand(
+          uniqueId,
+          latitude,
+          longitude,
+          fixTime.toEpochSecond(),
+          speed == null ? null : Double.valueOf(speed.doubleValue()),
+          bearing == null ? null : Double.valueOf(bearing.doubleValue()),
+          altitude == null ? null : altitude,
+          battery,
+          null);
     }
   }
 
   /**
    * Public API to send the current status as a message via the Camel route. Message is always
-   * created from Tracker status.
+   * created from Tracker attributes.
    */
-  public void send() {
-    createMessage();
-    send(lastMessageSent);
+  public void sendNow() {
+    MessageOsmand msg = createMessage();
+    sendNow(msg);
+    lastMessageSent = msg;
   }
 
-  // Public API to send a message via the Camel route
-  public void send(MessageOsmand msg) {
+  /** Public API to send a message immediately via the Camel route. */
+  // return true/false for success/failure ?
+  public void sendNow(MessageOsmand msg) {
 
-    // validate message deviceId matches tracker deviceId
+    // validate message uniqueId matches tracker deviceId or ""
 
     // set Traccar attributes from immutable message !
 
@@ -193,8 +228,14 @@ public class TrackerOsmAnd {
       return;
     }
 
-    // Synchronous at dev time
-    tracker.sendBody("direct:send-osmand", msg);
+    // Synchronous at dev time - send to per-tracker direct endpoint
+    String endpoint =
+        "direct:send-osmand-"
+            + (safeId == null
+                ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
+                : safeId);
+    logger.info("tracker-{} sending message", uniqueId); // safeId ?
+    tracker.sendBody(endpoint, msg);
     // tracker.asyncSendBody("direct:send-osmand", msg);
   }
 
@@ -211,7 +252,11 @@ public class TrackerOsmAnd {
       logger.error("CamelContext not available in @PostConstruct for TrackerOsmAnd");
       return;
     }
-    Transmitter routes = new Transmitter(osmandHost);
+    // ensure safeId is initialized in case the no-arg constructor was used and autowired later
+    if (safeId == null) {
+      safeId = uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_");
+    }
+    Transmitter routes = new Transmitter(osmandHost, uniqueId);
     try {
       camel.addRoutes(routes);
       // routesRegistered = true;

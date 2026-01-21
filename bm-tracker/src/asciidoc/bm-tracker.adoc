@@ -4,7 +4,7 @@
 = Global Positioning
 
 The Maven project branch `bm-traccar` serves as the development environment for integrating with the Traccar GPS Tracking Platform. 
-We have created a `traccar-realtime-client` to mirror what's going on in the Tracking System.
+We have created a `traccar-realtime-client` to reflect what's going on in the GPS Tracking System.
 This `bm-tracker` branch is used to develop virtual GPS Tracker Simulators which can track real things by sending their positions frequently.
 
 [NOTE]
@@ -60,7 +60,7 @@ This also will allow to define a granularity of a scenario as an important scali
 
 === global metrics
 
-We will use the *GeoTools* library. +
+We will use the *GeoTools* library for framwork geodetics. +
 As example, the built-in `GeodeticCalculator`
 provides our standard distances between geographic coordinates.
 
@@ -76,17 +76,101 @@ latitude, and elevation information. Part of our task is to create a GPS
 receiver for the software world, a GPS unit.
 
 _So we need a device to send the minimum GPS information
-being latitude, longitude and UTC timestamps_. +
-By combining consecutive GPS infos we can calculate speed 
-being the ratio of space & time.
-
-see GPSinfo interface in ROAF
+being latitude, longitude and fixtime as UTC timestamp_. +
+By combining consecutive GPS infos we can calculate telemetry data
+like speed being the ratio of space & time.
 
 With this simple tool (a tiny `jar`) we can switch from geodesy, cartography and navigation +
 to physical laws described in the language of mathematics. And vice versa.
 
 
-== MOVE: mapping the world
+== gps tracking
+
+There are countless ways to implement a GPS Tracker. +
+In the end its just another IoT Device sending information 
+via some internet protocol, often proprietary. +
+And it turns out that a GPS server is only a specialized IoT server.
+
+On the receiving side the GTS has a counter part for each Tracker model/type
+to extract, transform and load it to the system.
+This software is called the _Device Communication Server, DCS_. +
+In Traccar all DCS are implemented with https://netty.io/[Netty]
+
+[quote, netty.io]
+Netty is an asynchronous non blocking event-driven network application framework +
+for rapid development of maintainable high performance protocol servers & clients. 
+
+
+=== The `JeeTS Tracker`
+
+Traccar was thoroughly analyzed in the
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book]. 
+Let's have a little excursion. +
+Section I, _Data Formats and Relations_ describes the complete process
+from Tracker to network to Traccar in detail.
+You can read how to create Protocols 
+https://github.com/kbeigl/jeets/tree/master/jeets-models/jeets-protocols-traccar[`jeets-protocols-traccar`]
+with Message Catalogs and how to create a `.proto` file for Google Protocol Buffers.
+
+[quote, protobuf.dev]
+Protocol Buffers are language-neutral, platform-neutral +
+extensible mechanisms for serializing structured data.
+
+It demonstrates how to transform your Data Model to a Persistance Unit 
+and to an Object Relation Model and back on the fly. Here 
+https://github.com/kbeigl/jeets/tree/master/jeets-models/jeets-pu-traccar#readme[`jeets-pu-traccar`]
+is a brief overview of the Traccar ERM with a partial ORM.
+
+The book is about connecting cars over the air with loads of information flowing continuously.
+For this scenario working with ERM and ORM is the most tight system integration you can achieve.
+The message actually carries the complete relational model 
+and with Protobuffers (or the like) you can compile, compress binaries
+to the least possible size for OTA communication.
+Protocol changes are made in a simple `*.proto` text file. +
+Here is an example of a 
+https://github.com/kbeigl/jeets/blob/master/jeets-models/jeets-protocols/src/main/proto/jeets.proto[
+protobuffer file to reflect Traccar Entities].
+
+At the end a DCS is developed to match the protocol. +
+By adding it to Traccar the protocol seamlessly works with the GTS.
+
+
+=== All Traccar Trackers
+
+This project has a different, almost opposite paradigm. +
+_The idea is not to create a proprietary Protocol and DCS._ +
+Vice versa we want to be able to create scenarios with any or all 
+https://www.traccar.org/devices/[implemented devices] and
+https://www.traccar.org/protocols/[protocols]. +
+You can find all Traccar DCS implementations in the 
+https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/protocol[`org.traccar.protocol`] package
+with https://github.com/traccar/traccar/tree/master/src/test/java/org/traccar/protocol[tests]. +
+Each DCS is designed with Netty Pipelines and has `Decoder` and `Encoder` classes.
+
+For the ROAF development we want to start bottom up. +
+*All Devices provide GPS coordinates _(lat,lon,fix)_* and that's all we want for a common basis. +
+(TODO `roaf.gps package` and `GPSinfo interface`) +
+In the long run the Trackers get more dedicated to a scenario, +
+cars sending CANBUS info to enrich road infos for a traffic scenario.
+
+To get an overview of all Trackers features handled by Traccar 
+have a look at the 
+https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/model/Position.java[Position class]. +
+The Position object is the result of every DCS / ETL for every Device. +
+At the top of the class you can get find an impressive list of `KEY_`  and `ALARM_` events.
+
+
+=== `gps-osmand-tracker`
+
+We want to keep it simple and chose the `OsmAnd Protocol` via `http`
+to implement a simple Tracker prototype:
+
+xref:./../../gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto `gps-osmand-tracker`]
+
+(`GPSinfo interface` can be extracted later for a general Tracker concept in the 1 to n move ;)
+
+
+== xMOVEx mapping the world
 
 A GPS Tracker is a fascinating little matchbox to scan the world. +
 We attach it to some thing, measure its motion to explore the globe or our neighborhood. +
@@ -117,17 +201,6 @@ All contributers have to agree on the final coordinates of a road or building.
 Digital Maps provide the environment, i.e. play board ;) for real world scenarios.
 ====
 
-
 (Note: Mass and Dimension will be introduced with the `RealObject` and classical physics)
-
-
-== The `gps-osmand-tracker`
-
-There are countless ways to implement a GPS Tracker.
-We want to keep it simple and chose the OsmAnd Protocol via http
-to implement a simple Tracker:
-
-
-xref:./../../gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto `gps-osmand-tracker`]
 
 

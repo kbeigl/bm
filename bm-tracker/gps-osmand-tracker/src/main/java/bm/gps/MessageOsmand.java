@@ -2,15 +2,20 @@ package bm.gps;
 
 /** A record (immutable data class) to hold a single GPS snapshot. */
 public record MessageOsmand(
-    String id, // device uniqueId
+    // device uniqueId
+    String id,
     double lat,
     double lon,
+    // gps fixtime
     long timestamp,
+    // should be helpful:
+    // long deviceTimestamp,
+    // nullable object fields
     Double speed,
     Double bearing,
     Double altitude,
     Double battery,
-    // we should remove hdop ? lacks meaning in roaf
+    // remove hdop ? lacks meaning in roaf
     Double hdop) {
 
   /*  Factory methods to create a GpsMessage timestamp (epoch seconds)
@@ -37,7 +42,7 @@ public record MessageOsmand(
         hdop);
   }
 
-  /** string representation of the GpsMessage to append to the HTTP GET request */
+  /** Functional string representation of the GPS message to append to the HTTP GET request */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

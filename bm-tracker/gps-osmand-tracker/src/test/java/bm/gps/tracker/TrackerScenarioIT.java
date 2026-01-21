@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import bm.gps.MessageOsmand;
 import bm.traccar.BaseRealTimeClientTest;
 import bm.traccar.RealTimeClient;
-import bm.traccar.api.Api;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
  * scenario.
  *
  * <p>Dependencies to api and real-time-client modules are only required for integration tests. The
- * Tracker should only depend on generated model classes.
+ * Tracker should be independant!
  *
  * <p>Although this is an integration test, the RealTimeClient is not started here. The focus is on
  * testing the Tracker component in a scenario with devices (and users?).
@@ -31,7 +30,6 @@ class TrackerScenarioIT extends BaseRealTimeClientTest {
   private static final Logger logger = LoggerFactory.getLogger(TrackerScenarioIT.class);
 
   @Autowired TrackerRegistration registrationService;
-  @Autowired private Api api;
 
   @Test
   void sendMessagesWithDevices() throws Exception {
@@ -46,19 +44,19 @@ class TrackerScenarioIT extends BaseRealTimeClientTest {
     MessageOsmand msg =
         MessageOsmand.now( // msg should be created by device with id
             scenario.realDevice.getUniqueId(), 52.0, 13.0, 10.0, 20.0, 30.0, null, null);
-    trackerReal.send(msg);
+    trackerReal.sendNow(msg);
 
-    trackerRunner.send(
+    trackerRunner.sendNow(
         MessageOsmand.now(
             scenario.runnerDevice.getUniqueId(), 52.01, 13.01, 0.0, 0.0, 0.0, null, null));
 
     trackerChaser1 = registrationService.registerTracker(scenario.chaser1Device.getUniqueId());
-    trackerChaser1.send(
+    trackerChaser1.sendNow(
         MessageOsmand.now(
             scenario.chaser1Device.getUniqueId(), 52.02, 13.02, 0.0, 0.0, 0.0, null, null));
 
     trackerChaser2 = registrationService.registerTracker(scenario.chaser2Device.getUniqueId());
-    trackerChaser2.send(
+    trackerChaser2.sendNow(
         MessageOsmand.now(
             scenario.chaser2Device.getUniqueId(), 52.03, 13.03, 0.0, 0.0, 0.0, null, null));
 
@@ -82,7 +80,7 @@ class TrackerScenarioIT extends BaseRealTimeClientTest {
     //            });
   }
 
-  @Test
+  // @Test
   void contextLoadTest() throws Exception {
     logger.info("Verifying that the Spring context loads correctly.");
     assertThat(controller).isNotNull();

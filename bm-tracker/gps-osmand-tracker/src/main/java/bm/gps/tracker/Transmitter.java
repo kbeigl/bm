@@ -8,29 +8,22 @@ import org.slf4j.LoggerFactory;
 /**
  * Transmitter component for Tracker. Implemented with Camel routes for sending messages to OsmAnd
  * server.
- *
- * <p>Messages can be sent "fire and forget" style. If sending fails, messages are queued for retry.
- * This way the Tracker continues to operate regardless of problems with network etc.
  */
 public class Transmitter extends RouteBuilder {
   private static final Logger logger = LoggerFactory.getLogger(Transmitter.class);
 
-  // @Autowired OsmAndTracker client; for back referencs ?
-
-  /**
-   * Fire and forget sending of messages to OsmAnd server.
-   *
-   * <p>Message queue to hold messages that are considered to be sent - in application semantics. If
-   * messages can not be sent technically (OTA problems etc.) they are pushed into the queue. Camel
-   * will take care of reconnecting, exponentiell backup strategy etc.
-   */
-  // currently MQ is private and not exposed
+  // per-instance private queue
   private final MessageQueue queue = new MessageQueue();
 
   private String osmandHost;
+  // private final String uniqueId;
+  private final String safeId;
 
-  public Transmitter(String osmandHost) {
+  public Transmitter(String osmandHost, String uniqueId) {
     this.osmandHost = osmandHost;
+    // this.uniqueId = uniqueId;
+    // sanitize uniqueId for use in route ids and endpoint names
+    this.safeId = uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_");
   }
 
   @Override
@@ -62,9 +55,12 @@ public class Transmitter extends RouteBuilder {
             })
         .log("TrackerRoutes.onException: enqueued message due to exception: ${exception.message}");
 
-    // Entry point for tracker messages
-    from("direct:send-osmand")
-        .routeId("send-osmand-route")
+    // Entry point for tracker messages - use per-tracker direct endpoint and route id
+    String directEndpoint = "direct:send-osmand-" + safeId;
+    String routeId = "send-osmand-route-" + safeId;
+
+    from(directEndpoint)
+        .routeId(routeId)
         .process(this::buildUrlHeader)
         .toD(osmandHost + "?bridgeEndpoint=true&throwExceptionOnFailure=true")
         .process(
@@ -85,7 +81,7 @@ public class Transmitter extends RouteBuilder {
                 throw new RuntimeException("HTTP error response: " + code);
               }
             })
-        .log("Sent message to {}: " + osmandHost);
+        .log("Sent message to {}: " + osmandHost + " via " + routeId);
 
     // Periodically flush queued messages (attempt one per second)
     //    from("timer:flushQueue?period=1000")

@@ -48,7 +48,7 @@ public class TrackerQueueDisruptionTest {
     TrackerOsmAnd tracker = registrationService.registerTracker("queue-test" + System.nanoTime());
 
     // send first message while server is up -> should be delivered (no enqueue)
-    tracker.send(createOsmandMessageNow("10", 52.0, 13.0));
+    tracker.sendNow(createOsmandMessageNow("10", 52.0, 13.0));
     sleepMillis(500);
     // assertEquals(0, queue.size(), "Queue should be empty when server is up");
     assertTrue(requestCount.get() >= 1, "Server should have received at least one request");
@@ -58,25 +58,15 @@ public class TrackerQueueDisruptionTest {
 
     // send two messages while server is "down"
     // -> they should be enqueued by the onException handler
-    tracker.send(createOsmandMessageNow("10", 52.0001, 13.0001));
-    tracker.send(createOsmandMessageNow("10", 52.0002, 13.0002));
+    tracker.sendNow(createOsmandMessageNow("10", 52.0001, 13.0001));
+    tracker.sendNow(createOsmandMessageNow("10", 52.0002, 13.0002));
     sleepMillis(500);
 
-    // assertTrue(queue.size() >= 2, "Messages should be enqueued while server is down (500
-    // responses)");
+    // assertTrue(queue.size() >= 2,
+    // "Messages should be enqueued while server is down (500 responses)");
 
     // restore server availability so flush-route can resend queued messages
     available.set(true);
-
-    // wait up to 6 seconds for the queue to be flushed (flush-route attempts one per second)
-    //    boolean flushed = false;
-    //    for (int i = 0; i < 6; i++) {
-    //      if (queue.isEmpty()) {
-    //        flushed = true;
-    //        break;
-    //      }
-    // sleepMillis(1000);
-    //    }
 
     // assertTrue(flushed, "Queued messages should be flushed after server becomes available");
 

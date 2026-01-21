@@ -52,7 +52,7 @@ public class ContentBasedRouterTest {
                 .to("mock:unknown");
 
             from("direct:start-cbr")
-                .routeId("traccarContentBasedRouting")
+                .routeId("websocket-cbr-message-route")
                 .log("Process WebSocket raw  message: ${body}")
                 .unmarshal()
                 .json()
@@ -148,7 +148,7 @@ public class ContentBasedRouterTest {
     assertEquals(1, positions5[0].getDeviceId(), "Expected deviceId=1 for timePosition");
   }
 
-  String invalidJson = "asdf345 6e47z", unknownJson = "{\"foo\":[{\"id\":1}]}";
+  String invalidJson = "asdf345 6e47z", unknownJson = "{\"foo\":[{\"bar\":1}]}";
 
   @Test
   public void testInvalidOrUnknownMessage() throws Exception {

@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.14</version>
+        <version>1.1.15-alpha</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -36,6 +36,14 @@
     </description>
 
     <properties>
+        <!-- various switches to target different purposes
+        like quick build without tests or full ITs with docker -->
+        <!-- skip maven-source-plugin etc. -->
+        <!-- simplify build on github and user pulls-->
+        <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
+        <!-- ITs are skipped, but docker is starting if above is false -->
+        <integration.tests.skip>true</integration.tests.skip>
+
         <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
         <fmt-maven-plugin-version>2.27</fmt-maven-plugin-version>
 
@@ -48,6 +56,7 @@
         <maven-enforcer-plugin-version>3.6.1</maven-enforcer-plugin-version>
         <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
         <maven-failsafe-plugin-version>3.5.3</maven-failsafe-plugin-version>
+        <maven-source-plugin-version>3.3.0</maven-source-plugin-version>
 
         <!-- LTS versions preferred -->
         <camel-version>4.14.2</camel-version>
@@ -64,18 +73,12 @@
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
         <docker.image.os>ubuntu</docker.image.os>
-
-        <!-- simplify build on github and user pulls-->
-        <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
-        <!-- ITs are skipped, but docker is starting if above is false -->
-        <integration.tests.skip>true</integration.tests.skip>
         
         <!-- avoid agent warning since Java 21 in surefire and failsafe testing. 
         TODO Version should be derived from spring/camel stack!
         see https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine> -->
         <mockito.version>5.20.0</mockito.version>
-
     </properties>
 
     <dependencyManagement>
@@ -254,7 +257,7 @@
             </extension>
         </extensions>
 
-        <!-- MOVE UP TO ROOT pom.xml to execute first -->
+        <!-- MOVE UP TO ROOT pom.xml to execute first ? -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -277,6 +280,23 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Attach source JARs for all modules -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <!-- move to pluginManagement ! 
             Repackage existing JAR and WAR archives so that they 
             can be executed from the command line using java -jar. 

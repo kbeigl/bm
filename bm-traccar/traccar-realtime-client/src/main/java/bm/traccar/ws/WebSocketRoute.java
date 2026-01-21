@@ -1,10 +1,6 @@
 package bm.traccar.ws;
 
-import bm.traccar.generated.model.dto.Device;
-import bm.traccar.rt.RealTimeManager;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.net.URI;
 import java.net.URISyntaxException;
 import org.apache.camel.Exchange;
@@ -35,10 +31,11 @@ public class WebSocketRoute extends RouteBuilder {
   // no REST API involved !
   @Autowired private SessionManager sessionManager;
   @Autowired protected ProducerTemplate producer;
-  private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-  private final RealTimeManager stateManager = RealTimeManager.getInstance();
 
-  // move outside (to ApiService) ?
+  //  private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+  //  private final RealTimeManager stateManager = RealTimeManager.getInstance();
+
+  // move (to ApiService) ?
   public void loginAndConnect(String email, String password) throws Exception {
     Exchange exchange = getContext().getEndpoint("direct:traccarLogin").createExchange();
     exchange.getIn().setHeader("email", email);
@@ -61,17 +58,30 @@ public class WebSocketRoute extends RouteBuilder {
 
     // CBR to process incoming WebSocket messages ---
     from("direct:start-websocket-connection")
-        .routeId("traccarWebSocketMessageProcessingRoute")
-        // set to LoggingLevel.DEBUG
-        .log(LoggingLevel.DEBUG, "Process WebSocket raw  message: ${body}")
+        .routeId("process-websocket-message-route")
+        // .log(LoggingLevel.DEBUG, "Process WebSocket raw  message: ${body}")
+        .log("Process WebSocket raw  message: ${body}")
         .unmarshal() // convert body to ..
         .json() // .. LinkedHashMap Map<String, Object>
+
+        // debug processor to inspect the parsed body and its runtime type
+        .process(
+            exchange -> {
+              Object body = exchange.getIn().getBody();
+              if (body == null) {
+                logger.debug("WebSocket parsed body is null");
+              } else {
+                logger.debug(
+                    "WebSocket parsed body type={} value={}", body.getClass().getName(), body);
+              }
+            })
+
         // ===== JSON parsing
         .log("Process WebSocket json message: ${body}")
         .choice()
         // ===== empty message
-        .when(simple("${body.isEmpty()}"))
-        // or when array length == 0 ?
+        // move first two conditions up to raw message ?
+        .when(simple("${body} == null || ${body.isEmpty()} || ${body.size} == 0"))
         .log("Empty message ignored: ${body}")
         // ===== devices
         .when(simple("${body[devices]} != null"))
@@ -80,12 +90,16 @@ public class WebSocketRoute extends RouteBuilder {
         .setBody(simple("${body[devices]}"))
         .process(
             ex -> {
-              Device[] devices = mapper.convertValue(ex.getIn().getBody(), Device[].class);
-              for (Device device : devices) stateManager.addOrUpdateDevice(device);
-              logger.info("{} Devices updated.", devices.length);
-            });
-
-    //  .end();
+              logger.info("TODO update Devices from WebSocket message: " + ex.getIn().getBody());
+              //              Device[] devices = mapper.convertValue(ex.getIn().getBody(),
+              // Device[].class);
+              //              for (Device device : devices) stateManager.addOrUpdateDevice(device);
+              //              logger.info("{} Devices updated.", devices.length);
+            })
+        // log unknown/unimplemented message types and finish the choice
+        .otherwise()
+        .log("Unknown or unimplemented WebSocket message ignored: ${body}")
+        .end(); // of choice
   }
 
   // maybe we'll split this into two routes later

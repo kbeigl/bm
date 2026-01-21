@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.14</version>
+        <version>1.1.15-alpha</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
