@@ -1,0 +1,459 @@
+
+// :toc:
+
+= Component Architecture
+
+At this point it is important to prototype the components architecture 
+as an reliable development guideline -- and always subject to change.
+Prototyping is the first implementation to demo the _proof of concept_
+for single component to a complete framework.
+Main Technology- and Design Decision have to be made to fullfill the POC.
+And many design candidates and technologies are sorted out.
+This way the stack can be versioned with a _bill of materials_ (BOM) over the complete repo
+to optimize transparency for (onboarding of business) coders.
+
+== implementation steps
+
+- [ ]  create a Springboot application to simulate a GPS Tracker hardware
+- [ ]  use the osmand protocol with Traccar ID
+- [ ]  use the OpenTools library for GPS coordinates and distance, bearing etc.
+- [ ]  setters for location and fixtime 
+- [ ]  send messages via Camel Route
+- [ ]  store messages in a thread-safe queue, if server is unavailable, send later
+
+
+== Receiver
+
+Actually the receiver, i.e. GPS Unit is already 
+completly defined with the `MessageOsmand` Model. +
+It specifies which attributes the Tracker can handle.
+The data acquistion can be "implemented" with `getters/setters` of the Controller.
+These will be connectors to simulations, playbacks and live tracking.
+Energy and UTC time are sponsored by the runtime environment.
+
+We can already check off some requirements :)
+
+
+== Controller
+
+The Controller is the `Tracker`, i.e. `TrackerOsmAnd` core.
+We have chosen Camel to integrate components + 
+and a Camel rider starts software design with a local `direct` Endpoint:
+
+[source,java]
+----
+      // to Sender Component
+      from("direct:send-osmand")
+----
+    
+From this point we will send messages to the Traccar server.
+In integration terms it is a _Producer Endpoint_ to send a fixed message.
+On the other hand we want to leave all options to create messages.
+This is achieved by using the Camel Producer to send messages 
+`to` `"direct:send-osmand"`, now being a _Consumer Endpoint_.
+
+For example you can create a regular Java method and instead of `return` 
+you end the method with `sendBody`. Camel will take care of the rest.
+For the developer the message can be considered as sent.
+
+[source,java]
+----
+      // Tracker Component
+      public void send(MessageOsmand msg) {
+      
+        // evaluations etc.
+        
+        // synchronous at dev time
+        tracker.sendBody("direct:send-osmand", msg);
+        // more traffic
+        // tracker.asyncSendBody("direct:send-osmand", msg);
+        // even more traffic
+        // tracker.asyncSendBody("seda:send-osmand", msg);
+      }
+----
+
+Now we are set to start implementing with *this Endpoint* .. 
+
+* *as Consumer* of a immutable message and
+
+* *as Producer* to send this message.
+
+sounds easy, +
+'cause it is `;)`
+
+
+== Sender
+
+We now have Input and a Controller. +
+Next is the Output, the messaging/transport layer to the GTS. +
+The Transmitter is responsible to submit (and acknowledge) the messages to Traccar. + 
+First we need to make sure the controllers call introduced above
+
+    // message to Sender
+    tracker.sendBody("direct:send-osmand", msg);
+
+is intercepted by a transmitter, so we implement a Route with
+
+    TrackerSender extends RouteBuilder 
+    
+which takes care of all the Spring and Camel wiring, autodetection etc. +
+The transmission route starts with
+        
+    // send message to server
+    from("direct:send-osmand")
+
+The route dynamically builds the server URL, manages http headers and properties +
+and sends the message to Traccar via Dynamic Endpoint `.toD( host + parameters )`.
+
+
+=== load balancing
+
+In the `// Tracker` listing above different types of sending a message are indicated.
+This way the prototype leaves some room to scale implementations for a dedicated application.
+Each send type can get its own method as we widen the Software for production.
+
+Note that in the above sample we are using the routeId `send-osmand-route` as transmitter.
+This implies that _this very route_ is re/created in each tracker instance.
+When Camel adds a route with the same routeId is will stop/replace the existing route.
+
+We are interested to create an independant tracker to track an independant thing. +
+Therefore the initial implementation will respect the `uniqueId` inside the tracker implementation.
+
+    routeId("send-osmand-route-" + uniqueId)
+      from("direct:send-osmand-" + uniqueId).
+    
+Per-tracker routes increase Camel route count with resource growth. 
+For many trackers in a single application, we will consider 
+a single shared Transmitter route that handles any device 
+(messages carry device id) to avoid many dynamic routes.
+The `CamelContext` provides full flexibility to manage all routes
+and leaves room for load optimization - any time later.
+
+Once the tracker beta version is running there is still room for a different setup. +
+In the long run this could be controlled with a switch to be introduced.
+
+
+=== Message Buffer
+
+A Message Queue is supposed to collect the message that can not be sent immediately. +
+Have a look at the 
+https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/src/main/java/org/jeets/device/console/Device.java#L260[Device developed for Netty with JeeTS]. +
+For this Device we created a loop
+
+[source,java]
+----
+// All Messages are collected in a MessageQueue and 
+// the MessageLoop takes care of sending them whenever connectivity allows it.
+   private class SendMessageLoop implements Runnable {
+----
+
+which is wrapped around the 
+      
+[source,java]
+----
+// Blocking queue to synchronize sending and callback.
+   private BlockingQueue<Object> callbackQueue = new LinkedBlockingQueue<Object>(1);
+----
+
+This was implemented for Demo purposes and can also be perceived 
+as a simple Endpoint implementation. +
+This time we want a robust and configurable Endpoint as a sender.
+
+
+== SEDA architecture
+
+https://en.wikipedia.org/wiki/Staged_event-driven_architecture[SEDA or staged event-driven architecture]
+is a general EIP for software architecture.
+
+[quote, en.wikipedia.org/wiki/Staged_event-driven_architecture]   
+SEDA refers to an approach to software architecture that decomposes a complex, 
+event-driven architecture (EDA) into a set of stages connected by queues.
+It avoids the high overhead associated with thread-based concurrency models 
+and decouples event and thread scheduling from application logic. 
+
+In general a SEDA controller is any mechanism that manages the consumption of resources +
+such as thread pool size, event queue size, scheduling, etc.
+
+
+=== `"seda:"` Component
+
+And, of course, Camel does provide a 
+https://camel.apache.org/components/4.14.x/seda-component.html[SEDA component] `"seda:"`
+out of the box
+
+[quote, camel.apache.org/components/4.14.x/seda-component.html]   
+The SEDA component provides asynchronous SEDA behavior, + 
+so that messages are exchanged on a BlockingQueue and +
+consumers are invoked in a separate thread from the producer.
+
+Creating a Tracker prototype with SEDA is a walk in the park:
+
+    "seda:send-osmand"
+
+Yet SEDA is working in-memory with asynchronous processing within a single JVM
+to support for highly-concurrent traffic. 
+Which means that our Tracker will loose all messages, if there is a crash. 
+
+[quote, camel.apache.org/components/4.14.x/seda-component.html]   
+This component does not implement any kind of persistence or recovery 
+if the JVM terminates while messages are yet to be processed. 
+If you need persistence, reliability or distributed SEDA, try using JMS.
+
+We use the SEDA component to decouple your main process from volatile HTTP calls.
+We can "fire and forget" messages into an internal queue, 
+let a separate thread pool handle network timeouts and server crashes.
+
+One thing _we can do_ with the `"seda:"` component is to activate
+a Dead Letter Queue (DLQ) for development inspection of lost messages 
+and maybe to improve SEDA performance a bit.
+As as example of a 
+
+    errorHandler( deadLetterChannel(..
+
+have a look at this
+https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/src/main/java/org/jeets/device/RouteParseFile.java[JeeTS Device]
+For sake of simplicity, we won't introduce a DLQ - now.
+
+Instead we will define the error handling inside the route 
+with exponential backoff for the "reconnect" to happen:
+
+[source,java]
+----
+    onException(Exception.class) 
+        .maximumRedeliveries(5)  // Try 5 times
+        .redeliveryDelay(2000)   // Wait 2 seconds between tries
+        .useExponentialBackOff()
+        .backOffMultiplier(2)    // Double the wait time each failure (2s, 4s, 8s...)
+        .retryAttemptedLogLevel(LoggingLevel.WARN)
+        .handled(true)           // Don't crash the whole route
+        .log("Failed to reach server after retries. Giving up on ${body}");
+----
+
+`retry` / `backoff` parameters can be tuned 
+or special handling for non-retriable HTTP codes can be added.
+This is very helpful, since you don't want to stress the server even more, when it cannot answer. 
+You can also configure Jitter (Collision Avoidance) when working with more Trackers.
+
+Also note that Camel Components can be configured in the `application.properties`. +
+For SEDA it is `camel.component.seda.*`, like these examples:  
+
+    # Configure SEDA
+    camel.component.seda.queue-size=1000
+    camel.component.seda.concurrent-consumers=4
+    camel.component.seda.default-poll-timeout=1000
+    camel.component.seda.offer-timeout=0
+
+For Custom Thread Pools you can manage the underlying thread pool more granularly, +
+you can also configure the Default Thread Profile:
+
+    # Configure the thread pool used by SEDA and other components
+    camel.threadpool.pool-size=10
+    camel.threadpool.max-pool-size=20
+    camel.threadpool.max-queue-size=100
+
+
+=== level up to Message Broker
+
+Camel makes it easy to (or was made to) level up an existing architecture.
+The DSL structure remains almost identical.
+If required you can change SEDA to a full-blown Message Broker like ActiveMQ or RabbitMQ. 
+By switching to JMS or AMQP, you gain persistence, better monitoring, 
+and the ability to scale your consumers across multiple server instances.
+
+One thing you should do to keep all options open 
+is to use a local `"direct:"` endpoint for your business logic. +
+Then you can switch from
+
+    from("direct:start").to("seda:send-osmand");
+
+to ActiveMQ for Java/Camel ecosystems
+
+    from("direct:start").to("activemq:queue:send-osmand");
+
+or to Use RabbitMQ for high performance, polyglot support etc.
+
+    from("direct:start").to("rabbitmq:gpsExchange?routingKey=send-osmand");
+
+So we keep in mind that we can add Transaction Support (JTA), Persistence (JPA) 
+and control Backpressure gracefully.
+
+- [x] Prepared for really large realtime scenarios.
+
+About performance: after your application invokes 
+
+    from("direct:start")
+    
+and _instantly_ returns to your code in zero time.
+
+Later we will use a `realtime-client` to confirm 
+that the message is processed on server side.
+
+
+=== Disruption Test
+
+The `TrackerQueueDisruptionTest` simulates the sending of three messages. +
+For the first message the server handles the test as wanted
+
+    18:18:25.229  tracker-4711 sending message
+    18:18:25.610  Server handling request OK
+    18:18:25.669  Sender: sent message to http://localhost:5055 via seda-send-osmand-route-4711
+
+Then the server is disrupted before two more messages are sent. +
+Delivery fails and we can see the reattempts after two seconds:
+
+    18:18:25.766  Simulating server disruption (500 responses)
+    18:18:25.766  tracker-4711 sending message
+    18:18:25.767  tracker-4711 sending message
+    18:18:25.771  Server handling request ERROR
+    18:18:25.786  Failed delivery for (MessageId: 4E2F39A8CFF55AD-0000000000000003
+    18:18:26.229  Server handling request ERROR
+    18:18:26.234  Failed delivery for (MessageId: 4E2F39A8CFF55AD-0000000000000005
+    18:18:27.790  Server handling request ERROR
+    18:18:27.794  Failed delivery for (MessageId: 4E2F39A8CFF55AD-0000000000000003
+    18:18:28.239  Server handling request ERROR
+    18:18:28.244  Failed delivery for (MessageId: 4E2F39A8CFF55AD-0000000000000005
+
+Finally the server is restored and the messages are sent successfully :)
+
+    18:18:30.768  Restoring server availability
+    18:18:31.798  Server handling request OK
+    18:18:31.799  Sender: sent message to http://localhost:5055 via seda-send-osmand-route-4711
+    18:18:32.249  Server handling request OK
+    18:18:32.251  Sender: sent message to http://localhost:5055 via seda-send-osmand-route-4711
+
+
+== Registration
+
+Now how to use the Tracker in Spring Applications?
+
+If a developer creates an actor of a scenario, some Java Object,
+and wants to track it he should be enabled to create a Tracker on the fly.
+There is no static configuration and it should happen at runtime.
+
+
+=== lifecycle
+
+With Spring and Camel the registration lifecycle register, unregister, reregister 
+can be fully managed at runtime.
+
+We register the tracker as a `GenericBeanDefinition`
+so Spring automatically wires lifecycle and destruction callbacks.
+`TrackerRegistration` registers a GenericBeanDefinition (constructor arguments `uniqueId, osmandHost`)
+with `DefaultListableBeanFactory` and then pulls the fully-initialized bean from the context.
+
+This makes Spring handle `@PostConstruct` and `@PreDestroy` automatically.
+(Calling `destroySingleton(beanName)` removes the instance but the bean definition remains.) 
+On subsequent register attempts the code will see the existing bean definition and try to return/get the bean.
+Removing the bean definition after destroying the singleton fully clears Spring’s state
+for that bean name so registerTracker can create/register the bean again without conflicts.
+
+With our components being Spring beans, we want to create and 
+register a new bean instance at runtime and then start its associated Camel route. 
+This is achieved using the `ApplicationContextAware interface` to handle the dynamic creation 
+and registration of a fully managed component. 
+With `AutowireCapableBeanFactory` the bean is created manually,
+allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).
+
+
+=== usage
+
+And this is how to use the `gps-osmand-tracker-1.1.15.jar` in your code:
+
+[source,java]
+----
+
+  @Autowired TrackerRegistration registrationService;                       <1>
+
+  void sendMessage() throws Exception {
+  
+    // get uniqueId from application context
+    TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);  <2>
+
+    MessageOsmand msg = 
+    MessageOsmand.now(uniqueId, 52.0, 13.0, 10.0, 20.0, 30.0, null, null);  <3>
+
+    tracker.send(msg);                                                      <4>
+
+    registrationService.unregisterTracker(uniqueId);                        <5>
+
+    ...
+----
+
+<1> provide tracker registration service
+<2> create and register tracker for uniqueId
+<3> create the immutable record
+<4> send, forget and continue application context
+<5> unregister tracker bean to clean up (and re-register)
+
+Note that each Tracker bean is named with its Traccar identity
+
+    "tracker-" + uniqueId
+
+This is a simple constraint to avoid multiple Trackers with the same id. +
+Actually the 
+https://de.wikipedia.org/wiki/International_Mobile_Equipment_Identity[IMEI] 
+should be used for any hardware Tracker,
+since it marks the unique hardware piece.
+
+
+== component wiring
+
+We are using two frameworks to take care of `@Autowired` Spring components and Camel routes. +
+The general constellation for all trackers (to come) looks like this
+
+[mermaid]
+....
+graph TD
+  subgraph bm.gps
+    subgraph tracker [bm.gps.tracker]
+      Application
+      Tracker
+      Registration
+      Sender
+    end
+
+    Message[Message]
+  end
+
+  Application -->|send message| Tracker
+  Application -->|wire| Registration
+
+  Tracker -->|register| Registration
+  Registration -->|create| Tracker
+  Tracker -->|dispatch| Sender
+  Application -->|wire| Sender
+  Sender -->|seda:send-osmand| Message
+....
+
+Any number of `Trackers` can be created in the main application
+(in this case a minimum `@SpringBootApplication`).
+Each one can be looked up in the `Registration` to send `Messages` with the `Tracker( uniqueId )`.
+
+
+== sending sequence
+
+sending a GPS snapshot
+
+[mermaid]
+....
+sequenceDiagram
+  participant Client as Application
+  participant Server as Tracker
+  participant Reg as Registration
+  participant Sender as Sender
+  participant External as Traccar HTTP 
+
+  Client->>Server: POST /gps MessageOsmand
+  Server->>Reg: validate/register device
+  Reg-->>Server: OK
+  Server->>Sender: enqueue/send MessageOsmand
+  Sender->>External: HTTP GET/POST MessageOsmand.toString()
+  External-->>Sender: 200 OK
+  Sender-->>Server: delivery status
+  Server-->>Client: 200 OK
+....
+
+Register a number of Trackers in your application and send messages whenever appropriate.
+The sending method returns to the application instantly, 
+while the Sender takes care of sending all messages until accepted by the Tracking Server.
+

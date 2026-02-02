@@ -3,9 +3,12 @@
 
 = Global Positioning
 
-The Maven project branch `bm-traccar` serves as the development environment for integrating with the Traccar GPS Tracking Platform. 
-We have created a `traccar-realtime-client` to reflect what's going on in the GPS Tracking System.
-This `bm-tracker` branch is used to develop virtual GPS Tracker Simulators which can track real things by sending their positions frequently.
+This `bm-tracker` branch is used to develop GPS Tracker Simulators,
+which can track things by sending their positions frequently.
+These Devices are completly independant of any Tracking System and should adhere to standard protocols.
+
+The `bm-traccar` branch serves as the development environment for integrating specifically with the _Traccar GTS_. 
+A `traccar-realtime-client` will be used to observe one or many devices on the Tracking System.
 
 [NOTE]
 ====
@@ -86,7 +89,7 @@ to physical laws described in the language of mathematics. And vice versa.
 
 == gps tracking
 
-There are countless ways to implement a GPS Tracker. +
+There are countless ways to implement a - Simulation of a - GPS Tracker hardware. +
 In the end its just another IoT Device sending information 
 via some internet protocol, often proprietary. +
 And it turns out that a GPS server is only a specialized IoT server.
@@ -135,10 +138,45 @@ At the end a DCS is developed to match the protocol. +
 By adding it to Traccar the protocol seamlessly works with the GTS.
 
 
-=== All Traccar Trackers
+==== On Board Diagnostic Data
+
+To get an idea of regular telematic data amounts in your car 
+have a look at 
+https://www.traccar.org/devices/[the OBD Sticks implemented in Traccar].
+For less than a hundred dollars you can get 
+https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II_signal_protocols[a lot of information]
+over the air. Diagnostic Trouble Codes (DTCs), Real-time Data, Emissions Testing 
+- you name it.
+
+The idea of the ROAF is to pick relevant variables and parameters for a specific scenario.
+Therefor a Scenario always represents a perspective of a part of reality.
+OBD data does not take a primary role, since it is more about the inside of a vehicle. 
+For Connected Car Applications different parameters and especially variables are relevant.
+
+==== Big Data
+
+And to get an idea how much data a modern vehicle produces 
+you can check out some Data Brick specifications, like for example the 
+https://www.b-plus.com/fileadmin/data_storage/Data_Storage/1_Main_Navigation/1_Portfolio/01_Datensammlung_und_Analyse/BRICK/Datenblaetter/Datasheet_BRICK2-X11.pdf[BRICK2],
+
+[quote, b-plus.com]
+The application areas for this platform are demanding measurement +
+and recording tasks for driver assistance systems (ADAS) +
+or automated and autonomous driving.
+
+
+==== disclaimer
+
+In the end each scenario requires different measurements, sensor data etc. +
+The JeeTS Tracker can open a lot of oportunities, +
+but the ROAF is not created for autonomous driving nor its data load.
+
+
+=== Traccar Trackers
 
 This project has a different, almost opposite paradigm. +
-_The idea is not to create a proprietary Protocol and DCS._ +
+_The idea is not to create a proprietary Protocol and DCS._ 
+
 Vice versa we want to be able to create scenarios with any or all 
 https://www.traccar.org/devices/[implemented devices] and
 https://www.traccar.org/protocols/[protocols]. +

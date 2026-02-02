@@ -19,7 +19,7 @@ public final class GeoTools {
     wgs84 = crs;
   }
 
-  // Haversine distance in meters using GeoTools
+  // Haversine 2d distance in meters using GeoTools
   public static double distanceMeters(double lat1, double lon1, double lat2, double lon2) {
     GeodeticCalculator calc = new GeodeticCalculator(wgs84);
     calc.setStartingGeographicPoint(lon1, lat1);
@@ -27,7 +27,7 @@ public final class GeoTools {
     return calc.getOrthodromicDistance();
   }
 
-  // Initial bearing in degrees from point1 to point2 using GeoTools
+  // Initial 2d bearing in degrees from point1 to point2 using GeoTools
   public static double bearingDegrees(double lat1, double lon1, double lat2, double lon2) {
     GeodeticCalculator calc = new GeodeticCalculator(wgs84);
     calc.setStartingGeographicPoint(lon1, lat1);

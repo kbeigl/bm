@@ -434,7 +434,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 <h1>Global Positioning</h1>
 <div id="toc" class="toc">
@@ -451,7 +451,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_gps_tracking">gps tracking</a>
 <ul class="sectlevel2">
 <li><a href="#_the_jeets_tracker">The <code>JeeTS Tracker</code></a></li>
-<li><a href="#_all_traccar_trackers">All Traccar Trackers</a></li>
+<li><a href="#_traccar_trackers">Traccar Trackers</a></li>
 <li><a href="#_gps_osmand_tracker"><code>gps-osmand-tracker</code></a></li>
 </ul>
 </li>
@@ -463,9 +463,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Maven project branch <code>bm-traccar</code> serves as the development environment for integrating with the Traccar GPS Tracking Platform.
-We have created a <code>traccar-realtime-client</code> to reflect what&#8217;s going on in the GPS Tracking System.
-This <code>bm-tracker</code> branch is used to develop virtual GPS Tracker Simulators which can track real things by sending their positions frequently.</p>
+<p>This <code>bm-tracker</code> branch is used to develop GPS Tracker Simulators,
+which can track things by sending their positions frequently.
+These Devices are completly independant of any Tracking System and should adhere to standard protocols.</p>
+</div>
+<div class="paragraph">
+<p>The <code>bm-traccar</code> branch serves as the development environment for integrating specifically with the <em>Traccar GTS</em>.
+A <code>traccar-realtime-client</code> will be used to observe one or many devices on the Tracking System.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -591,7 +595,7 @@ to physical laws described in the language of mathematics. And vice versa.</p>
 <h2 id="_gps_tracking">gps tracking</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>There are countless ways to implement a GPS Tracker.<br>
+<p>There are countless ways to implement a - Simulation of a - GPS Tracker hardware.<br>
 In the end its just another IoT Device sending information
 via some internet protocol, often proprietary.<br>
 And it turns out that a GPS server is only a specialized IoT server.</p>
@@ -653,13 +657,59 @@ protobuffer file to reflect Traccar Entities</a>.</p>
 <p>At the end a DCS is developed to match the protocol.<br>
 By adding it to Traccar the protocol seamlessly works with the GTS.</p>
 </div>
+<div class="sect3">
+<h4 id="_on_board_diagnostic_data">On Board Diagnostic Data</h4>
+<div class="paragraph">
+<p>To get an idea of regular telematic data amounts in your car
+have a look at
+<a href="https://www.traccar.org/devices/">the OBD Sticks implemented in Traccar</a>.
+For less than a hundred dollars you can get
+<a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II_signal_protocols">a lot of information</a>
+over the air. Diagnostic Trouble Codes (DTCs), Real-time Data, Emissions Testing
+- you name it.</p>
+</div>
+<div class="paragraph">
+<p>The idea of the ROAF is to pick relevant variables and parameters for a specific scenario.
+Therefor a Scenario always represents a perspective of a part of reality.
+OBD data does not take a primary role, since it is more about the inside of a vehicle.
+For Connected Car Applications different parameters and especially variables are relevant.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_big_data">Big Data</h4>
+<div class="paragraph">
+<p>And to get an idea how much data a modern vehicle produces
+you can check out some Data Brick specifications, like for example the
+<a href="https://www.b-plus.com/fileadmin/data_storage/Data_Storage/1_Main_Navigation/1_Portfolio/01_Datensammlung_und_Analyse/BRICK/Datenblaetter/Datasheet_BRICK2-X11.pdf">BRICK2</a>,</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+The application areas for this platform are demanding measurement<br>
+and recording tasks for driver assistance systems (ADAS)<br>
+or automated and autonomous driving.
+</blockquote>
+<div class="attribution">
+&#8212; b-plus.com
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_disclaimer">disclaimer</h4>
+<div class="paragraph">
+<p>In the end each scenario requires different measurements, sensor data etc.<br>
+The JeeTS Tracker can open a lot of oportunities,<br>
+but the ROAF is not created for autonomous driving nor its data load.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="_all_traccar_trackers">All Traccar Trackers</h3>
+<h3 id="_traccar_trackers">Traccar Trackers</h3>
 <div class="paragraph">
 <p>This project has a different, almost opposite paradigm.<br>
-<em>The idea is not to create a proprietary Protocol and DCS.</em><br>
-Vice versa we want to be able to create scenarios with any or all
+<em>The idea is not to create a proprietary Protocol and DCS.</em></p>
+</div>
+<div class="paragraph">
+<p>Vice versa we want to be able to create scenarios with any or all
 <a href="https://www.traccar.org/devices/">implemented devices</a> and
 <a href="https://www.traccar.org/protocols/">protocols</a>.<br>
 You can find all Traccar DCS implementations in the
@@ -751,7 +801,7 @@ All contributers have to agree on the final coordinates of a road or building.</
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-29 11:43:02 +0100
+Last updated 2026-02-04 22:16:11 +0100
 </div>
 </div>
 </body>

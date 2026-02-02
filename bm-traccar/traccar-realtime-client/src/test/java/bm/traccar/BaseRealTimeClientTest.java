@@ -1,5 +1,6 @@
 package bm.traccar;
 
+import bm.gps.tracker.GpsOsmandTrackerConfig;
 import bm.traccar.api.ApiException;
 import bm.traccar.api.scenario.ScenarioLoader;
 import bm.traccar.rt.RealTimeController;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -18,9 +20,10 @@ import org.springframework.test.context.ActiveProfiles;
  * client integration tests.
  *
  * <p>This class runs the actual RealTimeClient application with full context for testing. Only the
- * RealTimeClient.run method is skipped in tests.
+ * RealTimeClient.run method is skipped in tests, i.e. @ActiveProfiles("test").
  */
 @SpringBootTest(classes = RealTimeClient.class)
+@Import(GpsOsmandTrackerConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
@@ -34,7 +37,7 @@ public abstract class BaseRealTimeClientTest {
 
   // no @Test in base class
 
-  // @BeforeAll would be better, .... fix loader!
+  // @BeforeEach setup doesn't conserve state between tests
   @BeforeAll
   public void setup() throws Exception {
     scenario.setupScenario();
@@ -46,11 +49,24 @@ public abstract class BaseRealTimeClientTest {
     }
   }
 
-  // ... but @AfterAll teardown doeesn't conserverve state between tests
+  // @AfterEach teardown doesn't conserve state between tests
   // check @DirtiesContext javadoc for details
   @AfterAll
   public void teardown() throws ApiException {
     scenario.teardownScenario();
     controller.shutdown(); // clean up WebSocket route
+  }
+
+  /**
+   * Sleep helper for tests. Converts InterruptedException into a runtime exception and restores the
+   * thread interrupt flag.
+   */
+  protected void sleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted while sleeping", e);
+    }
   }
 }

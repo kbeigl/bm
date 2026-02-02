@@ -24,14 +24,14 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.15-alpha</version>
+        <version>1.1.16</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-tracker</artifactId>
     <packaging>pom</packaging>
 
-    <name>---- GPS Unit and Tracker                 ---</name>
+    <name>---- GPS Trackers                         ---</name>
 
     <properties>
         <jts.version>1.19.0</jts.version>
@@ -83,13 +83,4 @@
         </repository>
     </repositories>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-            </plugin>
-        </plugins>
-    </build>
 </project>

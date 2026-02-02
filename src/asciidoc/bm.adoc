@@ -4,22 +4,21 @@
 = repository content and structures
 
 This repository serves as development environment +
-for the `The RealObject Application Framework` +
-outlined in this 
-link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[book].
+for the  
+link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[`The RealObject Application Framework`]
 
 == latest versions
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations         === 1.1.15-alpha
-    [INFO] --- blue marble parameters          --- 1.1.15-alpha
-    [INFO] ---- traccar client implementations --- 1.1.15-alpha
-    [INFO] ..... traccar-openapitools-client 6.10.0 ...........
-    [INFO] ..... traccar-api-client          6.10.0-RC ........
-    [INFO] ..... traccar-realtime-client     6.10.0-RC ........
-    [INFO] ---- GPS Unit and Tracker           --- 1.1.15-alpha
-    [INFO] ..... gps-osmand-tracker          1.1.15-POC .......
+    [INFO] === blue marble simulations               === 1.1.16 
+    [INFO] --- blue marble parameters                --- 1.1.16 
+    [INFO] ---- GPS Trackers                         --- 1.1.16 
+    [INFO] ..... gps-osmand-tracker          1.1.16 ........... 
+    [INFO] ---- Traccar Clients                      --- 1.1.16 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0 ........... 
+    [INFO] ..... traccar-realtime-client     6.10.0 ........... 
 -----------------
 
 For earlier versions check the 
@@ -32,13 +31,61 @@ The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every `mvn` command executed. 
 It assures that any project is build as required by another. 
 
-If you are not sure about your Maven Version
-it is highly recommded to use the 
+If you are not sure about your Maven Version it is highly recommended to use the 
 xref:../../bm-parent/src/asciidoc/maven-maintenance.adoc[Maven Wrapper]   
-in the root directory!
-
+in the root directory! +
+If you modify the versioning make sure the build order matches the listing above.
+Otherwise the Maven Reactor has detected inconsistencies.
 
 xref:../../bm-parent/src/asciidoc/bm-parent.adoc[bm-parent details ...]
+
+
+== `/bm-tracker`
+
+This `bm-tracker` branch is used to develop _virtual GPS Tracker Simulators_ +
+which can track real things by sending their positions frequently.
+
+For the ROAF development we want to start bottom up.
+[IMPORTANT]
+====
+*All Devices in the ROAF provide GPS coordinates _(lat,lon,fix)_*
+====
+as a common basis for Framework development. 
+
+The ROAF vision described in the book is based on simple and platonic rules. +
+In order to simulate things, events and interactions of the real world, 
+we will need _a grid for space and time_. +
+With respect to the blue marble we might speak of _Globe Positioning_.
+
+
+=== Traccar Trackers
+
+In the long run we want to be able to create scenarios with any or all 
+https://www.traccar.org/devices/[devices] and
+https://www.traccar.org/protocols/[protocols] implemented in traccar. 
+
+=== The 'JeeTS Tracker'
+
+If the Traccar Trackers don't fit your business the 
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book]
+you demonstrates how to create Protocols with Message Catalogs to fit your business, 
+how to integrate your own Tracker with the traccar platform and your business model.
+
+xref:../../bm-tracker/src/asciidoc/bm-tracker.adoc[more about GPS and Tracking ...]
+
+
+=== `gps-osmand-tracker`
+
+==== The GPS OsmAnd Tracker
+
+The first ROAF GPS Tracker will serve as a placeholder for more customized trackers.
+We will look at the standard components of a Tracking Device 
+and implement the most simple Tracker by using the public `OsmAnd` protocol.
+You can find the protocol specs  
+link:https://www.traccar.org/osmand/[here], 
+xref:OsmAndProtocolSpecification.adoc[here] and elsewhere.
+
+xref:./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto gps-osmand-tracker project]
 
 
 == `/bm-traccar`
@@ -90,25 +137,4 @@ via live surveillance of your Traccar Server Scenario.
 xref:../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-realtime-client.adoc[details ...]
 
 xref:../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-rt-CLI.adoc[Quickstart]
-
-== `/bm-tracker`
-
-The Maven project branch `bm-traccar` serves as the development environment for integrating with the Traccar GPS Tracking Platform. 
-We have created a `traccar-realtime-client` to mirror what's going on in the Tracking System.
-This `bm-tracker` branch is used to develop GPS Tracker Simulators which can track things by sending their positions frequently.
-
-xref:../../bm-tracker/src/asciidoc/bm-tracker.adoc[details ...]
-
-
-=== `gps-osmand-tracker`
-
-==== The GPS OsmAnd Tracker
-
-The gps-osmand-tracker is a Java Client Software 
-to simulate a standard device that collects GPS locations, 
-optionally buffer and send them to a server asap. 
-
-xref:./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto `gps-osmand-tracker`]
-
-
 

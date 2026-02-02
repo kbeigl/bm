@@ -126,14 +126,14 @@ Data is stored in maps for fast `O(1)` lookups by ID.
     
 [source,java]
 ----
-public final class RealTimeManager {              <!--1-->
+public final class RealTimeManager {                                       <1>
 
-  private static final RealTimeManager INSTANCE = new RealTimeManager();   <!--2-->
+  private static final RealTimeManager INSTANCE = new RealTimeManager();   <2>
 
-  private RealTimeManager() {}                                             <!--3-->
+  private RealTimeManager() {}                                             <3>
   public static RealTimeManager getInstance() { return INSTANCE; }
 
-  private final Map<Long, User> users = new ConcurrentHashMap<>();         <!--4-->
+  private final Map<Long, User> users = new ConcurrentHashMap<>();         <4>
   private final Map<Long, Device> devices = new ConcurrentHashMap<>();
   private final Map<Long, Position> positions = new ConcurrentHashMap<>();
 ----
@@ -277,6 +277,52 @@ We already had chosen `Apache Camel` for integration purposes
 and the `TraccarWebSocketRoute` is a complete Camel implementation
 and is described in more detail 
 xref:./websocket.adoc[here].
+
+=== sample messages
+
+To keep a distributed systems integrity you need to have all models in mind.
+
+xref:../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.adoc#_the_model[The Model for Tracker Development]  
+defines a GPS message from a unique device. +
+The REST yml file provides a bigger 
+xref:../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.adoc#_model_deviations[model for a complete GTS]. +
+These models deviate and must be mapped to each other.
+
+The following `devices` and `positions` messages in `json format` look like this.
+
+
+    {devices=
+      [
+        {id=554, attributes={}, groupId=0, calendarId=0, name=runner, uniqueId=10, status=online, 
+         lastUpdate=2026-02-19T19:46:41.304+00:00, positionId=198, phone=null, model=ro,  
+         contact=null, category=null, disabled=false, expirationTime=null
+        }
+      ]
+    }
+    
+Note the difference of the devices database `id=554` and the `uniqueId=10`.
+The database Id is technical and can change in a different environment,
+while the uniqueId always refers to a unique tracker.
+The latter must be used in a scenario to track the device.
+
+Anyhow the database Ids are important for referencing. +
+The above device references the `positionId=198`, +
+vice versa the position has the reference `deviceId=554`.
+
+    {positions=
+      [
+        {id=198,
+        attributes={distance=0.0, totalDistance=0.0, motion=true}, deviceId=554, protocol=osmand,
+        serverTime=2026-02-19T19:46:41.300+00:00, 
+        deviceTime=2026-02-19T19:46:41.000+00:00, 
+           fixTime=2026-02-19T19:46:41.000+00:00,
+        valid=true, latitude=52.0, longitude=13.0, altitude=30.0, speed=10.0, course=20.0, 
+        address=null, accuracy=0.0, network=null, geofenceIds=null
+        }
+      ]
+    }
+
+
 
 
 == conclusion

@@ -460,7 +460,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_real_time_updates">Real Time Updates</a></li>
+<li><a href="#_real_time_updates">Real Time Updates</a>
+<ul class="sectlevel2">
+<li><a href="#_sample_messages">sample messages</a></li>
+</ul>
+</li>
 <li><a href="#_conclusion">conclusion</a></li>
 <li><a href="#_cli_quick_start">CLI Quick Start</a>
 <ul class="sectlevel1">
@@ -680,14 +684,14 @@ Data is stored in maps for fast <code>O(1)</code> lookups by ID.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">public final class RealTimeManager {              &lt;!--<b class="conum">(1)</b>--&gt;
+<pre class="highlight"><code class="language-java" data-lang="java">public final class RealTimeManager {                                       <b class="conum">(1)</b>
 
-  private static final RealTimeManager INSTANCE = new RealTimeManager();   &lt;!--<b class="conum">(2)</b>--&gt;
+  private static final RealTimeManager INSTANCE = new RealTimeManager();   <b class="conum">(2)</b>
 
-  private RealTimeManager() {}                                             &lt;!--<b class="conum">(3)</b>--&gt;
+  private RealTimeManager() {}                                             <b class="conum">(3)</b>
   public static RealTimeManager getInstance() { return INSTANCE; }
 
-  private final Map&lt;Long, User&gt; users = new ConcurrentHashMap&lt;&gt;();         &lt;!--<b class="conum">(4)</b>--&gt;
+  private final Map&lt;Long, User&gt; users = new ConcurrentHashMap&lt;&gt;();         <b class="conum">(4)</b>
   private final Map&lt;Long, Device&gt; devices = new ConcurrentHashMap&lt;&gt;();
   private final Map&lt;Long, Position&gt; positions = new ConcurrentHashMap&lt;&gt;();</code></pre>
 </div>
@@ -886,6 +890,61 @@ the <code>TraccarStateManager</code> similar the the controller.</p>
 and the <code>TraccarWebSocketRoute</code> is a complete Camel implementation
 and is described in more detail
 <a href="./websocket.html">here</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="_sample_messages">sample messages</h3>
+<div class="paragraph">
+<p>To keep a distributed systems integrity you need to have all models in mind.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.html#_the_model">The Model for Tracker Development</a>
+defines a GPS message from a unique device.<br>
+The REST yml file provides a bigger
+<a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.html#_model_deviations">model for a complete GTS</a>.<br>
+These models deviate and must be mapped to each other.</p>
+</div>
+<div class="paragraph">
+<p>The following <code>devices</code> and <code>positions</code> messages in <code>json format</code> look like this.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>{devices=
+  [
+    {id=554, attributes={}, groupId=0, calendarId=0, name=runner, uniqueId=10, status=online,
+     lastUpdate=2026-02-19T19:46:41.304+00:00, positionId=198, phone=null, model=ro,
+     contact=null, category=null, disabled=false, expirationTime=null
+    }
+  ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the difference of the devices database <code>id=554</code> and the <code>uniqueId=10</code>.
+The database Id is technical and can change in a different environment,
+while the uniqueId always refers to a unique tracker.
+The latter must be used in a scenario to track the device.</p>
+</div>
+<div class="paragraph">
+<p>Anyhow the database Ids are important for referencing.<br>
+The above device references the <code>positionId=198</code>,<br>
+vice versa the position has the reference <code>deviceId=554</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>{positions=
+  [
+    {id=198,
+    attributes={distance=0.0, totalDistance=0.0, motion=true}, deviceId=554, protocol=osmand,
+    serverTime=2026-02-19T19:46:41.300+00:00,
+    deviceTime=2026-02-19T19:46:41.000+00:00,
+       fixTime=2026-02-19T19:46:41.000+00:00,
+    valid=true, latitude=52.0, longitude=13.0, altitude=30.0, speed=10.0, course=20.0,
+    address=null, accuracy=0.0, network=null, geofenceIds=null
+    }
+  ]
+}</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1157,7 +1216,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
   public void configure() throws Exception {
 
     from("timer:traccarLoginTimer?period=3600000") // every hour
-        .routeId("traccarLoginRoute") <b class="conum">(1)</b>
+        .routeId("traccarLoginRoute")                              <b class="conum">(1)</b>
           ...
         .setBody(simple("email=" + email + "&amp;password=" + password)) // credentials
         .toD(host + "/api/session") // login
@@ -1169,7 +1228,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
 
               // set exchange property as parameter for the next ws route
 
-              // Trigger traccarWebSocketConnectionRoute <b class="conum">(2)</b>
+              // Trigger traccarWebSocketConnectionRoute           <b class="conum">(2)</b>
             })
           ...
         .end();
@@ -1178,7 +1237,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
         .routeId("traccarWebSocketConnectionRoute") <b class="conum">(2)</b>
         .process(
             exchange -&gt; {
-              // get JSESSIONID from Route <b class="conum">(1)</b>
+              // get JSESSIONID from Route                         <b class="conum">(1)</b>
 
               // set Cookie Header with JSESSIONID for initial handshake
 
@@ -1187,7 +1246,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
         .to("direct:traccarWebSocketMessages"); <b class="conum">(3)</b>
 
     from("direct:traccarWebSocketMessages")
-        .routeId("traccarWebSocketMessageProcessingRoute") <b class="conum">(3)</b>
+        .routeId("traccarWebSocketMessageProcessingRoute")         <b class="conum">(3)</b>
         .unmarshal()
         .json(JsonLibrary.Jackson)
         .log("Received Traccar WebSocket update: ${body}");</code></pre>
@@ -1438,7 +1497,7 @@ Check the <code>*.*IT</code> integration test files for demo code.</p>
 <h4 id="_application_properties">application.properties</h4>
 <div class="literalblock">
 <div class="content">
-<pre># traccar.host=https://demo3.traccar.org
+<pre># traccar server
 traccar.host=http://localhost
 traccar.user.name=admin
 traccar.user.password=admin

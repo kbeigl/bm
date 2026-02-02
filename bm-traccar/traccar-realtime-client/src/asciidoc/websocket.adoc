@@ -129,7 +129,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
   public void configure() throws Exception {
 
     from("timer:traccarLoginTimer?period=3600000") // every hour
-        .routeId("traccarLoginRoute") <1>
+        .routeId("traccarLoginRoute")                              <1>
           ...
         .setBody(simple("email=" + email + "&password=" + password)) // credentials
         .toD(host + "/api/session") // login
@@ -141,7 +141,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
 
               // set exchange property as parameter for the next ws route
 
-              // Trigger traccarWebSocketConnectionRoute <2>
+              // Trigger traccarWebSocketConnectionRoute           <2>
             })
           ...
         .end();
@@ -150,7 +150,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
         .routeId("traccarWebSocketConnectionRoute") <2>
         .process(
             exchange -> {
-              // get JSESSIONID from Route <1>  
+              // get JSESSIONID from Route                         <1>  
               
               // set Cookie Header with JSESSIONID for initial handshake
 
@@ -159,7 +159,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
         .to("direct:traccarWebSocketMessages"); <3>
 
     from("direct:traccarWebSocketMessages")
-        .routeId("traccarWebSocketMessageProcessingRoute") <3>
+        .routeId("traccarWebSocketMessageProcessingRoute")         <3>
         .unmarshal()
         .json(JsonLibrary.Jackson) 
         .log("Received Traccar WebSocket update: ${body}");
@@ -329,7 +329,7 @@ Check the `*.*IT` integration test files for demo code.
 
 ==== application.properties
 
-  # traccar.host=https://demo3.traccar.org
+  # traccar server
   traccar.host=http://localhost
   traccar.user.name=admin
   traccar.user.password=admin

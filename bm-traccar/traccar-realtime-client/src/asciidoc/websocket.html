@@ -434,7 +434,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 <h1>The Traccar WebSocket Client</h1>
 </div>
@@ -605,7 +605,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
   public void configure() throws Exception {
 
     from("timer:traccarLoginTimer?period=3600000") // every hour
-        .routeId("traccarLoginRoute") <b class="conum">(1)</b>
+        .routeId("traccarLoginRoute")                              <b class="conum">(1)</b>
           ...
         .setBody(simple("email=" + email + "&amp;password=" + password)) // credentials
         .toD(host + "/api/session") // login
@@ -617,7 +617,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
 
               // set exchange property as parameter for the next ws route
 
-              // Trigger traccarWebSocketConnectionRoute <b class="conum">(2)</b>
+              // Trigger traccarWebSocketConnectionRoute           <b class="conum">(2)</b>
             })
           ...
         .end();
@@ -626,7 +626,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
         .routeId("traccarWebSocketConnectionRoute") <b class="conum">(2)</b>
         .process(
             exchange -&gt; {
-              // get JSESSIONID from Route <b class="conum">(1)</b>
+              // get JSESSIONID from Route                         <b class="conum">(1)</b>
 
               // set Cookie Header with JSESSIONID for initial handshake
 
@@ -635,7 +635,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
         .to("direct:traccarWebSocketMessages"); <b class="conum">(3)</b>
 
     from("direct:traccarWebSocketMessages")
-        .routeId("traccarWebSocketMessageProcessingRoute") <b class="conum">(3)</b>
+        .routeId("traccarWebSocketMessageProcessingRoute")         <b class="conum">(3)</b>
         .unmarshal()
         .json(JsonLibrary.Jackson)
         .log("Received Traccar WebSocket update: ${body}");</code></pre>
@@ -886,7 +886,7 @@ Check the <code>*.*IT</code> integration test files for demo code.</p>
 <h4 id="_application_properties">application.properties</h4>
 <div class="literalblock">
 <div class="content">
-<pre># traccar.host=https://demo3.traccar.org
+<pre># traccar server
 traccar.host=http://localhost
 traccar.user.name=admin
 traccar.user.password=admin
@@ -924,7 +924,7 @@ the API can easily be added to any Springboot Application as a @Service in your 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-05 11:46:30 +0100
+Last updated 2026-02-28 11:43:41 +0100
 </div>
 </div>
 </body>
