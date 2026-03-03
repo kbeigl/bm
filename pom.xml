@@ -54,7 +54,7 @@
 
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
         <!-- create Maven Profile -->
-        <asciidoc.process.skip>true</asciidoc.process.skip>
+        <asciidoc.process.skip>false</asciidoc.process.skip>
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
         <asciidoc.diagram.version>3.1.0</asciidoc.diagram.version>
