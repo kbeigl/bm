@@ -434,7 +434,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 <h1>repository content and structures</h1>
 <div id="toc" class="toc">
@@ -442,16 +442,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel1">
 <li><a href="#_latest_versions">latest versions</a></li>
 <li><a href="#_bm_parent"><code>/bm-parent</code></a></li>
+<li><a href="#_bm_tracker"><code>/bm-tracker</code></a>
+<ul class="sectlevel2">
+<li><a href="#_traccar_trackers">Traccar Trackers</a></li>
+<li><a href="#_the_jeets_tracker">The 'JeeTS Tracker'</a></li>
+<li><a href="#_gps_osmand_tracker"><code>gps-osmand-tracker</code></a></li>
+</ul>
+</li>
 <li><a href="#_bm_traccar"><code>/bm-traccar</code></a>
 <ul class="sectlevel2">
 <li><a href="#_traccar_openapitools_client"><code>traccar-openapitools-client</code></a></li>
 <li><a href="#_traccar_api_client"><code>traccar-api-client</code></a></li>
 <li><a href="#_traccar_realtime_client"><code>traccar-realtime-client</code></a></li>
-</ul>
-</li>
-<li><a href="#_bm_tracker"><code>/bm-tracker</code></a>
-<ul class="sectlevel2">
-<li><a href="#_gps_osmand_tracker"><code>gps-osmand-tracker</code></a></li>
 </ul>
 </li>
 </ul>
@@ -462,9 +464,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sectionbody">
 <div class="paragraph">
 <p>This repository serves as development environment<br>
-for the <code>The RealObject Application Framework</code><br>
-outlined in this
-<a href="https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8">book</a>.</p>
+for the
+<a href="https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8"><code>The RealObject Application Framework</code></a></p>
 </div>
 </div>
 </div>
@@ -473,14 +474,14 @@ outlined in this
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations         === 1.1.15-alpha
-    [INFO] --- blue marble parameters          --- 1.1.15-alpha
-    [INFO] ---- traccar client implementations --- 1.1.15-alpha
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.16
+    [INFO] --- blue marble parameters                --- 1.1.16
+    [INFO] ---- GPS Trackers                         --- 1.1.16
+    [INFO] ..... gps-osmand-tracker          1.1.16 ...........
+    [INFO] ---- Traccar Clients                      --- 1.1.16
     [INFO] ..... traccar-openapitools-client 6.10.0 ...........
-    [INFO] ..... traccar-api-client          6.10.0-RC ........
-    [INFO] ..... traccar-realtime-client     6.10.0-RC ........
-    [INFO] ---- GPS Unit and Tracker           --- 1.1.15-alpha
-    [INFO] ..... gps-osmand-tracker          1.1.15-POC .......</code></pre>
+    [INFO] ..... traccar-api-client          6.10.0 ...........
+    [INFO] ..... traccar-realtime-client     6.10.0 ...........</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -499,13 +500,86 @@ and assert correct build order with every <code>mvn</code> command executed.
 It assures that any project is build as required by another.</p>
 </div>
 <div class="paragraph">
-<p>If you are not sure about your Maven Version
-it is highly recommded to use the
+<p>If you are not sure about your Maven Version it is highly recommended to use the
 <a href="../../bm-parent/src/asciidoc/maven-maintenance.html">Maven Wrapper</a>
-in the root directory!</p>
+in the root directory!<br>
+If you modify the versioning make sure the build order matches the listing above.
+Otherwise the Maven Reactor has detected inconsistencies.</p>
 </div>
 <div class="paragraph">
 <p><a href="../../bm-parent/src/asciidoc/bm-parent.html">bm-parent details &#8230;&#8203;</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bm_tracker"><code>/bm-tracker</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This <code>bm-tracker</code> branch is used to develop <em>virtual GPS Tracker Simulators</em><br>
+which can track real things by sending their positions frequently.</p>
+</div>
+<div class="paragraph">
+<p>For the ROAF development we want to start bottom up.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>All Devices in the ROAF provide GPS coordinates <em>(lat,lon,fix)</em></strong></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>as a common basis for Framework development.</p>
+</div>
+<div class="paragraph">
+<p>The ROAF vision described in the book is based on simple and platonic rules.<br>
+In order to simulate things, events and interactions of the real world,
+we will need <em>a grid for space and time</em>.<br>
+With respect to the blue marble we might speak of <em>Globe Positioning</em>.</p>
+</div>
+<div class="sect2">
+<h3 id="_traccar_trackers">Traccar Trackers</h3>
+<div class="paragraph">
+<p>In the long run we want to be able to create scenarios with any or all
+<a href="https://www.traccar.org/devices/">devices</a> and
+<a href="https://www.traccar.org/protocols/">protocols</a> implemented in traccar.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_the_jeets_tracker">The 'JeeTS Tracker'</h3>
+<div class="paragraph">
+<p>If the Traccar Trackers don&#8217;t fit your business the
+<a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">JeeTS Book</a>
+you demonstrates how to create Protocols with Message Catalogs to fit your business,
+how to integrate your own Tracker with the traccar platform and your business model.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../bm-tracker/src/asciidoc/bm-tracker.html">more about GPS and Tracking &#8230;&#8203;</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gps_osmand_tracker"><code>gps-osmand-tracker</code></h3>
+<div class="sect3">
+<h4 id="_the_gps_osmand_tracker">The GPS OsmAnd Tracker</h4>
+<div class="paragraph">
+<p>The first ROAF GPS Tracker will serve as a placeholder for more customized trackers.
+We will look at the standard components of a Tracking Device
+and implement the most simple Tracker by using the public <code>OsmAnd</code> protocol.
+You can find the protocol specs
+<a href="https://www.traccar.org/osmand/">here</a>,
+<a href="OsmAndProtocolSpecification.html">here</a> and elsewhere.</p>
+</div>
+<div class="paragraph">
+<p><a href="./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto gps-osmand-tracker project</a></p>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -576,37 +650,10 @@ via live surveillance of your Traccar Server Scenario.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_bm_tracker"><code>/bm-tracker</code></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Maven project branch <code>bm-traccar</code> serves as the development environment for integrating with the Traccar GPS Tracking Platform.
-We have created a <code>traccar-realtime-client</code> to mirror what&#8217;s going on in the Tracking System.
-This <code>bm-tracker</code> branch is used to develop GPS Tracker Simulators which can track things by sending their positions frequently.</p>
-</div>
-<div class="paragraph">
-<p><a href="../../bm-tracker/src/asciidoc/bm-tracker.html">details &#8230;&#8203;</a></p>
-</div>
-<div class="sect2">
-<h3 id="_gps_osmand_tracker"><code>gps-osmand-tracker</code></h3>
-<div class="sect3">
-<h4 id="_the_gps_osmand_tracker">The GPS OsmAnd Tracker</h4>
-<div class="paragraph">
-<p>The gps-osmand-tracker is a Java Client Software
-to simulate a standard device that collects GPS locations,
-optionally buffer and send them to a server asap.</p>
-</div>
-<div class="paragraph">
-<p><a href="./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto <code>gps-osmand-tracker</code></a></p>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-02-02 13:30:49 +0100
+Last updated 2026-02-26 15:09:01 +0100
 </div>
 </div>
 </body>

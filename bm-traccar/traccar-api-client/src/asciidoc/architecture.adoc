@@ -139,7 +139,7 @@ As you can see the above expression is similar the URL
     http://{host}:{port}/api/users/{id}
     User userOUT =       api.users.createUser(user);
 
-    https://demo3.traccar.org/api/devices?id=3
+    https://localhost/api/devices?id=3
     Device[] devices =        api.devices.getById(3);
 
 
@@ -151,7 +151,7 @@ Check the `*.*IT` integration test files for demo code.
 
 ==== application.properties
 
-  # traccar.host=https://demo3.traccar.org
+  # traccar.host=http://localhost
   traccar.host=http://localhost
   traccar.user.name=admin
   traccar.user.password=admin

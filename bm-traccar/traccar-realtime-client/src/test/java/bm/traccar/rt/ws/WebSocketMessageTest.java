@@ -20,8 +20,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(
     classes = {ApiService.class, ApiConfig.class, WebSocketRoute.class, SessionManager.class})
 // DOES NOT extend BaseReaTimeScenarioTest
-// no server required, only CBR route
-public class WebSocketProcessingTest {
+// no server required (IT), only CBR unit test
+public class WebSocketMessageTest {
 
   // @Autowired protected Api api;
   @Autowired private ProducerTemplate producer;
@@ -36,7 +36,7 @@ public class WebSocketProcessingTest {
       "{\"devices\":[{\"id\":1,\"attributes\":{},\"groupId\":0,\"name\":\"Kristof Mobile\",\"uniqueId\":\"574322\",\"status\":\"online\",\"lastUpdate\":\"2025-10-08T20:11:06.861+00:00\",\"positionId\":0,\"phone\":null,\"model\":\"Samsung A52\",\"contact\":null,\"category\":null,\"disabled\":false}]}";
 
   @Test
-  public void testDevicesMessage() throws Exception {
+  public void sendDevicesMessage() throws Exception {
     producer.sendBody("direct:start-websocket-connection", devicesJson);
   }
 
@@ -44,7 +44,7 @@ public class WebSocketProcessingTest {
 
   /** You cannot send a null body, BUT an empty JSON object. */
   @Test
-  public void testEmptyMessage() throws Exception {
+  public void sendEmptyMessage() throws Exception {
     producer.sendBody("direct:start-websocket-connection", emptyJson);
     // verify that the error handler was invoked
   }
@@ -52,17 +52,15 @@ public class WebSocketProcessingTest {
   String invalidJson = "asdf345 6e47z";
 
   @Test
-  public void testInvalidMessage() throws Exception {
+  public void sendInvalidMessage() throws Exception {
     producer.sendBody("direct:start-websocket-connection", invalidJson);
     // verify that the error handler was invoked
   }
 
   // @Test
   public void testWebSocketMessageProcessingRoute_devices_and_positions() {
-    Object devicesResult = producer.requestBody("direct:start-websocket-connection", devicesJson);
-    Object positionsResult =
-        producer.requestBody("direct:start-websocket-connection", positionsJson);
 
+    Object devicesResult = producer.requestBody("direct:start-websocket-connection", devicesJson);
     // Assert devices
     assert devicesResult instanceof Device[] : "Expected Device[] as result";
     Device[] devices = (Device[]) devicesResult;
@@ -70,6 +68,8 @@ public class WebSocketProcessingTest {
     assert devices[0].getName().equals("Kristof Mobile");
     assert devices[0].getUniqueId().equals("574322");
 
+    Object positionsResult =
+        producer.requestBody("direct:start-websocket-connection", positionsJson);
     // Assert positions
     assert positionsResult instanceof Position[] : "Expected Position[] as result";
     Position[] positions = (Position[]) positionsResult;

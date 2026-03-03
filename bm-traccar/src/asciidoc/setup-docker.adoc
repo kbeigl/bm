@@ -441,8 +441,8 @@ curl -XPUT -H "Content-Type: application/json" --data "@daisy.json" http://0.0.0
 
 === enter browser request
 
-    https://demo3.traccar.org/api/devices?id=1461
-    https://demo3.traccar.org/api/devices/1461
+    http://localhost/api/devices?id=1461
+    http://localhost/api/devices/1461
 
 
 

@@ -32,7 +32,6 @@ public class TrackerQueueDisruptionTest {
   @Autowired private TrackerRegistration registrationService;
   //  @Autowired private MessageQueue queue;
   private HttpServer server;
-  // moved here so createServer(port) can access them
   private AtomicInteger requestCount;
   private AtomicBoolean available;
 
@@ -45,45 +44,54 @@ public class TrackerQueueDisruptionTest {
     createServer(port);
 
     // test a single tracker only
-    TrackerOsmAnd tracker = registrationService.registerTracker("queue-test" + System.nanoTime());
+    String uniqueId = "4711";
+    TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);
 
-    // send first message while server is up -> should be delivered (no enqueue)
-    tracker.sendNow(createOsmandMessageNow("10", 52.0, 13.0));
+    // send first message while server is up -> should be delivered, not enqueued
+    tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0, 13.0));
     sleepMillis(500);
     // assertEquals(0, queue.size(), "Queue should be empty when server is up");
     assertTrue(requestCount.get() >= 1, "Server should have received at least one request");
 
-    // simulate disruption by making server return 500 responses
+    logger.warn("Simulating server disruption (500 responses)");
     available.set(false);
 
     // send two messages while server is "down"
-    // -> they should be enqueued by the onException handler
-    tracker.sendNow(createOsmandMessageNow("10", 52.0001, 13.0001));
-    tracker.sendNow(createOsmandMessageNow("10", 52.0002, 13.0002));
-    sleepMillis(500);
+    // -> should be enqueued by onException
+    tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0001, 13.0001));
+    tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0002, 13.0002));
 
     // assertTrue(queue.size() >= 2,
     // "Messages should be enqueued while server is down (500 responses)");
 
+    sleepMillis(5 * 1000);
     // restore server availability so flush-route can resend queued messages
+    logger.info("Restoring server availability");
     available.set(true);
-
-    // assertTrue(flushed, "Queued messages should be flushed after server becomes available");
+    sleepMillis(5 * 1000);
 
     // at least three requests should have been received in total
     assertTrue(
         requestCount.get() >= 3,
         "Server should have received the originally sent and flushed requests");
+
+    // assertTrue(flushed, "Queued messages should be flushed after server becomes available");
+
   }
 
+  /** Create minimal OsmAnd GPS message with current timestamp. */
   private MessageOsmand createOsmandMessageNow(String deviceId, double lat, double lon) {
     return new MessageOsmand(
         deviceId, lat, lon, System.currentTimeMillis() / 1000, 0.0, 0.0, 0.0, null, null);
   }
 
-  /* start a simple HTTP server that accepts incoming GET requests
-   * it willreturn 200 when 'available' is true
-   * and 500 when false to simulate a temporary server error/disruption */
+  /**
+   * start a simple HTTP server that accepts incoming GET requests
+   *
+   * <p>return 200 when 'available' is true
+   *
+   * <p>return 500 when false to simulate a temporary server error/disruption
+   */
   private HttpServer createServer(int port) throws IOException {
     HttpServer s = HttpServer.create(new InetSocketAddress(port), 0);
     // use instance-level requestCount and available
@@ -91,8 +99,10 @@ public class TrackerQueueDisruptionTest {
         "/",
         exchange -> {
           if (available.get()) {
+            logger.info("Server handling request OK");
             handleOk(exchange, requestCount);
           } else {
+            logger.info("Server handling request ERROR");
             handleError(exchange, requestCount);
           }
         });

@@ -1,15 +1,18 @@
 package bm.traccar.ws;
 
+import bm.traccar.ws.entities.DeviceProcessor;
+import bm.traccar.ws.entities.PositionProcessor;
 import com.fasterxml.jackson.core.JsonParseException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.http.base.HttpOperationFailedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,7 +26,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class WebSocketRoute extends RouteBuilder {
-  private static final Logger logger = LoggerFactory.getLogger(WebSocketRoute.class);
+  // private static final Logger logger = LoggerFactory.getLogger(WebSocketRoute.class);
+  // using RouteBuilder log
 
   @Value("${traccar.host}")
   private String host;
@@ -32,15 +36,12 @@ public class WebSocketRoute extends RouteBuilder {
   @Autowired private SessionManager sessionManager;
   @Autowired protected ProducerTemplate producer;
 
-  //  private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-  //  private final RealTimeManager stateManager = RealTimeManager.getInstance();
-
   // move (to ApiService) ?
   public void loginAndConnect(String email, String password) throws Exception {
-    Exchange exchange = getContext().getEndpoint("direct:traccarLogin").createExchange();
-    exchange.getIn().setHeader("email", email);
-    exchange.getIn().setHeader("password", password);
-    producer.send("direct:traccarLogin", exchange);
+    Exchange ex = getContext().getEndpoint("direct:traccarLogin").createExchange();
+    ex.getIn().setHeader("email", email);
+    ex.getIn().setHeader("password", password);
+    producer.send("direct:traccarLogin", ex);
   }
 
   // TODO auto restart/retry after disconnect: traccar.websocket.refresh
@@ -48,7 +49,6 @@ public class WebSocketRoute extends RouteBuilder {
   @Override
   public void configure() throws Exception {
 
-    // invalid JSON parsing
     onException(JsonParseException.class)
         .handled(true)
         .log(LoggingLevel.WARN, "Invalid JSON ignored: ${exception.message}");
@@ -56,57 +56,52 @@ public class WebSocketRoute extends RouteBuilder {
     // internal Exception
     configureLoginAndConnectRoute();
 
-    // CBR to process incoming WebSocket messages ---
+    // CBR for WebSocket messages ---
     from("direct:start-websocket-connection")
         .routeId("process-websocket-message-route")
-        // .log(LoggingLevel.DEBUG, "Process WebSocket raw  message: ${body}")
-        .log("Process WebSocket raw  message: ${body}")
+        .log(LoggingLevel.DEBUG, "Process WebSocket raw  message: ${body}")
         .unmarshal() // convert body to ..
-        .json() // .. LinkedHashMap Map<String, Object>
-
-        // debug processor to inspect the parsed body and its runtime type
+        .json() // .. ArrayList with LinkedHashMap Map<String, Object>
+        // else JsonParseException
         .process(
-            exchange -> {
-              Object body = exchange.getIn().getBody();
-              if (body == null) {
-                logger.debug("WebSocket parsed body is null");
-              } else {
-                logger.debug(
-                    "WebSocket parsed body type={} value={}", body.getClass().getName(), body);
-              }
+            // compute whether body should be considered empty
+            ex -> {
+              ex.getIn().setHeader("bm.emptyBody", isEmptyPayload(ex.getIn().getBody()));
             })
-
-        // ===== JSON parsing
-        .log("Process WebSocket json message: ${body}")
         .choice()
-        // ===== empty message
-        // move first two conditions up to raw message ?
-        .when(simple("${body} == null || ${body.isEmpty()} || ${body.size} == 0"))
-        .log("Empty message ignored: ${body}")
+        // ===== JSON parsing
+        .log("process json message: ${body}")
+
+        // ===== empty message: use computed header
+        .when(header("bm.emptyBody").isEqualTo(true))
+        .log(LoggingLevel.DEBUG, "Empty message ignored: ${body}")
+
         // ===== devices
         .when(simple("${body[devices]} != null"))
-        // . (simple("${body.containsKey('devices')}"))
         .log("devices message received: ${body}")
         .setBody(simple("${body[devices]}"))
-        .process(
-            ex -> {
-              logger.info("TODO update Devices from WebSocket message: " + ex.getIn().getBody());
-              //              Device[] devices = mapper.convertValue(ex.getIn().getBody(),
-              // Device[].class);
-              //              for (Device device : devices) stateManager.addOrUpdateDevice(device);
-              //              logger.info("{} Devices updated.", devices.length);
-            })
-        // log unknown/unimplemented message types and finish the choice
+        // change all processors to Spring Beans ?
+        // .bean(DeviceProcessor.class) if no state needed
+        // keep it simple for now
+        .process(new DeviceProcessor())
+
+        // ===== positions
+        .when(simple("${body[positions]} != null"))
+        .log("positions message received: ${body}")
+        .setBody(simple("${body[positions]}"))
+        .process(new PositionProcessor())
+
+        // ===== unknown/unimplemented message
         .otherwise()
-        .log("Unknown or unimplemented WebSocket message ignored: ${body}")
+        .log(LoggingLevel.WARN, "Unknown or Unimplemented WebSocket message ignored: ${body}")
         .end(); // of choice
   }
 
-  // maybe we'll split this into two routes later
+  // maybe we'll split this route in two
   // with optional Login via Api to obtain JSESSIONID cookie
   private void configureLoginAndConnectRoute() {
     from("direct:traccarLogin")
-        .routeId("traccarLoginRoute")
+        .routeId("traccar-login-route")
         .setHeader(Exchange.HTTP_METHOD, constant("POST"))
         .setHeader(Exchange.CONTENT_TYPE, constant("application/x-www-form-urlencoded"))
         .setBody(simple("email=${header.email}&password=${header.password}"))
@@ -130,15 +125,15 @@ public class WebSocketRoute extends RouteBuilder {
               }
 
               if (sessionManager.getJsessionidCookie() != null) {
-                log.info("Obtained JSESSIONID: {}", sessionManager.getJsessionidCookie());
-                String wsRouteId = "traccarWebSocketDynamicRoute";
+                log.debug("Obtained JSESSIONID: {}", sessionManager.getJsessionidCookie());
+                String wsRouteId = "traccar-ws-dynamic-route";
                 if (getContext().getRouteController().getRouteStatus(wsRouteId) != null) {
                   getContext().getRouteController().stopRoute(wsRouteId);
                   getContext().removeRoute(wsRouteId);
                 }
 
                 String wsUri = deriveWsFromUrl(host, sessionManager.getJsessionidCookie());
-                log.info("Connecting to Traccar WebSocket at: {}", wsUri);
+                log.debug("Connecting to Traccar WebSocket at: {}", wsUri);
 
                 getContext()
                     .addRoutes(
@@ -175,7 +170,27 @@ public class WebSocketRoute extends RouteBuilder {
             // : ("wss".equals(scheme) ? 443 : 80));
             + "&handshake.Cookie=JSESSIONID="
             + jSessionid;
-    log.info("Constructed Traccar WebSocket URL: {}", traccarWsUrl);
+    log.debug("Derived Traccar WebSocket URL: {}", traccarWsUrl);
     return traccarWsUrl;
+  }
+
+  /** Helper used by route processor to determine if a payload is "empty". */
+  // {}, {positions=[]} considered empty.
+  private static boolean isEmptyPayload(Object body) {
+    if (body == null) return true;
+    if (body instanceof String) return ((String) body).trim().isEmpty();
+    if (body instanceof Collection) return ((Collection<?>) body).isEmpty();
+    if (body.getClass().isArray()) return Arrays.asList((Object[]) body).isEmpty();
+    if (body instanceof Map) {
+      Map<?, ?> map = (Map<?, ?>) body;
+      if (map.isEmpty()) return true;
+      // consider map empty if all values are empty (recursively)
+      for (Object v : map.values()) {
+        if (v == null) continue;
+        if (!isEmptyPayload(v)) return false;
+      }
+      return true;
+    }
+    return false;
   }
 }

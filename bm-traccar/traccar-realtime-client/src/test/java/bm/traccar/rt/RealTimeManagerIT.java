@@ -69,7 +69,6 @@ class RealTimeManagerIT extends BaseRealTimeTest {
         initialDeviceIds, stateManagerDeviceIds, "Device lists do not match after initial load");
 
     // 3. **SIMULATE** LIVE UPDATE (from WebSocket for example)
-    logger.info("--- WebSocket message received: New Position ---");
     Position newPosition = new Position();
     newPosition.setId(5001l);
     // Associate with an existing device
@@ -82,6 +81,7 @@ class RealTimeManagerIT extends BaseRealTimeTest {
 
     // 4. CHECK THE UPDATED STATE
     // This is the core logic: update the state with the new position
+    logger.info("--- WebSocket message received: New Position ---");
     stateManager.addOrUpdatePosition(newPosition);
 
     logger.info("State after WebSocket update:");

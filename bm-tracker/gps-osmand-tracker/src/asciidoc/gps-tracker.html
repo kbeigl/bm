@@ -434,7 +434,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 <h1>The OsmAnd Tracker</h1>
 </div>
@@ -443,7 +443,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>gps-osmand-tracker</code> is a Java Software to simulate
-a standard device that <em>collects</em> GPS locations, optionally buffer
+a standard <em>hardware</em> device that <em>collects</em> GPS locations, optionally buffer
 and send them to a server asap.
 Reporting should be configurable for time- and distance intervals,
 change of direction etc.</p>
@@ -501,13 +501,17 @@ but luckily is not needed for the software simulation.</p>
 <img src="data:image/png;base64," alt="JeeTS Tracker">
 </div>
 </div>
-<div class="paragraph">
-<p>see GPS Tracking with Java EE Components, Figure 8.1<br>
-" A tracking hardware combines a GPS- and GSM unit on a
-Controller Board. The Controller evaluates sensor data to create event
-messages in the protocol format. NMEA data is constantly validated to
-provide the best position available. The messages can be sent whenever
-appropriate. "</p>
+<div class="quoteblock">
+<blockquote>
+A tracking hardware combines a GPS- and GSM unit on a Controller Board.
+The Controller evaluates sensor data to create event messages in the protocol format.
+NMEA data is constantly validated to provide the best position available.
+The messages can be sent whenever appropriate.
+</blockquote>
+<div class="attribution">
+&#8212; GPS Tracking with Java EE Components<br>
+<cite>Figure 8.1</cite>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_gps_receiver">GPS receiver</h3>
@@ -820,7 +824,11 @@ between two <code>(lat,lon)</code> GPS points in the standard WGS84 (EPSG:4326) 
 </div>
 <div id="footer">
 <div id="footer-text">
+<<<<<<< HEAD
 Last updated 2026-03-03 21:21:32 +0100
+=======
+Last updated 2026-02-27 13:48:15 +0100
+>>>>>>> refs/heads/prepare_v.1.1.16
 </div>
 </div>
 <script type="text/x-mathjax-config">

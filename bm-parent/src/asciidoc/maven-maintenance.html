@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Maven Wrapper</title>
+<title>Maven maintenance</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -434,12 +434,333 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
-<h1>Maven Wrapper</h1>
+<h1>Maven maintenance</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_upgrades_and_updates">upgrades and updates</a>
+<ul class="sectlevel2">
+<li><a href="#_step_1_maven_versions">step 1 - Maven versions</a></li>
+<li><a href="#_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</a></li>
+<li><a href="#_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</a></li>
+<li><a href="#_step_4_traccar_versions">step 4 - Traccar versions</a></li>
+</ul>
+</li>
+<li><a href="#_release_project">release project</a>
+<ul class="sectlevel2">
+<li><a href="#_3_generate_adochtmlmermaid_documentation">3. generate adoc/html/mermaid documentation</a></li>
+<li><a href="#_4_skip_docker_integration_tests_for_light_version">4. skip Docker Integration Tests for light version</a></li>
+</ul>
+</li>
+<li><a href="#_maven_reactor">maven reactor</a></li>
+<li><a href="#_maven_wrapper">maven wrapper</a></li>
+<li><a href="#_useful_mvn_commands">useful mvn commands</a>
+<ul class="sectlevel2">
+<li><a href="#_analyse_dependencies">analyse dependencies</a></li>
+<li><a href="#_sources_and_javadocs">Sources and Javadocs</a></li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 <div id="content">
-<div id="preamble">
+<div class="sect1">
+<h2 id="_upgrades_and_updates">upgrades and updates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following steps cover the vital coordinates.</p>
+</div>
+<div class="sect2">
+<h3 id="_step_1_maven_versions">step 1 - Maven versions</h3>
+<div class="paragraph">
+<p>Upgrade maven versions with</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mvn versions:display-plugin-updates</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>until you get</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] --- versions-maven-plugin:2.17.1:display-plugin-updates (default-cli) @ bm-sim ---
+[INFO]
+[INFO] All plugins with a version specified are using the latest versions.
+[INFO] All plugins have a version specified.
+[INFO]
+[INFO] Project requires minimum Maven version for build of: 3.8.8
+[INFO] Plugins require  minimum Maven version of: 3.8.8
+[INFO]
+[INFO] No plugins require a newer version of Maven than specified by the pom.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And you are also informed to upgrade the major Maven version</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] Require Maven 4.0.0-beta-3 to use the following plugin updates:
+[INFO]   maven-source-plugin ......................... 3.4.0 -&gt; 4.0.0-beta-1</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case we are <em>not</em> upgrading to Maven 4 yet,
+since it is still in beta phase: <code>4.0.0-beta-1</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</h3>
+<div class="paragraph">
+<p>The above maven command does not check the BOM versions.
+Therefor they are incremented one by one until the repository
+is completly build with <code>mvn install</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>      &lt;camel-version&gt;4.18.0&lt;/camel-version&gt;
+&lt;spring-boot-version&gt;4.0.3&lt;/spring-boot-version&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>SpringBoot was upgraded from 3 to 4.
+We usually stick to the <code>LTS</code> versions provided.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</h3>
+<div class="paragraph">
+<p>Upgrading Java can be fine for the repository.
+Nevertheless we would like to keep a compromise between highest available
+and lowest backward compatibility for users of the released jar files.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;jdk.version&gt;21&lt;/jdk.version&gt;</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_step_4_traccar_versions">step 4 - Traccar versions</h3>
+<div class="paragraph">
+<p>This step is more than just a change of pom coordinates.
+Traccar always has and still is evolving at a high pace and
+for this repository especially the REST API is vital.
+Therefor we go through this upgrade process, if there is time :(</p>
+</div>
+<div class="paragraph">
+<p>For your purposes check the API version and most REST calls
+have been available for years and should be (backward) compatible
+to your Traccar Server Version.</p>
+</div>
+<div class="paragraph">
+<p>And the</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -&gt; 7.14.0</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>should be updated with the Traccar Version.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_release_project">release project</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>check pom structure and build order (<code>mvn clean</code>)</p>
+</li>
+<li>
+<p>update <code>bm.adoc</code> and <code>releases.adoc</code> versioning</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_3_generate_adochtmlmermaid_documentation">3. generate adoc/html/mermaid documentation</h3>
+<div class="paragraph">
+<p>Start <code>kroki-mermaid</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ docker run -d --name kroki-mermaid --memory=1g --shm-size=1g
+             -p 8002:8002 yuzutech/kroki-mermaid</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>turn ON asciidoc for doc generation:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;asciidoc.process.skip&gt;false&lt;/asciidoc.process.skip&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want you can delete all <code>html, svg and svg.cache</code> files,
+but after the first generation you should leave then in your local repo
+to save build time.</p>
+</div>
+<div class="paragraph">
+<p>Now you can run</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>./mvnw generate-resources</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to create all <code>html</code> files and mermaid <code>svg</code> files.
+And you can interactively edit the <code>adoc</code> texts
+and look at the html files with diagrams.
+Be sure to check documentation errors and fix
+and check mermaid diagrams visually.</p>
+</div>
+<div class="paragraph">
+<p>To run mermaid and asciidoc in a subproject</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/gps-osmand-tracker$ ../../mvnw generate-resources</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>with <code>generate-html-docs</code> in the output</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] --- asciidoctor-maven-plugin:3.2.0:process-asciidoc (generate-html-docs)
+           @ gps-osmand-tracker ---
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/OsmAndProtocolSpecification.adoc
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker-arc.adoc
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker-impl.adoc
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker-simu.adoc
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker.adoc
+[INFO] Converted /gps-osmand-tracker/src/asciidoc/mermaid-test.adoc
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After everything is in place and files are generated
+you should turn OFF asciidoc for doc generation:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;asciidoc.process.skip&gt;true&lt;/asciidoc.process.skip&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Don&#8217;t forget to stop the kroki server to save valuable memory
+and to commit the generated files!</p>
+</div>
+<div class="paragraph">
+<p>nice2have:<br>
+start docker if <code>skip&gt;false</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_4_skip_docker_integration_tests_for_light_version">4. skip Docker Integration Tests for light version</h3>
+<div class="paragraph">
+<p>The Docker Integration Tests are invaluable for development.
+They should only be committed, if they run with a green bar.
+On the other hand Maven can simply build the code with Unit Tests
+for a quick start to get into the project.
+The generated <code>jars</code> can be used
+- individually in other projects.</p>
+</div>
+<div class="paragraph">
+<p>Therefor every <code>vx.y.z</code> release in the public repo
+is set to a <em>light version</em> focussed on <em>building without contributing</em>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/bm-sim/bm-parent/pom.xml
+                &lt;docker.skip.tests&gt;true&lt;/docker.skip.tests&gt;
+           &lt;integration.tests.skip&gt;true&lt;/integration.tests.skip&gt;</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_reactor">maven reactor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to delve into a multi module project
+you should initially build the complete repo on your machine.
+Then you will have all artifacts in your <code>.m2</code> repo and
+can focus on coding inside a single project domain.
+The Reactor will pull the required <code>jars</code> for this project.</p>
+</div>
+<div class="paragraph">
+<p>During development you don&#8217;t want to bother building the repo from scratch for every code change.<br>
+For example you might create a test-jar which can be used with classifier 'tests' in anthor project.
+Then this test-jar must be published to local repo to be used elsewhere in the repo.</p>
+</div>
+<div class="paragraph">
+<p>For example we can produce a test-jar in the gps-osmand-tracker build
+to provide a <code>TrackerRegistration</code> in higher level tests.
+Then you can add the test-jar to the test section with with classifier 'tests'
+to pick up the package.</p>
+</div>
+<div class="paragraph">
+<p>From the repository root <code>/bm</code>, either:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Build the tracker module first to produce the test-jar,
+then run traccar tests:</p>
+<div class="literalblock">
+<div class="content">
+<pre>mvn -pl bm-tracker/gps-osmand-tracker package -DskipTests
+mvn -pl bm-traccar/0traccar-realtime-client test</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Or run the traccar-realtime-client tests in reactor
+so required modules (including test-jar) are built automatically:</p>
+<div class="literalblock">
+<div class="content">
+<pre>mvn -pl bm-traccar/traccar-realtime-client -am test
+                                           ==== --also-make switch</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In earlier releases (before <code>v1.1.16</code> we had to use the above practice
+to switch the natural order of repo branches to <code>/tracker</code> before <code>/traccer</code>.
+This development order was used to provide a GTS, before developing GPS Trackers.</p>
+</div>
+<div class="paragraph">
+<p>On a short term we wan&#8217;t to avoid hooks inside the repo to keep it simple alap</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maven_wrapper">maven wrapper</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To make sure that the complete project is build with a specified Maven Version
@@ -515,80 +836,11 @@ anytime with</p>
 </div>
 </div>
 </div>
-<h1 id="_maven_maintenance_release" class="sect0">Maven maintenance &amp; release</h1>
 <div class="sect1">
-<h2 id="_upgrades_and_updates">upgrades and updates</h2>
+<h2 id="_useful_mvn_commands">useful mvn commands</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>After releasing a repository version <code>v1,0</code>, <code>v1.1.1-SNAPSHOT</code> or <code>-RC</code> etc.
-the major versions are upgraded.<br>
-The following steps cover the vital coordinates.</p>
-</div>
 <div class="sect2">
-<h3 id="_step_1_maven_versions">step 1 - maven versions</h3>
-<div class="literalblock">
-<div class="content">
-<pre>mvn versions:display-plugin-updates</pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</h3>
-<div class="paragraph">
-<p>The above maven command does not check the BOM versions.
-Therefor they are incremented one by one until the repository
-is completly build with <code>mvn install</code>.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>      &lt;camel-version&gt;4.10.6&lt;/camel-version&gt;
-&lt;spring-boot-version&gt;3.4.7&lt;/spring-boot-version&gt;</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We usually stick to the <code>LTS</code> versions provided.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</h3>
-<div class="paragraph">
-<p>Upgrading Java can be fine for the repository.
-Nevertheless we would like to keep a compromise between highest available
-and lowest backward compatibility for users of the released jar files.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>&lt;jdk.version&gt;21&lt;/jdk.version&gt;</pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_step_4_traccar_versions">step 4 - Traccar versions</h3>
-<div class="paragraph">
-<p>This step is more than just a change of pom coordinates.
-Traccar always has and still is evolving at a high pace and
-for this repository especially the REST API is vital.
-Therefor we go through this upgrade process, if there is time :(</p>
-</div>
-<div class="paragraph">
-<p>For your purposes check the API version and most REST calls
-have been available for years and should be (backward) compatible
-to your Traccar Server Version.</p>
-</div>
-<div class="paragraph">
-<p>And the</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -&gt; 7.14.0</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>should be updated with the Traccar Version.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_useful_mvn_commands">useful mvn commands</h3>
+<h3 id="_analyse_dependencies">analyse dependencies</h3>
 <div class="paragraph">
 <p>Maven also provides</p>
 </div>
@@ -601,6 +853,9 @@ to your Traccar Server Version.</p>
 <p>plugin goal for analyzing the dependencies:
 it helps making this best practice more achievable.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_sources_and_javadocs">Sources and Javadocs</h3>
 <div class="paragraph">
 <p>Most Maven plugins have a help goal
 that prints a description of the plugin and its parameters and types.<br>
@@ -611,13 +866,43 @@ For instance, to see help for the javadoc goal, type:</p>
 <pre>mvn javadoc:help -Ddetail -Dgoal=javadoc</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>To build jar files with the source code you can run this command from the root folder
+or from any subfolder for single project sources.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mvn source:jar install</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can check your local repo to verify that the -sources.jar,<br>
+i.e. jeets-protocols-traccar-4.2.1-beta-sources.jar has been installed.</p>
+</div>
+<div class="paragraph">
+<p>Creating -javadoc.jars works the same way by entering:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mvn javadoc:jar install</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to create jeets-pu-traccar-4.2-javadoc.jar for every project.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mvn dependency:resolve -Dclassifier=javadoc
+mvn dependency:resolve -Dclassifier=sources</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-05 11:46:30 +0100
+Last updated 2026-03-03 13:30:16 +0100
 </div>
 </div>
 </body>

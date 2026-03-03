@@ -39,7 +39,7 @@ public class TrackerRegistration implements ApplicationContextAware {
    */
   public TrackerOsmAnd registerTracker(String uniqueId) { // throws Exception {
     String beanName = "tracker-" + uniqueId;
-    logger.info("Registering OsmAnd Tracker bean with name {} ", beanName);
+    logger.debug("Registering OsmAnd Tracker bean with name {} ", beanName);
 
     Object lock = registrationLocks.computeIfAbsent(beanName, k -> new Object());
     try {
@@ -156,7 +156,7 @@ public class TrackerRegistration implements ApplicationContextAware {
               java.lang.reflect.Method m = bean.getClass().getDeclaredMethod("destroyRoutes");
               m.setAccessible(true);
               m.invoke(bean);
-              logger.info("Invoked destroyRoutes on {} before singleton destroy", beanName);
+              logger.debug("Invoked destroyRoutes on {} before singleton destroy", beanName);
             } catch (NoSuchMethodException ignored) {
               // no explicit destroyRoutes, rely on @PreDestroy if available
             }
@@ -167,7 +167,7 @@ public class TrackerRegistration implements ApplicationContextAware {
 
         try {
           dlbf.destroySingleton(beanName);
-          logger.info("Destroyed tracker singleton {}", beanName);
+          logger.debug("Destroyed tracker singleton {}", beanName);
         } catch (Exception e) {
           logger.warn("Failed to destroy singleton {}: {}", beanName, e.getMessage());
         }
@@ -177,7 +177,7 @@ public class TrackerRegistration implements ApplicationContextAware {
       try {
         if (dlbf.containsBeanDefinition(beanName)) {
           dlbf.removeBeanDefinition(beanName);
-          logger.info("Removed bean definition {}", beanName);
+          logger.debug("Removed bean definition {}", beanName);
         }
       } catch (Exception e) {
         logger.warn("Failed to remove bean definition {}: {}", beanName, e.getMessage());

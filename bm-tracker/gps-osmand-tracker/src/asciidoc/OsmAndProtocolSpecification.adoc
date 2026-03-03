@@ -14,9 +14,6 @@ Response: The server must return HTTP 200 OK to confirm receipt. The response bo
 
 The default request format used by the OsmAnd application is:
 
-[source, url]
-
-http://<server_address>/?id={0}&lat={1}&lon={2}&timestamp={3}&hdop={4}&altitude={5}&speed={6}&bearing={7}
 
 === Parameters
 
@@ -37,8 +34,7 @@ http://<server_address>/?id={0}&lat={1}&lon={2}&timestamp={3}&hdop={4}&altitude=
 
 === Example Request
 
-[source, http]
-GET /track?id=phone1&lat=52.5200&lon=13.4050&timestamp=1678886400&speed=25.0&bearing=90.0&altitude=50.0&batt=85.0 
+    GET /track?id=phone1&lat=52.5200&lon=13.4050&timestamp=1678886400&speed=25.0&bearing=90.0&altitude=50.0&batt=85.0 
 
 == Implementation Notes
 

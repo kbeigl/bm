@@ -49,7 +49,7 @@ public class ScenarioLoader {
             .createUserWithCredentials(user.name, user.password, user.email, user.administrator);
     // for test purposes ONLY we set the password for simplicity
     admin.setPassword(user.password);
-    logger.info("Created User.id{}: {}/{}", admin.getId(), admin.getName(), admin.getPassword());
+    logger.debug("Created User.id{}: {}/{}", admin.getId(), admin.getName(), admin.getPassword());
 
     // continue as admin who is not part of the scenario!
     api.setBasicAuth(admin.getEmail(), admin.getPassword());
@@ -70,7 +70,7 @@ public class ScenarioLoader {
       User createdUser =
           api.getUsersApi().createUserWithCredentials(u.name, u.password, u.email, false);
 
-      logger.info(
+      logger.debug(
           "Created User.id{}: {}/{}", createdUser.getId(), createdUser.getName(), u.password);
       switch (i) {
         case 1: // manager attributes
@@ -113,7 +113,7 @@ public class ScenarioLoader {
       Device createdDevice =
           api.getDevicesApi()
               .createDevice(new Device().name(d.name).uniqueId(d.uniqueId).model(d.model));
-      logger.info("Created Device.id{}: {}", createdDevice.getId(), createdDevice.getName());
+      logger.debug("Created Device.id{}: {}", createdDevice.getId(), createdDevice.getName());
       switch (i) {
         case 0:
           // add real device to manager
@@ -165,7 +165,7 @@ public class ScenarioLoader {
         for (Device device : api.getDevicesApi().getDevices(null)) {
           if (device.getUniqueId().equals(d.uniqueId)) {
             api.getDevicesApi().deleteDevice(device.getId());
-            logger.info("Deleted Device.id{}: {}", device.getId(), device.getName());
+            logger.debug("Deleted Device.id{}: {}", device.getId(), device.getName());
             break;
           }
         }
@@ -181,7 +181,7 @@ public class ScenarioLoader {
         for (User user : api.getUsersApi().getAllUsers()) {
           if (user.getEmail().equals(u.email)) {
             api.getUsersApi().deleteUser(user.getId());
-            logger.info("Deleted User.id{}: {}", user.getId(), user.getEmail());
+            logger.debug("Deleted User.id{}: {}", user.getId(), user.getEmail());
             break;
           }
         }
@@ -195,7 +195,7 @@ public class ScenarioLoader {
       for (User user : api.getUsersApi().getAllUsers()) {
         if (user.getEmail().equals(adminProp.email)) {
           api.getUsersApi().deleteUser(user.getId());
-          logger.info("Deleted Admin User.id{}: {}", user.getId(), user.getEmail());
+          logger.debug("Deleted Admin User.id{}: {}", user.getId(), user.getEmail());
           break;
         }
       }

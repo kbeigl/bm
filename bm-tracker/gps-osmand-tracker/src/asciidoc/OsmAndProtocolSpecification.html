@@ -434,7 +434,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 <h1>OsmAnd Protocol Specification</h1>
 </div>
@@ -462,11 +462,6 @@ Response: The server must return HTTP 200 OK to confirm receipt. The response bo
 <div class="sectionbody">
 <div class="paragraph">
 <p>The default request format used by the OsmAnd application is:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-url" data-lang="url">http://&lt;server_address&gt;/?id={0}&amp;lat={1}&amp;lon={2}&amp;timestamp={3}&amp;hdop={4}&amp;altitude={5}&amp;speed={6}&amp;bearing={7}</code></pre>
-</div>
 </div>
 <div class="sect2">
 <h3 id="_parameters">Parameters</h3>
@@ -556,9 +551,9 @@ Response: The server must return HTTP 200 OK to confirm receipt. The response bo
 </div>
 <div class="sect2">
 <h3 id="_example_request">Example Request</h3>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code class="language-http" data-lang="http">GET /track?id=phone1&amp;lat=52.5200&amp;lon=13.4050&amp;timestamp=1678886400&amp;speed=25.0&amp;bearing=90.0&amp;altitude=50.0&amp;batt=85.0</code></pre>
+<pre>GET /track?id=phone1&amp;lat=52.5200&amp;lon=13.4050&amp;timestamp=1678886400&amp;speed=25.0&amp;bearing=90.0&amp;altitude=50.0&amp;batt=85.0</pre>
 </div>
 </div>
 </div>
@@ -585,7 +580,11 @@ Response: The server must return HTTP 200 OK to confirm receipt. The response bo
 </div>
 <div id="footer">
 <div id="footer-text">
+<<<<<<< HEAD
 Last updated 2026-03-03 21:21:32 +0100
+=======
+Last updated 2026-02-11 13:19:13 +0100
+>>>>>>> refs/heads/prepare_v.1.1.16
 </div>
 </div>
 </body>

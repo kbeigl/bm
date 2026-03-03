@@ -2,7 +2,7 @@
 = The OsmAnd Tracker
 
 The `gps-osmand-tracker` is a Java Software to simulate 
-a standard device that _collects_ GPS locations, optionally buffer 
+a standard _hardware_ device that _collects_ GPS locations, optionally buffer 
 and send them to a server asap.
 Reporting should be configurable for time- and distance intervals,
 change of direction etc.
@@ -15,7 +15,6 @@ change of direction etc.
 Note that we are citing original texts from  
 link:https://www.amazon.com/GPS-Tracking-Java-Components-Challenges/dp/1138054941[GPS Tracking with Java EE Components]
 ====
-
 
 [quote,GPS Tracking with Java EE Components, Chapter 8.1]   
 What exactly is a tracking device and what is its core functionality? +
@@ -39,12 +38,11 @@ but luckily is not needed for the software simulation.
 
 image::jeets-gps-tracker.png[JeeTS Tracker]
 
-see GPS Tracking with Java EE Components, Figure 8.1 +
-" A tracking hardware combines a GPS- and GSM unit on a
-Controller Board. The Controller evaluates sensor data to create event
-messages in the protocol format. NMEA data is constantly validated to
-provide the best position available. The messages can be sent whenever
-appropriate. "
+[quote,GPS Tracking with Java EE Components, Figure 8.1]   
+A tracking hardware combines a GPS- and GSM unit on a Controller Board. 
+The Controller evaluates sensor data to create event messages in the protocol format. 
+NMEA data is constantly validated to provide the best position available. 
+The messages can be sent whenever appropriate.
 
 === GPS receiver
 

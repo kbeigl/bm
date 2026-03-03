@@ -451,7 +451,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_mermaid_rendering">Mermaid rendering</a>
 <ul class="sectlevel3">
-<li><a href="#_external">external</a></li>
+<li><a href="#_mmc_command"><code>mmc</code> command</a></li>
+<li><a href="#_kroki_diagram_server">Kroki Diagram Server</a></li>
 <li><a href="#_internal">internal</a></li>
 </ul>
 </li>
@@ -720,7 +721,7 @@ and build successful without external dependencies.
 This works fine for <code>[ditaa]</code> diagrams, since it is written in Java.</p>
 </div>
 <div class="sect3">
-<h4 id="_external">external</h4>
+<h4 id="_mmc_command"><code>mmc</code> command</h4>
 <div class="paragraph">
 <p>For <code>[mermaid]</code> diagrams an external converter is required
 and you can observe this in debug mode</p>
@@ -743,6 +744,9 @@ in which the software will be composed.</p>
 <p>For a self-contained environment the conversion could be achieved with
 <a href="https://github.com/asciidoctor/docker-asciidoctor">docker-asciidoctor</a>.</p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_kroki_diagram_server">Kroki Diagram Server</h4>
 <div class="paragraph">
 <p>If we do accept an external dependency to the internat at build time
 we might as well use the <a href="https://kroki.io/">Kroki Diagram Server/Service</a>
@@ -801,26 +805,49 @@ and documentation is generated with a local kiko server.</p>
 <div class="sect4">
 <h5 id="_kroki_with_docker">kroki with docker</h5>
 <div class="paragraph">
-<p>This can be setup in a combined docker setting of kroki with a 'Mermaid companion':</p>
+<p>Before <code>v1.1.16</code> a combined docker setting of kroki with a 'Mermaid companion'
+was used for doc generation:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code class="language-xml" data-lang="xml">  # Start Mermaid companion (with plenty of memory/shm)
-  docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
-    -p 8002:8002 yuzutech/kroki-mermaid
-
-  # Start main Kroki and link it to the companion
-  docker run -d --name kroki --memory=2g --shm-size=1g \
-    --link kroki-mermaid:mermaid \
-    -e KROKI_MERMAID_HOST=mermaid \
-    -e KROKI_MERMAID_PORT=8002 \
-    -p 8000:8000 \
-    yuzutech/kroki:latest</code></pre>
+<pre># Start Mermaid companion (with plenty of memory/shm)
+docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
+  -p 8002:8002 yuzutech/kroki-mermaid</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@Deprecated
+# Start main Kroki and link it to the companion
+docker run -d --name kroki --memory=2g --shm-size=1g \
+  --link kroki-mermaid:mermaid \
+  -e KROKI_MERMAID_HOST=mermaid \
+  -e KROKI_MERMAID_PORT=8002 \
+  -p 8000:8000 \
+  yuzutech/kroki:latest</pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>kroki-mermaid</code> contains a pre-installed Chromium binary that works
+<p>Beginning with <code>v1.1.16</code> we are only starting the <code>kroki-mermaid</code> container
+with a pre-installed Chromium binary that works
 without any sandbox, without download, without <code>/dev/..</code> issues.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In <code>v1.1.16</code> the docker configuration had to be changed due to permission problems
+after ubuntu and docker upgrade. It turns out that <code>kroki-mermaid</code> is sufficient
+for mermaid generation without <code>kroki</code> container!<br>
+To be observed!</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>and with the maven configuration</p>
@@ -928,7 +955,7 @@ and counter check the output <code>bm-parent.html</code> file .</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-05 11:46:30 +0100
+Last updated 2026-02-26 14:21:17 +0100
 </div>
 </div>
 </body>

@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.15-alpha</version>
+        <version>1.1.16</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -44,23 +44,22 @@
         <!-- ITs are skipped, but docker is starting if above is false -->
         <integration.tests.skip>true</integration.tests.skip>
 
-        <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
-        <fmt-maven-plugin-version>2.27</fmt-maven-plugin-version>
+        <fmt-maven-plugin-version>2.29</fmt-maven-plugin-version>
 
         <!-- ${java.runtime.version} and requireJavaVersion -->
         <jdk.version>21</jdk.version>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
+        <!-- why is this explicitly required ? remove
+        <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version> -->
 
-        <maven-minimum-version>3.8.8</maven-minimum-version>
-        <maven-enforcer-plugin-version>3.6.1</maven-enforcer-plugin-version>
-        <maven-surefire-plugin-version>3.5.3</maven-surefire-plugin-version>
-        <maven-failsafe-plugin-version>3.5.3</maven-failsafe-plugin-version>
-        <maven-source-plugin-version>3.3.0</maven-source-plugin-version>
+        <maven-surefire-plugin-version>3.5.5</maven-surefire-plugin-version>
+        <maven-failsafe-plugin-version>3.5.5</maven-failsafe-plugin-version>
+        <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
 
         <!-- LTS versions preferred -->
-        <camel-version>4.14.2</camel-version>
-        <spring-boot-version>4.0.0-RC2</spring-boot-version>
+        <camel-version>4.18.0</camel-version>
+        <spring-boot-version>4.0.3</spring-boot-version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -68,7 +67,7 @@
         <traccar.version>${project.version}</traccar.version> -->
         <traccar.version>6.10.0</traccar.version>
 
-        <docker.maven.plugin.version>0.48.0</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.48.1</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
@@ -132,19 +131,12 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!-- MOVE OUT OF pluginManagement TO APPLY TO ALL PROJECTS -->
+                <!-- is this explicitly required ?
                 <plugin>
-                    <groupId>com.spotify.fmt</groupId>
-                    <artifactId>fmt-maven-plugin</artifactId>
-                    <version>${fmt-maven-plugin-version}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>format</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin-version}</version>
+                </plugin> -->
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin-version}</version>
@@ -194,18 +186,27 @@
                                 </build>
                                 <run>
                                     <hostname>traccar</hostname>
+                                    <!-- use local settings at own risk -->
+                                    <privileged>true</privileged>
+                                    <capAdd>
+                                        <cap>NET_BIND_SERVICE</cap>
+                                    </capAdd>
                                     <ports>
                                         <port>80:8082</port>
                                         <port>5055:5055</port>
                                     </ports>
                                     <volumes>
                                         <bind>
-                                            <volume>/opt/traccar/logs:/opt/traccar/logs:rw</volume>
-                                            <volume>/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
-                                            <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
+                                            <volume>
+                                                /opt/traccar/logs:/opt/traccar/logs:rw</volume>
+                                            <volume>
+                                                /opt/traccar/data:/opt/traccar/data:rw</volume>
+                                            <volume>
+                                                /opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
                                         </bind>
                                     </volumes>
-                                    <log><!-- do not remove --></log>
+                                    <log><!-- do not remove -->
+                                    </log>
                                     <wait>
                                         <http>
                                             <url>http://localhost</url>
@@ -249,38 +250,21 @@
             </plugins>
         </pluginManagement>
 
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>${os-maven-plugin-version}</version>
-            </extension>
-        </extensions>
-
         <!-- MOVE UP TO ROOT pom.xml to execute first ? -->
         <plugins>
+            <!-- MOVE OUT OF pluginManagement TO APPLY TO ALL PROJECTS -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin-version}</version>
+                <groupId>com.spotify.fmt</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>${fmt-maven-plugin-version}</version>
                 <executions>
                     <execution>
-                        <id>enforce-maven</id>
                         <goals>
-                            <goal>enforce</goal>
+                            <goal>format</goal>
                         </goals>
-                        <configuration>
-                            <rules>
-                                <requireMavenVersion>
-                                    <version>${maven-minimum-version}</version>
-                                </requireMavenVersion>
-                                <!-- <requireJavaVersion> -->
-                            </rules>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-
             <!-- Attach source JARs for all modules -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -296,10 +280,10 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- move to pluginManagement ! 
             Repackage existing JAR and WAR archives so that they 
-            can be executed from the command line using java -jar. 
+            can be executed from the command line using java -jar.
             docs.spring.io/spring-boot/docs/3.2.0-SNAPSHOT/maven-plugin/reference/htmlsingle/#packaging
             <plugin>
                 <groupId>org.springframework.boot</groupId>

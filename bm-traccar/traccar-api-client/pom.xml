@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.15-alpha</version>
+        <version>1.1.16</version>
     </parent>
 
     <artifactId>traccar-api-client</artifactId>
-    <version>6.10.0-RC</version>
+    <version>6.10.0</version>
 
     <name>..... traccar-api-client</name>
     <description>based on generated API from OpenAPI generator</description>
@@ -62,10 +62,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>com.spotify.fmt</groupId>
-                <artifactId>fmt-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
             </plugin>

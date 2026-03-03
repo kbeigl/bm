@@ -61,23 +61,38 @@ public class TrackerOsmAnd {
 
   @PreDestroy
   private void destroyRoutes() {
-    logger.debug("Destroying TrackerOsmAnd routes for uniqueId={}", uniqueId);
-
-    if (camel == null) return;
-
-    String routeId =
+    if (camel == null) {
+      return;
+    }
+    // remove both kinds of routes (old direct: transmitters and new seda-based senders)
+    String directRouteId =
         "send-osmand-route-"
             + (safeId == null
                 ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
                 : safeId);
+    String sedaRouteId =
+        "seda-send-osmand-route-"
+            + (safeId == null
+                ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
+                : safeId);
     try {
-      if (camel.getRouteController().getRouteStatus(routeId) != null) {
-        camel.getRouteController().stopRoute(routeId);
-        camel.removeRoute(routeId);
-        logger.info("Stopped and removed tracker route {}", routeId);
+      if (camel.getRouteController().getRouteStatus(directRouteId) != null) {
+        camel.getRouteController().stopRoute(directRouteId);
+        camel.removeRoute(directRouteId);
+        logger.debug("Stopped and removed tracker route {}", directRouteId);
       }
     } catch (Exception e) {
-      logger.warn("Failed to remove tracker route {}: {}", routeId, e.getMessage());
+      logger.warn("Failed to remove tracker route {}: {}", directRouteId, e.getMessage());
+    }
+    // redundant code
+    try {
+      if (camel.getRouteController().getRouteStatus(sedaRouteId) != null) {
+        camel.getRouteController().stopRoute(sedaRouteId);
+        camel.removeRoute(sedaRouteId);
+        logger.debug("Stopped and removed tracker route {}", sedaRouteId);
+      }
+    } catch (Exception e) {
+      logger.warn("Failed to remove tracker route {}: {}", sedaRouteId, e.getMessage());
     }
   }
 
@@ -216,6 +231,7 @@ public class TrackerOsmAnd {
   }
 
   /** Public API to send a message immediately via the Camel route. */
+  // might be deprecated later ?
   // return true/false for success/failure ?
   public void sendNow(MessageOsmand msg) {
 
@@ -256,11 +272,12 @@ public class TrackerOsmAnd {
     if (safeId == null) {
       safeId = uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_");
     }
-    Transmitter routes = new Transmitter(osmandHost, uniqueId);
+    // Use SEDA-based Sender so Tracker sends to a queue consumed by the Sender route
+    TrackerSender routes = new TrackerSender(osmandHost, uniqueId);
     try {
       camel.addRoutes(routes);
       // routesRegistered = true;
-      logger.info("Registered TrackerRoutes for host {}", osmandHost);
+      logger.info("Registered TrackerRoutes for Tracker-{} to Host {}", safeId, osmandHost);
     } catch (Exception e) {
       logger.error("Failed to register TrackerRoutes for {}", osmandHost, e);
     }

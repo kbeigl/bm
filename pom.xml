@@ -23,7 +23,7 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.15-alpha</version>
+    <version>1.1.16</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations               ===</name>
@@ -47,25 +47,57 @@
         </license>
     </licenses>
 
-    
     <properties>
+        <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
+        <maven-minimum-version>3.8.8</maven-minimum-version>
+        <maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
+
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
         <!-- create Maven Profile -->
-        <asciidoc.process.skip>false</asciidoc.process.skip>
-        <!-- asciidoctor-maven-plugin:3.2.0 requires Maven version 3.8.8 -->
+        <asciidoc.process.skip>true</asciidoc.process.skip>
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
-        <asciidoc.diagram.version>3.0.1</asciidoc.diagram.version>
+        <asciidoc.diagram.version>3.1.0</asciidoc.diagram.version>
     </properties>
 
     <modules>
         <module>bm-parent</module>
-        <module>bm-traccar</module>
         <module>bm-tracker</module>
+        <module>bm-traccar</module>
     </modules>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>${os-maven-plugin-version}</version>
+            </extension>
+        </extensions>
+
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>${maven-minimum-version}</version>
+                                </requireMavenVersion>
+                                <!-- <requireJavaVersion> -->
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
@@ -83,7 +115,7 @@
                     <execution>
                         <id>generate-html-docs</id>
                         <phase>generate-resources</phase>
-                        <!--    prepare-package ? -->
+                        <!-- <phase>prepare-package</phase> -->
                         <goals>
                             <goal>process-asciidoc</goal>
                         </goals>
@@ -93,27 +125,32 @@
                             <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
                             <outputDirectory>${project.basedir}/src/asciidoc</outputDirectory>
                             <backend>html5</backend>
+                            <doctype>book</doctype>
+                            <enableVerbose>true</enableVerbose>
                             <requires>
                                 <require>asciidoctor-diagram</require>
                             </requires>
                             <attributes>
+                                <kroki-server-url>http://localhost:8000</kroki-server-url>
+                                <kroki-fallback-server-url>https://kroki.io</kroki-fallback-server-url>
+                                <!--
+                                <kroki-server-url>https://kroki.io</kroki-server-url> -->
+                                <kroki-fetch-diagram>true</kroki-fetch-diagram>
+                                <allow-uri-read />
+
                                 <diagram-server-type>kroki_io</diagram-server-type>
                                 <diagram-server-url>http://localhost:8000</diagram-server-url>
-                                <!--
-                                <diagram-server-url>https://kroki.io</diagram-server-url> -->
-                                <kroki-server-url>http://localhost:8000</kroki-server-url>
-                                <!-- Fallback if local fails (AsciidoctorJ Kroki ≥ 0.18.0) -->
-                                <kroki-fallback-server-url>https://kroki.io</kroki-fallback-server-url>
-                                <!-- <kroki-server-url>https://kroki.io</kroki-server-url> -->
-                                <kroki-fetch-diagram>true</kroki-fetch-diagram>
+                                <diagram-server-url>https://kroki.io</diagram-server-url>
                                 <diagram-impl>kroki</diagram-impl>
-                                <allow-uri-read />
+                                <!-- <imagesdir>images</imagesdir> -->
                                 <data-uri />
-                                <asciidoctor-diagram-verbose>true</asciidoctor-diagram-verbose>
-                                <!-- Specify output format for diagrams -->
+
+                                <asciidoctor-diagram-verbose>false</asciidoctor-diagram-verbose>
                                 <diagram-format>svg</diagram-format>
                                 <diagram-output-dir>svg</diagram-output-dir>
                                 <!-- <diagram-svg-inline>true</diagram-svg-inline> -->
+
+                                <mermaid-diagram-helper>kroki</mermaid-diagram-helper>
                                 <!-- Explicitly enable embedded Mermaid rendering -->
                                 <mermaid-initialize>true</mermaid-initialize>
                                 <!-- Explicitly disable external Mermaid CLI -->

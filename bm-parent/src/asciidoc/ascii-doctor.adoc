@@ -202,7 +202,7 @@ For a smooth start into a new software the Maven Project should be self containe
 and build successful without external dependencies. 
 This works fine for `[ditaa]` diagrams, since it is written in Java.
 
-==== external
+==== `mmc` command
 
 For `[mermaid]` diagrams an external converter is required 
 and you can observe this in debug mode
@@ -219,6 +219,9 @@ in which the software will be composed.
 
 For a self-contained environment the conversion could be achieved with 
 https://github.com/asciidoctor/docker-asciidoctor[docker-asciidoctor].
+
+
+==== Kroki Diagram Server
 
 If we do accept an external dependency to the internat at build time
 we might as well use the https://kroki.io/[Kroki Diagram Server/Service]
@@ -260,14 +263,14 @@ and documentation is generated with a local kiko server.
 
 ===== kroki with docker
 
-This can be setup in a combined docker setting of kroki with a 'Mermaid companion':
+Before `v1.1.16` a combined docker setting of kroki with a 'Mermaid companion'
+was used for doc generation:
 
-[source,xml]
-----
   # Start Mermaid companion (with plenty of memory/shm)
   docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
     -p 8002:8002 yuzutech/kroki-mermaid
 
+  @Deprecated
   # Start main Kroki and link it to the companion
   docker run -d --name kroki --memory=2g --shm-size=1g \
     --link kroki-mermaid:mermaid \
@@ -275,10 +278,18 @@ This can be setup in a combined docker setting of kroki with a 'Mermaid companio
     -e KROKI_MERMAID_PORT=8002 \
     -p 8000:8000 \
     yuzutech/kroki:latest
-----
 
-`kroki-mermaid` contains a pre-installed Chromium binary that works 
+Beginning with `v1.1.16` we are only starting the `kroki-mermaid` container
+with a pre-installed Chromium binary that works 
 without any sandbox, without download, without `/dev/..` issues.
+
+[IMPORTANT]
+====
+In `v1.1.16` the docker configuration had to be changed due to permission problems
+after ubuntu and docker upgrade. It turns out that `kroki-mermaid` is sufficient
+for mermaid generation without `kroki` container! +
+To be observed!
+====
 
 and with the maven configuration
 

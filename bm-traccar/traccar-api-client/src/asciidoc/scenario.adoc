@@ -66,7 +66,7 @@ So let's begin to fill the file with `Users` and  `Devices`:
     scenario.user[0].name=admin
     scenario.user[0].password=admin
     scenario.user[0].email=admin@scenario.com
-    scenario.user[0].administrator=true     <!--1-->
+    scenario.user[0].administrator=true        <1>
     ## devices 
     scenario.device[0].name=runner
     scenario.device[0].uniqueId=10
