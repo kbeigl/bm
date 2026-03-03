@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.16</version>
+        <version>1.1.17</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>1.1.16</version>
+            <version>1.1.17</version>
             <scope>test</scope>
         </dependency>
         <!-- No test-jar classifier dependency; gps-osmand-tracker exposes main test-friendly config in main sources -->
