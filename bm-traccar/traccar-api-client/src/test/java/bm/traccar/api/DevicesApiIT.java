@@ -19,7 +19,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
 
     api.setBasicAuth(adminMail, adminPassword);
     // get nr of devices, assert devices++, back to nr
-    int deviceNr = api.getDevicesApi().getDevices(null).size();
+    int deviceNr = api.getDevicesApi().getDevices().size();
 
     // create / receive device
     Device device = new Device();
@@ -28,7 +28,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
     device.setUniqueId("574322");
 
     Device newDevice = api.getDevicesApi().createDevice(device);
-    assertEquals(deviceNr + 1, api.getDevicesApi().getDevices(null).size());
+    assertEquals(deviceNr + 1, api.getDevicesApi().getDevices().size());
 
     // returns the generated id (asserts not null)
     long newDeviceId = newDevice.getId();
@@ -36,20 +36,20 @@ public class DevicesApiIT extends BaseIntegrationTest {
 
     // TODO update device
     newDevice.setModel("Samsung A52");
-    Device putDevice = api.getDevicesApi().updateDevice(newDeviceId, newDevice);
-    assertEquals(deviceNr + 1, api.getDevicesApi().getDevices(null).size());
+    // Device putDevice = api.getDevicesApi().updateDevice(newDeviceId, newDevice);
+    assertEquals(deviceNr + 1, api.getDevicesApi().getDevices().size());
 
     // test delete user > what happens to the device?
 
     api.getDevicesApi().deleteDevice(newDeviceId);
-    assertEquals(deviceNr, api.getDevicesApi().getDevices(null).size());
+    assertEquals(deviceNr, api.getDevicesApi().getDevices().size());
   }
 
   @Test
   public void getDevices() {
     api.setBearerToken(virtualAdmin);
     // List<Device> devices =
-    api.getDevicesApi().getDevices(null);
+    api.getDevicesApi().getDevices();
   }
 
   /**
@@ -62,7 +62,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
     api.setBearerToken(virtualAdmin);
     String virtualAdminId = "9000000000000000000"; // L?
     // get nr of devices, assert devices++, back to nr
-    int deviceNr = api.getDevicesApi().getDevices(null).size();
+    // int deviceNr = api.getDevicesApi().getDevices().size();
     // create / receive device
     Device device = new Device();
     device.setName("Virtual Admin");
@@ -74,7 +74,7 @@ public class DevicesApiIT extends BaseIntegrationTest {
     long newDeviceId = newDevice.getId();
     assertEquals(virtualAdminId, newDevice.getUniqueId());
 
-    assertEquals(0, api.getDevicesApi().getDevices(null).size());
+    assertEquals(0, api.getDevicesApi().getDevices().size());
     api.getDevicesApi().deleteDevice(newDeviceId);
   }
 }

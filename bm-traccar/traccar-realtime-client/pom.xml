@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.16</version>
+        <version>1.1.17</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
-    <version>6.10.0</version>
+    <version>${traccar.version}-${project.parent.version}</version>
 
     <name>..... traccar-realtime-client</name>
     <description>traccar-realtime-client</description>
@@ -67,13 +67,13 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-api-client</artifactId>
-            <version>6.10.0-RC</version>
+            <version>${traccar.version}-${project.parent.version}</version>
         </dependency>
         <!-- test -->
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>1.1.16</version>
+            <version>1.1.17</version>
             <scope>test</scope>
         </dependency>
         <!-- No test-jar classifier dependency; gps-osmand-tracker exposes main test-friendly config in main sources -->

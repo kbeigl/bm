@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.16</version>
+        <version>1.1.17</version>
     </parent>
 
     <artifactId>traccar-api-client</artifactId>
-    <version>6.10.0</version>
+    <version>${traccar.version}-${project.parent.version}</version>
 
     <name>..... traccar-api-client</name>
     <description>based on generated API from OpenAPI generator</description>

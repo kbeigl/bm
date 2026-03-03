@@ -446,14 +446,24 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_openapi_generator_maven_plugin">openapi-generator-maven-plugin</a>
 <ul class="sectlevel2">
 <li><a href="#_two_step_processing">two step processing</a></li>
-<li><a href="#_step_1_traccar_openapitools_client">step 1 - traccar-openapitools-client</a></li>
+<li><a href="#_step_1_traccar_openapitools_client">step 1 - traccar-openapitools-client</a>
+<ul class="sectlevel3">
+<li><a href="#_openapi_yaml">openapi.yaml</a></li>
+<li><a href="#_openapi_yaml_format">openapi.yaml format</a></li>
+</ul>
+</li>
 <li><a href="#_step_2_traccar_api_generated">step 2 - traccar-api-generated</a></li>
 <li><a href="#_javadocs">javadocs</a></li>
 </ul>
 </li>
 <li><a href="#_inconsistent_openapi_specification">Inconsistent OpenAPI Specification</a>
 <ul class="sectlevel2">
-<li><a href="#_model_vs_api_parameter_generation">Model vs. API Parameter Generation</a></li>
+<li><a href="#_model_vs_api_parameter_generation">Model vs. API Parameter Generation</a>
+<ul class="sectlevel3">
+<li><a href="#_problem">problem</a></li>
+<li><a href="#_solution">solution</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_conclusion">conclusion</a></li>
@@ -748,6 +758,65 @@ and operations are the <code>HTTP</code> methods used to manipulate these paths,
 </div>
 <div class="paragraph">
 <p>as there are no sources to process and test.</p>
+</div>
+<div class="sect3">
+<h4 id="_openapi_yaml">openapi.yaml</h4>
+<div class="paragraph">
+<p>Traccar always has and still is evolving at a high pace and
+for this repository especially the REST API is vital.
+We are not interested in traccar server development directly,
+since we abstract the server with its REST API.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>traccar-openapitools-client</code> project we are accessing the <em>versioned</em> <code>openapi.yaml</code> from</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;inputSpec&gt;https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml&lt;/inputSpec&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>as the only dependency, i.e. interface to traccar.</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10003; The creation of the <code>traccar-api-generated-x.y.z.jar</code> is completly independant<br>
+and only needs to be executec once.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>nice2have:<br>
+skip generation, if <code>jar</code> exists in <code>.m2</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_openapi_yaml_format">openapi.yaml format</h4>
+<div class="paragraph">
+<p>After you run <code>traccar-openapitools-client</code> you will find a</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/traccar-openapitools-client/target/generated-sources/openapi/api/openapi.yaml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>file. If you diff this file against the one downloaded you might be surprised.
+The file in the target is hundreds of lines longer with hundreds of differences.
+Do not be alarmed.</p>
+</div>
+<div class="paragraph">
+<p>The new file is not a direct download of the Traccar spec; it’s a processed and resolved version of it.<br>
+The openapi-generator-maven-plugin parses, validates, and then rewrites it
+so that the internal generator engine has a clean, standardized map to build your code from.</p>
+</div>
+<div class="paragraph">
+<p>If the original Traccar <code>openapi.yaml</code> uses <code>$ref</code> to point to other files, the generator resolves all of those links.
+It pulls all that external data into a single, massive, flat file.
+The generator often reorders keys to follow a strict internal logic.
+Even if your input has description before operationId, the generator might flip them.</p>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1046,7 +1115,7 @@ in a Spring <code>@Service</code> for simple handling and integration.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-05 11:46:30 +0100
+Last updated 2026-03-12 12:31:38 +0100
 </div>
 </div>
 </body>

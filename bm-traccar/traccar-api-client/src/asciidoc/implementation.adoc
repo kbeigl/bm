@@ -3,12 +3,12 @@
 
 = `traccar-api-client` implementation
 
-This software is based on a generated *Java Spring REST Client* from the traccar specification.
+This software is based on a generated *Java Spring REST Client* from the Traccar REST specification.
 The single package (`bm.traccar.api`) implementation wraps the Java client in a *Spring* @Service
 to be applied wherever feasible. The API client completely hides the REST intricities
 inside regular Java methods.
 
-The `traccar-api-client` is basically a single package application or rather _service_. 
+The `traccar-api-client` is basically a single package application or rather _service_. +
 In addition there is a websocket package to receive live information from the Tracking System.
 
 
@@ -25,7 +25,7 @@ given an OpenAPI Spec v3.
 ____
 
 Note that this Java code generation takes place in the isolated 
-link:../../traccar-openapitools-client/readme.adoc[`traccar-openapitools-client`] 
+xref:../../traccar-openapitools-client/readme.adoc[`traccar-openapitools-client`] 
 project. It has to run before this project which is build around the generated artifact.
 
 [TIP]
@@ -42,7 +42,9 @@ for a starting point on how to apply Maven properties etc.
 == Traccar REST
 
 Traccar `v6.7` provides *17 APIs* (see `package bm.traccar.generated.api`)
-for all aspects of GPS Tracking. 
+and as the GTS progresses Traccar `v6.12.2` provides *19 APIs*.
+These APIs support many aspects of GPS Tracking and beyond, like health monitoring.
+
 The `traccar-api-client` defines _one single (nested) API interface:_ 
 `bm.traccar.api.Api`, which allows us to switch the implementation.
 This was required, for example, when changing from swagger to OpenAPI (3 to 3.1). +
@@ -55,8 +57,8 @@ to connect your program logic!
 
 === Data Transfer Objects - DTOs ...
 
-In addition the `traccar-api-client` provides *21 Data Transfer Objects* +
-see `package bm.traccar.generated.model.dto`
+In addition the `traccar-api-client-6.7` provides *21 Data Transfer Objects*
+and `v6.12.2` already has 26 (package `bm.traccar.generated.model.dto`).
 
 These DTO _represent_ the different System Entities 
 and are used to exchange information with the server. +
@@ -105,7 +107,7 @@ link:https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/mo
 while the DTOs are created in the
 link:https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/api/resource[resource package].
 The Entities are only accessed by Traccar itself, while DTOs are snapshots of them.
-Of course you can always peek into the Traccar Database to check what's going on.
+The Traccar Database is the best place to monitor what's going on.
 
 This is similar to DNA and RNA: +
 The DNA (ERM) is part of the _living_ organic System, +
@@ -116,6 +118,19 @@ while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.
 
 This project is part of a larger software and therefor the Traccar Api Endpoints (`operationId`)
 are implemented in the order required by the main application.
+During prototyping you should _avoid_ any bulk implementations.
+Protoyping is modelling and every new cycle, i.e. `x.y.z release` 
+can introduce new sub APIs and endpoints - as the main application progresses.
+This way the implementation for all sub APIs turns into a mature pattern.
+And interdependencies can be implemented with convenient methods combining common actions. 
+
+The most important aspect of this project is its _layer functionality_.
+As the Traccar GTS progresses the REST specification is modified 
+and we want to avoid code changes all over our application.
+In the best case the code changes can be restricted to this project.
+The project can fix and hide specification inconsistencies 
+and should provide consistent Java methods.
+
 
 === SessionApi
 
@@ -127,7 +142,7 @@ When you call an API method, it will automatically construct and add the Authori
 This works perfectly for APIs that are stateless and check the basic auth header on every request.
 
 The `SessionApi` is a special case as `REST` and `HTTP` are defined as a stateless protocols.
-A session makes sense, if we log into the browser and keep it open.
+A session makes sense, if we log into the browser UI and keep it open.
 For the `traccar-api-client` we don't need to establish a session for REST interactions.
 The sole purpose is to use the `SessionApi` to create a session 
 and retrieve a `JSESSIONID` (Java Session Id) to be used with a websocket connection.
@@ -143,18 +158,22 @@ This process is implemented in the `ApiService` and can be called with
 
 That's all we need from the `SessionApi` and we will move on to the websocket implementation
 with the returned `JSESSIONID` for the provided User.
-When you connect to websocket endpoint `/api/socket` (Not the REST endpoint `/api/session`!), 
+When you connect to _websocket endpoint_ `/api/socket` (_Not REST endpoint_ `/api/session`!), 
 the server checks for the presence of a valid session cookie 
 to authorize _the real-time data stream_.
 
 
-
 == Traccar `ApiAspect` and `ApiException`
 
-This API client implementation applies Aspect-Oriented Programming (AOP) 
+This API client implementation applies _Aspect-Oriented Programming_ (*AOP*) 
 as the technique for handling exceptions in Spring Boot applications. 
 This way all exception handling happens in one central `ApiAspect` class 
 and avoids code duplication.
+
+We apply AOP, since the Traccar REST API is a moving target.
+SubAPIs are added, methods and types are changed etc.
+With AOP we can grasp a general pattern that applies to _all_ sub APIs,
+even the ones we haven't implemented or Traccar will offer in future.
 
 Generally any problem in the client software should through an `ApiException` 
 to take over responsibility and to provide useful messages for developers 
@@ -178,11 +197,11 @@ and to ensure that you have a binding communication.
 
 [source,java]
 -----------------
-Spring AOP
-invocation order
-    invoke **UsersApi.usersPost(..) ** <-------------+
-      invoke ApiClient.selectHeaderAccept(..)        |
-      invoke ApiClient.selectHeaderContentType(..)   |
-      invoke ApiClient.invokeAPI(..)                 |
-    Exception in ApiMethod: **UsersApi.usersPost(..) **
+    Spring AOP
+    invocation order
+        invoke **UsersApi.usersPost(..) ** <-------------+
+          invoke ApiClient.selectHeaderAccept(..)        |
+          invoke ApiClient.selectHeaderContentType(..)   |
+          invoke ApiClient.invokeAPI(..)                 |
+        Exception in ApiMethod: **UsersApi.usersPost(..) **
 -----------------

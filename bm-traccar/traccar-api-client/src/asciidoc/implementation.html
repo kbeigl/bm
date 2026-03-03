@@ -460,13 +460,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This software is based on a generated <strong>Java Spring REST Client</strong> from the traccar specification.
+<p>This software is based on a generated <strong>Java Spring REST Client</strong> from the Traccar REST specification.
 The single package (<code>bm.traccar.api</code>) implementation wraps the Java client in a <strong>Spring</strong> @Service
 to be applied wherever feasible. The API client completely hides the REST intricities
 inside regular Java methods.</p>
 </div>
 <div class="paragraph">
-<p>The <code>traccar-api-client</code> is basically a single package application or rather <em>service</em>.
+<p>The <code>traccar-api-client</code> is basically a single package application or rather <em>service</em>.<br>
 In addition there is a websocket package to receive live information from the Tracking System.</p>
 </div>
 </div>
@@ -492,7 +492,7 @@ given an OpenAPI Spec v3.</p>
 </div>
 <div class="paragraph">
 <p>Note that this Java code generation takes place in the isolated
-<a href="../../traccar-openapitools-client/readme.adoc"><code>traccar-openapitools-client</code></a>
+<a href="../../traccar-openapitools-client/readme.html"><code>traccar-openapitools-client</code></a>
 project. It has to run before this project which is build around the generated artifact.</p>
 </div>
 <div class="admonitionblock tip">
@@ -522,8 +522,11 @@ for a starting point on how to apply Maven properties etc.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Traccar <code>v6.7</code> provides <strong>17 APIs</strong> (see <code>package bm.traccar.generated.api</code>)
-for all aspects of GPS Tracking.
-The <code>traccar-api-client</code> defines <em>one single (nested) API interface:</em>
+and as the GTS progresses Traccar <code>v6.12.2</code> provides <strong>19 APIs</strong>.
+These APIs support many aspects of GPS Tracking and beyond, like health monitoring.</p>
+</div>
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> defines <em>one single (nested) API interface:</em>
 <code>bm.traccar.api.Api</code>, which allows us to switch the implementation.
 This was required, for example, when changing from swagger to OpenAPI (3 to 3.1).<br></p>
 </div>
@@ -545,8 +548,8 @@ to connect your program logic!</p>
 <div class="sect2">
 <h3 id="_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</h3>
 <div class="paragraph">
-<p>In addition the <code>traccar-api-client</code> provides <strong>21 Data Transfer Objects</strong><br>
-see <code>package bm.traccar.generated.model.dto</code></p>
+<p>In addition the <code>traccar-api-client-6.7</code> provides <strong>21 Data Transfer Objects</strong>
+and <code>v6.12.2</code> already has 26 (package <code>bm.traccar.generated.model.dto</code>).</p>
 </div>
 <div class="paragraph">
 <p>These DTO <em>represent</em> the different System Entities
@@ -601,7 +604,7 @@ which is represented in the
 while the DTOs are created in the
 <a href="https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/api/resource">resource package</a>.
 The Entities are only accessed by Traccar itself, while DTOs are snapshots of them.
-Of course you can always peek into the Traccar Database to check what&#8217;s going on.</p>
+The Traccar Database is the best place to monitor what&#8217;s going on.</p>
 </div>
 <div class="paragraph">
 <p>This is similar to DNA and RNA:<br>
@@ -616,7 +619,20 @@ while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.</
 <div class="sectionbody">
 <div class="paragraph">
 <p>This project is part of a larger software and therefor the Traccar Api Endpoints (<code>operationId</code>)
-are implemented in the order required by the main application.</p>
+are implemented in the order required by the main application.
+During prototyping you should <em>avoid</em> any bulk implementations.
+Protoyping is modelling and every new cycle, i.e. <code>x.y.z release</code>
+can introduce new sub APIs and endpoints - as the main application progresses.
+This way the implementation for all sub APIs turns into a mature pattern.
+And interdependencies can be implemented with convenient methods combining common actions.</p>
+</div>
+<div class="paragraph">
+<p>The most important aspect of this project is its <em>layer functionality</em>.
+As the Traccar GTS progresses the REST specification is modified
+and we want to avoid code changes all over our application.
+In the best case the code changes can be restricted to this project.
+The project can fix and hide specification inconsistencies
+and should provide consistent Java methods.</p>
 </div>
 <div class="sect2">
 <h3 id="_sessionapi">SessionApi</h3>
@@ -630,7 +646,7 @@ This works perfectly for APIs that are stateless and check the basic auth header
 </div>
 <div class="paragraph">
 <p>The <code>SessionApi</code> is a special case as <code>REST</code> and <code>HTTP</code> are defined as a stateless protocols.
-A session makes sense, if we log into the browser and keep it open.
+A session makes sense, if we log into the browser UI and keep it open.
 For the <code>traccar-api-client</code> we don&#8217;t need to establish a session for REST interactions.
 The sole purpose is to use the <code>SessionApi</code> to create a session
 and retrieve a <code>JSESSIONID</code> (Java Session Id) to be used with a websocket connection.</p>
@@ -648,7 +664,7 @@ This process is implemented in the <code>ApiService</code> and can be called wit
 <div class="paragraph">
 <p>That&#8217;s all we need from the <code>SessionApi</code> and we will move on to the websocket implementation
 with the returned <code>JSESSIONID</code> for the provided User.
-When you connect to websocket endpoint <code>/api/socket</code> (Not the REST endpoint <code>/api/session</code>!),
+When you connect to <em>websocket endpoint</em> <code>/api/socket</code> (<em>Not REST endpoint</em> <code>/api/session</code>!),
 the server checks for the presence of a valid session cookie
 to authorize <em>the real-time data stream</em>.</p>
 </div>
@@ -659,10 +675,16 @@ to authorize <em>the real-time data stream</em>.</p>
 <h2 id="_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This API client implementation applies Aspect-Oriented Programming (AOP)
+<p>This API client implementation applies <em>Aspect-Oriented Programming</em> (<strong>AOP</strong>)
 as the technique for handling exceptions in Spring Boot applications.
 This way all exception handling happens in one central <code>ApiAspect</code> class
 and avoids code duplication.</p>
+</div>
+<div class="paragraph">
+<p>We apply AOP, since the Traccar REST API is a moving target.
+SubAPIs are added, methods and types are changed etc.
+With AOP we can grasp a general pattern that applies to <em>all</em> sub APIs,
+even the ones we haven&#8217;t implemented or Traccar will offer in future.</p>
 </div>
 <div class="paragraph">
 <p>Generally any problem in the client software should through an <code>ApiException</code>
@@ -696,13 +718,13 @@ and to ensure that you have a binding communication.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">Spring AOP
-invocation order
-    invoke **UsersApi.usersPost(..) ** &lt;-------------+
-      invoke ApiClient.selectHeaderAccept(..)        |
-      invoke ApiClient.selectHeaderContentType(..)   |
-      invoke ApiClient.invokeAPI(..)                 |
-    Exception in ApiMethod: **UsersApi.usersPost(..) **</code></pre>
+<pre class="highlight"><code class="language-java" data-lang="java">    Spring AOP
+    invocation order
+        invoke **UsersApi.usersPost(..) ** &lt;-------------+
+          invoke ApiClient.selectHeaderAccept(..)        |
+          invoke ApiClient.selectHeaderContentType(..)   |
+          invoke ApiClient.invokeAPI(..)                 |
+        Exception in ApiMethod: **UsersApi.usersPost(..) **</code></pre>
 </div>
 </div>
 </div>
@@ -710,7 +732,7 @@ invocation order
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-08 12:43:45 +0100
+Last updated 2026-03-12 13:02:23 +0100
 </div>
 </div>
 </body>

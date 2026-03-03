@@ -1,0 +1,88 @@
+
+:toc:
+
+= upgrading `traccar-api-client` 
+
+The generation of the Java API Client takes place in the `traccar-openapitools-client`
+as a completly independant process and therefor versioned one to one against Traccar.
+The `jar` can be used in any project and does not require customization for this repo. +
+The versioned input 
+xref:../../../traccar-openapitools-client/src/asciidoc/openapitools.adoc#_openapi_yaml_file[`openapi.yaml`] 
+file is defined in 
+xref:../../../traccar-openapitools-client/src/asciidoc/openapitools.adoc#_openapi_yaml[the pom file]. +
+The project documentation also describes different 
+xref:../../../traccar-openapitools-client/src/asciidoc/openapitools.adoc#_openapi_yaml_format[formats]
+to be aware of.
+
+
+== `v1.1.17` - Traccar `v6.10.0` to `v6.12.2`
+
+After upgrading the Traccar version
+
+    <traccar.version>6.12.2</traccar.version>
+
+in the parent pom, the `traccar-openapitools-client` should compile without further ado. +
+So you can actually compile the complete repo and wait for compilation problems in the `traccar-api-client`.
+
+[source,xml]
+----
+    [ERROR] traccar-api-client/src/main/java/bm/traccar/api/impl/DevicesImpl.java:[40,22] 
+      method devicesGet in class bm.traccar.generated.api.DevicesApi cannot be applied to given types;
+      required: Boolean,    Integer,    Integer,    String, Boolean
+         found: <nulltype>, <nulltype>, <nulltype>, String
+        reason: actual and formal argument lists differ in length
+    [INFO] 1 error
+----
+
+When you open `DevicesImpl.java` the IDE provides another error message:
+
+    The method devicesGet(Boolean, Integer, Integer, String, Boolean) in the type DevicesApi is not applicable 
+       for the arguments (null,    null,    null,    String         )
+    
+
+You should counter check the differences directly in the Traccar repo:
+https://github.com/traccar/traccar/compare/v6.10.0...v6.12.2?diff=split&path=openapi.yaml[v6.10.0 to v6.12.2] +
+The _new!_ javadoc tells us
+
+    Fetch a list of Devices Without any params, returns a list of the user's devices
+        List<Device> bm.traccar.generated.api.DevicesApi.devicesGet(
+            @Nullable Boolean all,
+            @Nullable Integer userId,
+            @Nullable Integer id,
+            @Nullable String uniqueId,
+            @Nullable Boolean excludeAttributes ) throws RestClientResponseException
+
+Luckily we are still prototyping and avoiding bulk implementations and
+are not getting tempted to direct this to your CoPilot or other AI agent!
+
+In order to test our methods implemented _so far_ we have our Integration Test 
+in place: `DevicesApiIT` ...
+
+Long story short: 
+During prototyping we want to keep it as simple as possible.
+For the time being we can simply ignore the new parameters (all being `@Nullable`) 
+and call the method with `null` values without any issues. +
+Therefor we simplify the main API interface method to
+
+    List<Device> getDevices(); // GET
+
+and the implementation:
+
+     @Override
+      public List<Device> getDevices() {
+        return devicesApi.devicesGet(null, null, null, null, null);
+      }
+
+The ITests will be used without parameters as a generic method. +
+We can still filter on client side and we can add `getDevices` 
+methods with descriptive names.       
+
+- [x] done
+
+If we're lucky every new version is only a version bump with small changes. +
+It this case we can wittness a significant change in the API 
+with the addition of new parameters to existing endpoints and the addition of new endpoints.
+
+No need to go into details here, since we implement new API methods on demand.
+
+

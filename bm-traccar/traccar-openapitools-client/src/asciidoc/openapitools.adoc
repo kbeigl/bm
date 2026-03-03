@@ -1,5 +1,6 @@
 
 :toc:
+:toclevels: 4
 
 = traccar-openapitools-client
 
@@ -223,6 +224,47 @@ This is achieved with
     <maven.main.skip>true</maven.main.skip>
 
 as there are no sources to process and test.
+
+
+==== openapi.yaml
+
+Traccar always has and still is evolving at a high pace and
+for this repository especially the REST API is vital.
+We are not interested in traccar server development directly,
+since we abstract the server with its REST API.
+
+In the `traccar-openapitools-client` project we are accessing the _versioned_ `openapi.yaml` from 
+
+    <inputSpec>https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml</inputSpec>
+
+as the only dependency, i.e. interface to traccar. 
+
+- [x] The creation of the `traccar-api-generated-x.y.z.jar` is completly independant +
+      and only needs to be executec once.
+
+nice2have: +
+skip generation, if `jar` exists in `.m2`.
+
+
+==== openapi.yaml format
+
+After you run `traccar-openapitools-client` you will find a
+
+    /traccar-openapitools-client/target/generated-sources/openapi/api/openapi.yaml
+    
+file. If you diff this file against the one downloaded you might be surprised.
+The file in the target is hundreds of lines longer with hundreds of differences.
+Do not be alarmed.
+
+The new file is not a direct download of the Traccar spec; it’s a processed and resolved version of it. +
+The openapi-generator-maven-plugin parses, validates, and then rewrites it 
+so that the internal generator engine has a clean, standardized map to build your code from.
+
+If the original Traccar `openapi.yaml` uses `$ref` to point to other files, the generator resolves all of those links. 
+It pulls all that external data into a single, massive, flat file. 
+The generator often reorders keys to follow a strict internal logic. 
+Even if your input has description before operationId, the generator might flip them.
+
 
 === step 2 - traccar-api-generated
 

@@ -24,14 +24,14 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.16</version>
+        <version>1.1.17</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-traccar</artifactId>
     <packaging>pom</packaging>
 
-    <name>---- Traccar Clients                      ---</name>
+    <name>---- Traccar ${traccar.version} Clients               ---</name>
 
     <modules>
         <module>traccar-openapitools-client</module>

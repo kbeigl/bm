@@ -57,7 +57,7 @@ class RealTimeManagerIT extends BaseRealTimeTest {
 
     logger.info("--- Loading initial devices from server... ---");
     List<Device> initialDevices = new ArrayList<>();
-    initialDevices = api.getDevicesApi().getDevices(null);
+    initialDevices = api.getDevicesApi().getDevices();
     initialDevices.forEach(u -> logger.info("Device.id{}: {}", u.getId(), u.getName()));
     stateManager.loadInitialDevices(initialDevices);
     logger.debug("Initial devices loaded: " + stateManager.getAllDevices());

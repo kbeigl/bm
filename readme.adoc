@@ -13,7 +13,7 @@ formats, like a complete website or a pdf document.
 [TIP]
 ====
 - for plain reading go to the 
-link:https://kbeigl.github.io/bm/src/asciidoc/bm.html[*Github Pages*] 
+link:https://kbeigl.github.io/bm/bm-parent/src/asciidoc/bm/bm.html[*Github Pages*] 
 of this repository.
 
 - If you are not writing, simply skip the documentation generation with +
@@ -64,9 +64,10 @@ in a user friendy output format `html/svg`,
 which does not require any settings on your browser or elsewhere.
 
 The following links point to the repository parent 
-link:./src/asciidoc/bm.adoc[`bm.adoc`] 
+// not xref ! this file is never compiled by asciidoc !
+link:./bm-parent/src/asciidoc/bm/bm.adoc[`bm.adoc`]
 or 
-link:./src/asciidoc/bm.html[`bm.html`]. +
+link:./bm-parent/src/asciidoc/bm/bm.html[`bm.html`]. +
 Choose your own entry point and format to navigate through the documentation
 depending on your environment.
 

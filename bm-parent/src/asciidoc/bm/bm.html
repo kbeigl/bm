@@ -441,15 +441,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_latest_versions">latest versions</a></li>
-<li><a href="#_bm_parent"><code>/bm-parent</code></a></li>
-<li><a href="#_bm_tracker"><code>/bm-tracker</code></a>
+<li><a href="#_bm_parent_maven_multi_module"><code>/bm-parent</code> - Maven Multi Module</a></li>
+<li><a href="#_bm_tracker_virtual_gps_tracker_simulators"><code>/bm-tracker</code> - Virtual GPS Tracker Simulators</a>
 <ul class="sectlevel2">
 <li><a href="#_traccar_trackers">Traccar Trackers</a></li>
 <li><a href="#_the_jeets_tracker">The 'JeeTS Tracker'</a></li>
 <li><a href="#_gps_osmand_tracker"><code>gps-osmand-tracker</code></a></li>
 </ul>
 </li>
-<li><a href="#_bm_traccar"><code>/bm-traccar</code></a>
+<li><a href="#_bm_traccar_remote_traccar_access"><code>/bm-traccar</code> - Remote Traccar Access</a>
 <ul class="sectlevel2">
 <li><a href="#_traccar_openapitools_client"><code>traccar-openapitools-client</code></a></li>
 <li><a href="#_traccar_api_client"><code>traccar-api-client</code></a></li>
@@ -474,24 +474,28 @@ for the
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.16
-    [INFO] --- blue marble parameters                --- 1.1.16
-    [INFO] ---- GPS Trackers                         --- 1.1.16
-    [INFO] ..... gps-osmand-tracker          1.1.16 ...........
-    [INFO] ---- Traccar Clients                      --- 1.1.16
-    [INFO] ..... traccar-openapitools-client 6.10.0 ...........
-    [INFO] ..... traccar-api-client          6.10.0 ...........
-    [INFO] ..... traccar-realtime-client     6.10.0 ...........</code></pre>
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.17
+    [INFO] --- blue marble parameters                --- 1.1.17
+    [INFO] ---- GPS Trackers                         --- 1.1.17
+    [INFO] ..... gps-osmand-tracker                      1.1.17
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.17
+    [INFO] ..... traccar-openapitools-client      6.12.2
+    [INFO] ..... traccar-api-client               6.12.2-1.1.17
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.17</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>For earlier versions check the
 <a href="releases.html">version history</a></p>
 </div>
+<div class="paragraph">
+<p>TODO:
+<a href="../../../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-rt-CLI.html">Quickstart</a></p>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_bm_parent"><code>/bm-parent</code></h2>
+<h2 id="_bm_parent_maven_multi_module"><code>/bm-parent</code> - Maven Multi Module</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This <code>bm-sim</code> repository is a <strong>Maven Multi Module</strong> project.
@@ -501,18 +505,18 @@ It assures that any project is build as required by another.</p>
 </div>
 <div class="paragraph">
 <p>If you are not sure about your Maven Version it is highly recommended to use the
-<a href="../../bm-parent/src/asciidoc/maven-maintenance.html">Maven Wrapper</a>
+<a href="../maven-maintenance.html#_maven_wrapper">Maven Wrapper</a>
 in the root directory!<br>
 If you modify the versioning make sure the build order matches the listing above.
 Otherwise the Maven Reactor has detected inconsistencies.</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-parent/src/asciidoc/bm-parent.html">bm-parent details &#8230;&#8203;</a></p>
+<p><a href="../bm-parent.html">bm-parent details &#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_bm_tracker"><code>/bm-tracker</code></h2>
+<h2 id="_bm_tracker_virtual_gps_tracker_simulators"><code>/bm-tracker</code> - Virtual GPS Tracker Simulators</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This <code>bm-tracker</code> branch is used to develop <em>virtual GPS Tracker Simulators</em><br>
@@ -547,8 +551,9 @@ With respect to the blue marble we might speak of <em>Globe Positioning</em>.</p
 <div class="sect2">
 <h3 id="_traccar_trackers">Traccar Trackers</h3>
 <div class="paragraph">
-<p>In the long run we want to be able to create scenarios with any or all
-<a href="https://www.traccar.org/devices/">devices</a> and
+<p>In the long run we want to be able to create scenarios with any<br>
+or all (&gt; 1.500)
+<a href="https://www.traccar.org/devices/">devices</a> and (&gt; 1.000)
 <a href="https://www.traccar.org/protocols/">protocols</a> implemented in traccar.</p>
 </div>
 </div>
@@ -558,16 +563,15 @@ With respect to the blue marble we might speak of <em>Globe Positioning</em>.</p
 <p>If the Traccar Trackers don&#8217;t fit your business the
 <a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">JeeTS Book</a>
 you demonstrates how to create Protocols with Message Catalogs to fit your business,
-how to integrate your own Tracker with the traccar platform and your business model.</p>
+how to integrate your own Tracker with the Traccar platform and your business model.</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-tracker/src/asciidoc/bm-tracker.html">more about GPS and Tracking &#8230;&#8203;</a></p>
+<p><a href="https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/README.adoc">check out the JeeTS Tracker &#8230;&#8203;</a><br>
+<a href="../../../../bm-tracker/src/asciidoc/bm-tracker.html">more about GPS and Tracking &#8230;&#8203;</a></p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_gps_osmand_tracker"><code>gps-osmand-tracker</code></h3>
-<div class="sect3">
-<h4 id="_the_gps_osmand_tracker">The GPS OsmAnd Tracker</h4>
 <div class="paragraph">
 <p>The first ROAF GPS Tracker will serve as a placeholder for more customized trackers.
 We will look at the standard components of a Tracking Device
@@ -577,14 +581,13 @@ You can find the protocol specs
 <a href="OsmAndProtocolSpecification.html">here</a> and elsewhere.</p>
 </div>
 <div class="paragraph">
-<p><a href="./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto gps-osmand-tracker project</a></p>
-</div>
+<p><a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto gps-osmand-tracker project</a></p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_bm_traccar"><code>/bm-traccar</code></h2>
+<h2 id="_bm_traccar_remote_traccar_access"><code>/bm-traccar</code> - Remote Traccar Access</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>bm-traccar</code> aggregator POM is the development environment
@@ -596,7 +599,7 @@ and
 <a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">JeeTS Book</a>.</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-traccar/src/asciidoc/bm-traccar.html">read more to setup and adopt your development environment</a></p>
+<p><a href="../../../../bm-traccar/src/asciidoc/bm-traccar.html">read more to setup and adopt your development environment</a></p>
 </div>
 <div class="paragraph">
 <p>As of <code>v1.1.8</code> we are developing the following three
@@ -612,13 +615,11 @@ to generate a plain Java Client <code>traccar-api-generated-x.y.z.jar</code> fro
 <a href="https://swagger.io/specification/">OpenAPI specification</a>.</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.html">details &#8230;&#8203;</a></p>
+<p><a href="../../../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_traccar_api_client"><code>traccar-api-client</code></h3>
-<div class="sect3">
-<h4 id="_the_traccar_openapi_client">The Traccar OpenAPI Client</h4>
 <div class="paragraph">
 <p>The <code>traccar-api-client</code> is a Java Client Software to provide full (remote) control over your Traccar server.
 And it can be used to integrate your Tracking with your company systems,
@@ -627,25 +628,18 @@ Synchronize your employees with their cars and driver information without utiliz
 Pull driving reports for your sales team &#8230;&#8203; and much more ;)</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.html">details &#8230;&#8203;</a></p>
-</div>
+<p><a href="../../../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_traccar_realtime_client"><code>traccar-realtime-client</code></h3>
-<div class="sect3">
-<h4 id="_the_traccar_real_time_client">The Traccar Real-Time Client</h4>
 <div class="paragraph">
 <p>The traccar-rt-client is a Java Client Software
 to provide full (remote) control over and interact
 via live surveillance of your Traccar Server Scenario.</p>
 </div>
 <div class="paragraph">
-<p><a href="../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-realtime-client.html">details &#8230;&#8203;</a></p>
-</div>
-<div class="paragraph">
-<p><a href="../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-rt-CLI.html">Quickstart</a></p>
-</div>
+<p><a href="../../../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-realtime-client.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
@@ -653,7 +647,7 @@ via live surveillance of your Traccar Server Scenario.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-02-26 15:09:01 +0100
+Last updated 2026-03-11 13:16:48 +0100
 </div>
 </div>
 </body>

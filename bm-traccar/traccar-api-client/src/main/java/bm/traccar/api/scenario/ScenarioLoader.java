@@ -162,7 +162,7 @@ public class ScenarioLoader {
       ScenarioProperties.Device d = props.getDevice().get(i);
       try {
         // Find device by uniqueId and delete
-        for (Device device : api.getDevicesApi().getDevices(null)) {
+        for (Device device : api.getDevicesApi().getDevices()) {
           if (device.getUniqueId().equals(d.uniqueId)) {
             api.getDevicesApi().deleteDevice(device.getId());
             logger.debug("Deleted Device.id{}: {}", device.getId(), device.getName());

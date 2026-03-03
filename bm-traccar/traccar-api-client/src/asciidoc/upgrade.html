@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>OsmAnd Protocol Specification</title>
+<title>upgrading traccar-api-client</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,151 +436,138 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="book">
 <div id="header">
-<h1>OsmAnd Protocol Specification</h1>
+<h1>upgrading <code>traccar-api-client</code></h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_v1_1_17_traccar_v6_10_0_to_v6_12_2"><code>v1.1.17</code> - Traccar <code>v6.10.0</code> to <code>v6.12.2</code></a></li>
+</ul>
+</div>
 </div>
 <div id="content">
-<div class="sect1">
-<h2 id="_overview">Overview</h2>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The OsmAnd protocol is a simple, HTTP-based text protocol used to transmit GPS location data from a client (OsmAnd App) to a server. It is stateless and primarily uses HTTP GET requests with query parameters.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_communication_interface">Communication Interface</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Transport: HTTP or HTTPS<br>
-Method: GET (Default) or POST<br>
-Response: The server must return HTTP 200 OK to confirm receipt. The response body is ignored by the client.</p>
+<p>The generation of the Java API Client takes place in the <code>traccar-openapitools-client</code>
+as a completly independant process and therefor versioned one to one against Traccar.
+The <code>jar</code> can be used in any project and does not require customization for this repo.<br>
+The versioned input
+<a href="../../../traccar-openapitools-client/src/asciidoc/openapitools.html#_openapi_yaml_file"><code>openapi.yaml</code></a>
+file is defined in
+<a href="../../../traccar-openapitools-client/src/asciidoc/openapitools.html#_openapi_yaml">the pom file</a>.<br>
+The project documentation also describes different
+<a href="../../../traccar-openapitools-client/src/asciidoc/openapitools.html#_openapi_yaml_format">formats</a>
+to be aware of.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_request_structure">Request Structure</h2>
+<h2 id="_v1_1_17_traccar_v6_10_0_to_v6_12_2"><code>v1.1.17</code> - Traccar <code>v6.10.0</code> to <code>v6.12.2</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The default request format used by the OsmAnd application is:</p>
+<p>After upgrading the Traccar version</p>
 </div>
-<div class="sect2">
-<h3 id="_parameters">Parameters</h3>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 12.5%;">
-<col style="width: 50%;">
-<col style="width: 12.5%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Parameter</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Required</th>
-<th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Unit</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">id</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Unique device identifier.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">lat</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Latitude in decimal degrees.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Degrees</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">lon</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Longitude in decimal degrees.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Degrees</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">timestamp</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Long</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Unix Epoch timestamp.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Seconds (usually)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">speed</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Movement speed.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Meters per second (m/s)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">bearing</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Direction of travel.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Degrees (0.0 - 360.0)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">altitude</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Altitude above sea level (WGS84).</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Meters</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">batt</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Battery level of the device.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Percentage (0-100)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">hdop</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Double</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Horizontal Dilution of Precision.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Precision Value</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_example_request">Example Request</h3>
 <div class="literalblock">
 <div class="content">
-<pre>GET /track?id=phone1&amp;lat=52.5200&amp;lon=13.4050&amp;timestamp=1678886400&amp;speed=25.0&amp;bearing=90.0&amp;altitude=50.0&amp;batt=85.0</pre>
+<pre>&lt;traccar.version&gt;6.12.2&lt;/traccar.version&gt;</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>in the parent pom, the <code>traccar-openapitools-client</code> should compile without further ado.<br>
+So you can actually compile the complete repo and wait for compilation problems in the <code>traccar-api-client</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    [ERROR] traccar-api-client/src/main/java/bm/traccar/api/impl/DevicesImpl.java:[40,22]
+      method devicesGet in class bm.traccar.generated.api.DevicesApi cannot be applied to given types;
+      required: Boolean,    Integer,    Integer,    String, Boolean
+         found: &lt;nulltype&gt;, &lt;nulltype&gt;, &lt;nulltype&gt;, String
+        reason: actual and formal argument lists differ in length
+    [INFO] 1 error</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>When you open <code>DevicesImpl.java</code> the IDE provides another error message:</p>
 </div>
-<div class="sect1">
-<h2 id="_implementation_notes">Implementation Notes</h2>
-<div class="sectionbody">
-<div class="olist arabic">
-<ol class="arabic">
+<div class="literalblock">
+<div class="content">
+<pre>The method devicesGet(Boolean, Integer, Integer, String, Boolean) in the type DevicesApi is not applicable
+   for the arguments (null,    null,    null,    String         )</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should counter check the differences directly in the Traccar repo:
+<a href="https://github.com/traccar/traccar/compare/v6.10.0&#8230;&#8203;v6.12.2?diff=split&amp;path=openapi.yaml">v6.10.0 to v6.12.2</a><br>
+The <em>new!</em> javadoc tells us</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Fetch a list of Devices Without any params, returns a list of the user's devices
+    List&lt;Device&gt; bm.traccar.generated.api.DevicesApi.devicesGet(
+        @Nullable Boolean all,
+        @Nullable Integer userId,
+        @Nullable Integer id,
+        @Nullable String uniqueId,
+        @Nullable Boolean excludeAttributes ) throws RestClientResponseException</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Luckily we are still prototyping and avoiding bulk implementations and
+are not getting tempted to direct this to your CoPilot or other AI agent!</p>
+</div>
+<div class="paragraph">
+<p>In order to test our methods implemented <em>so far</em> we have our Integration Test
+in place: <code>DevicesApiIT</code> &#8230;&#8203;</p>
+</div>
+<div class="paragraph">
+<p>Long story short:
+During prototyping we want to keep it as simple as possible.
+For the time being we can simply ignore the new parameters (all being <code>@Nullable</code>)
+and call the method with <code>null</code> values without any issues.<br>
+Therefor we simplify the main API interface method to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>List&lt;Device&gt; getDevices(); // GET</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and the implementation:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@Override
+ public List&lt;Device&gt; getDevices() {
+   return devicesApi.devicesGet(null, null, null, null, null);
+ }</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ITests will be used without parameters as a generic method.<br>
+We can still filter on client side and we can add <code>getDevices</code>
+methods with descriptive names.</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
 <li>
-<p><strong>Customization</strong>: The protocol is flexible. In the OsmAnd App (Settings &#8594; Plugins &#8594; Trip recording &#8594; Online tracking), users can manually change the URL format. A server should be robust enough to handle missing optional parameters.</p>
+<p>&#10003; done</p>
 </li>
-<li>
-<p><strong>Timestamp</strong>: While OsmAnd typically sends seconds, some modified clients may send milliseconds. A robust server should check the magnitude of the timestamp (e.g., if timestamp &gt; 10000000000, treat as milliseconds).</p>
-</li>
-<li>
-<p><strong>Buffering</strong>: If the client is offline, OsmAnd buffers the requests and sends them in bulk when the connection is restored. The server must respect the timestamp parameter in the URL, not the time the request was received.</p>
-</li>
-</ol>
+</ul>
+</div>
+<div class="paragraph">
+<p>If we&#8217;re lucky every new version is only a version bump with small changes.<br>
+It this case we can wittness a significant change in the API
+with the addition of new parameters to existing endpoints and the addition of new endpoints.</p>
+</div>
+<div class="paragraph">
+<p>No need to go into details here, since we implement new API methods on demand.</p>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-03 21:23:46 +0100
+Last updated 2026-03-12 22:24:36 +0100
 </div>
 </div>
 </body>

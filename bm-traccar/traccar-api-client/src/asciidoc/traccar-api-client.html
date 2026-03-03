@@ -459,7 +459,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_implementation">implementation</a></li>
 <li><a href="#_traccar_api_client_implementation"><code>traccar-api-client</code> implementation</a>
 <ul class="sectlevel1">
 <li><a href="#_openapi_generator">openapi-generator</a></li>
@@ -511,6 +510,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_permissions">Permissions</a></li>
 <li><a href="#_devices">Devices</a></li>
 <li><a href="#_groups">Groups</a></li>
+</ul>
+</li>
+<li><a href="#_upgrading_traccar_api_client">upgrading <code>traccar-api-client</code></a>
+<ul class="sectlevel1">
+<li><a href="#_v1_1_17_traccar_v6_10_0_to_v6_12_2"><code>v1.1.17</code> - Traccar <code>v6.10.0</code> to <code>v6.12.2</code></a></li>
 </ul>
 </li>
 </ul>
@@ -776,26 +780,17 @@ by adding the service account token (with its risks):</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_implementation">implementation</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you are interested in the implementation read on
-<a href="./implementation.html">here</a></p>
-</div>
-</div>
-</div>
 <h1 id="_traccar_api_client_implementation" class="sect0"><code>traccar-api-client</code> implementation</h1>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>This software is based on a generated <strong>Java Spring REST Client</strong> from the traccar specification.
+<p>This software is based on a generated <strong>Java Spring REST Client</strong> from the Traccar REST specification.
 The single package (<code>bm.traccar.api</code>) implementation wraps the Java client in a <strong>Spring</strong> @Service
 to be applied wherever feasible. The API client completely hides the REST intricities
 inside regular Java methods.</p>
 </div>
 <div class="paragraph">
-<p>The <code>traccar-api-client</code> is basically a single package application or rather <em>service</em>.
+<p>The <code>traccar-api-client</code> is basically a single package application or rather <em>service</em>.<br>
 In addition there is a websocket package to receive live information from the Tracking System.</p>
 </div>
 </div>
@@ -821,7 +816,7 @@ given an OpenAPI Spec v3.</p>
 </div>
 <div class="paragraph">
 <p>Note that this Java code generation takes place in the isolated
-<a href="../../traccar-openapitools-client/readme.adoc"><code>traccar-openapitools-client</code></a>
+<a href="../../traccar-openapitools-client/readme.html"><code>traccar-openapitools-client</code></a>
 project. It has to run before this project which is build around the generated artifact.</p>
 </div>
 <div class="admonitionblock tip">
@@ -851,8 +846,11 @@ for a starting point on how to apply Maven properties etc.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Traccar <code>v6.7</code> provides <strong>17 APIs</strong> (see <code>package bm.traccar.generated.api</code>)
-for all aspects of GPS Tracking.
-The <code>traccar-api-client</code> defines <em>one single (nested) API interface:</em>
+and as the GTS progresses Traccar <code>v6.12.2</code> provides <strong>19 APIs</strong>.
+These APIs support many aspects of GPS Tracking and beyond, like health monitoring.</p>
+</div>
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> defines <em>one single (nested) API interface:</em>
 <code>bm.traccar.api.Api</code>, which allows us to switch the implementation.
 This was required, for example, when changing from swagger to OpenAPI (3 to 3.1).<br></p>
 </div>
@@ -874,8 +872,8 @@ to connect your program logic!</p>
 <div class="sect2">
 <h3 id="_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</h3>
 <div class="paragraph">
-<p>In addition the <code>traccar-api-client</code> provides <strong>21 Data Transfer Objects</strong><br>
-see <code>package bm.traccar.generated.model.dto</code></p>
+<p>In addition the <code>traccar-api-client-6.7</code> provides <strong>21 Data Transfer Objects</strong>
+and <code>v6.12.2</code> already has 26 (package <code>bm.traccar.generated.model.dto</code>).</p>
 </div>
 <div class="paragraph">
 <p>These DTO <em>represent</em> the different System Entities
@@ -930,7 +928,7 @@ which is represented in the
 while the DTOs are created in the
 <a href="https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/api/resource">resource package</a>.
 The Entities are only accessed by Traccar itself, while DTOs are snapshots of them.
-Of course you can always peek into the Traccar Database to check what&#8217;s going on.</p>
+The Traccar Database is the best place to monitor what&#8217;s going on.</p>
 </div>
 <div class="paragraph">
 <p>This is similar to DNA and RNA:<br>
@@ -945,7 +943,20 @@ while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.</
 <div class="sectionbody">
 <div class="paragraph">
 <p>This project is part of a larger software and therefor the Traccar Api Endpoints (<code>operationId</code>)
-are implemented in the order required by the main application.</p>
+are implemented in the order required by the main application.
+During prototyping you should <em>avoid</em> any bulk implementations.
+Protoyping is modelling and every new cycle, i.e. <code>x.y.z release</code>
+can introduce new sub APIs and endpoints - as the main application progresses.
+This way the implementation for all sub APIs turns into a mature pattern.
+And interdependencies can be implemented with convenient methods combining common actions.</p>
+</div>
+<div class="paragraph">
+<p>The most important aspect of this project is its <em>layer functionality</em>.
+As the Traccar GTS progresses the REST specification is modified
+and we want to avoid code changes all over our application.
+In the best case the code changes can be restricted to this project.
+The project can fix and hide specification inconsistencies
+and should provide consistent Java methods.</p>
 </div>
 <div class="sect2">
 <h3 id="_sessionapi">SessionApi</h3>
@@ -959,7 +970,7 @@ This works perfectly for APIs that are stateless and check the basic auth header
 </div>
 <div class="paragraph">
 <p>The <code>SessionApi</code> is a special case as <code>REST</code> and <code>HTTP</code> are defined as a stateless protocols.
-A session makes sense, if we log into the browser and keep it open.
+A session makes sense, if we log into the browser UI and keep it open.
 For the <code>traccar-api-client</code> we don&#8217;t need to establish a session for REST interactions.
 The sole purpose is to use the <code>SessionApi</code> to create a session
 and retrieve a <code>JSESSIONID</code> (Java Session Id) to be used with a websocket connection.</p>
@@ -977,7 +988,7 @@ This process is implemented in the <code>ApiService</code> and can be called wit
 <div class="paragraph">
 <p>That&#8217;s all we need from the <code>SessionApi</code> and we will move on to the websocket implementation
 with the returned <code>JSESSIONID</code> for the provided User.
-When you connect to websocket endpoint <code>/api/socket</code> (Not the REST endpoint <code>/api/session</code>!),
+When you connect to <em>websocket endpoint</em> <code>/api/socket</code> (<em>Not REST endpoint</em> <code>/api/session</code>!),
 the server checks for the presence of a valid session cookie
 to authorize <em>the real-time data stream</em>.</p>
 </div>
@@ -988,10 +999,16 @@ to authorize <em>the real-time data stream</em>.</p>
 <h2 id="_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This API client implementation applies Aspect-Oriented Programming (AOP)
+<p>This API client implementation applies <em>Aspect-Oriented Programming</em> (<strong>AOP</strong>)
 as the technique for handling exceptions in Spring Boot applications.
 This way all exception handling happens in one central <code>ApiAspect</code> class
 and avoids code duplication.</p>
+</div>
+<div class="paragraph">
+<p>We apply AOP, since the Traccar REST API is a moving target.
+SubAPIs are added, methods and types are changed etc.
+With AOP we can grasp a general pattern that applies to <em>all</em> sub APIs,
+even the ones we haven&#8217;t implemented or Traccar will offer in future.</p>
 </div>
 <div class="paragraph">
 <p>Generally any problem in the client software should through an <code>ApiException</code>
@@ -1025,13 +1042,13 @@ and to ensure that you have a binding communication.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">Spring AOP
-invocation order
-    invoke **UsersApi.usersPost(..) ** &lt;-------------+
-      invoke ApiClient.selectHeaderAccept(..)        |
-      invoke ApiClient.selectHeaderContentType(..)   |
-      invoke ApiClient.invokeAPI(..)                 |
-    Exception in ApiMethod: **UsersApi.usersPost(..) **</code></pre>
+<pre class="highlight"><code class="language-java" data-lang="java">    Spring AOP
+    invocation order
+        invoke **UsersApi.usersPost(..) ** &lt;-------------+
+          invoke ApiClient.selectHeaderAccept(..)        |
+          invoke ApiClient.selectHeaderContentType(..)   |
+          invoke ApiClient.invokeAPI(..)                 |
+        Exception in ApiMethod: **UsersApi.usersPost(..) **</code></pre>
 </div>
 </div>
 </div>
@@ -1694,10 +1711,130 @@ groupId     commandId</pre>
 </div>
 </div>
 </div>
+<h1 id="_upgrading_traccar_api_client" class="sect0">upgrading <code>traccar-api-client</code></h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The generation of the Java API Client takes place in the <code>traccar-openapitools-client</code>
+as a completly independant process and therefor versioned one to one against Traccar.
+The <code>jar</code> can be used in any project and does not require customization for this repo.<br>
+The versioned input
+<a href="../../../traccar-openapitools-client/src/asciidoc/openapitools.html#_openapi_yaml_file"><code>openapi.yaml</code></a>
+file is defined in
+<a href="../../../traccar-openapitools-client/src/asciidoc/openapitools.html#_openapi_yaml">the pom file</a>.<br>
+The project documentation also describes different
+<a href="../../../traccar-openapitools-client/src/asciidoc/openapitools.html#_openapi_yaml_format">formats</a>
+to be aware of.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_v1_1_17_traccar_v6_10_0_to_v6_12_2"><code>v1.1.17</code> - Traccar <code>v6.10.0</code> to <code>v6.12.2</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After upgrading the Traccar version</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>&lt;traccar.version&gt;6.12.2&lt;/traccar.version&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>in the parent pom, the <code>traccar-openapitools-client</code> should compile without further ado.<br>
+So you can actually compile the complete repo and wait for compilation problems in the <code>traccar-api-client</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    [ERROR] traccar-api-client/src/main/java/bm/traccar/api/impl/DevicesImpl.java:[40,22]
+      method devicesGet in class bm.traccar.generated.api.DevicesApi cannot be applied to given types;
+      required: Boolean,    Integer,    Integer,    String, Boolean
+         found: &lt;nulltype&gt;, &lt;nulltype&gt;, &lt;nulltype&gt;, String
+        reason: actual and formal argument lists differ in length
+    [INFO] 1 error</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you open <code>DevicesImpl.java</code> the IDE provides another error message:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>The method devicesGet(Boolean, Integer, Integer, String, Boolean) in the type DevicesApi is not applicable
+   for the arguments (null,    null,    null,    String         )</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should counter check the differences directly in the Traccar repo:
+<a href="https://github.com/traccar/traccar/compare/v6.10.0&#8230;&#8203;v6.12.2?diff=split&amp;path=openapi.yaml">v6.10.0 to v6.12.2</a><br>
+The <em>new!</em> javadoc tells us</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Fetch a list of Devices Without any params, returns a list of the user's devices
+    List&lt;Device&gt; bm.traccar.generated.api.DevicesApi.devicesGet(
+        @Nullable Boolean all,
+        @Nullable Integer userId,
+        @Nullable Integer id,
+        @Nullable String uniqueId,
+        @Nullable Boolean excludeAttributes ) throws RestClientResponseException</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Luckily we are still prototyping and avoiding bulk implementations and
+are not getting tempted to direct this to your CoPilot or other AI agent!</p>
+</div>
+<div class="paragraph">
+<p>In order to test our methods implemented <em>so far</em> we have our Integration Test
+in place: <code>DevicesApiIT</code> &#8230;&#8203;</p>
+</div>
+<div class="paragraph">
+<p>Long story short:
+During prototyping we want to keep it as simple as possible.
+For the time being we can simply ignore the new parameters (all being <code>@Nullable</code>)
+and call the method with <code>null</code> values without any issues.<br>
+Therefor we simplify the main API interface method to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>List&lt;Device&gt; getDevices(); // GET</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and the implementation:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>@Override
+ public List&lt;Device&gt; getDevices() {
+   return devicesApi.devicesGet(null, null, null, null, null);
+ }</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ITests will be used without parameters as a generic method.<br>
+We can still filter on client side and we can add <code>getDevices</code>
+methods with descriptive names.</p>
+</div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10003; done</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If we&#8217;re lucky every new version is only a version bump with small changes.<br>
+It this case we can wittness a significant change in the API
+with the addition of new parameters to existing endpoints and the addition of new endpoints.</p>
+</div>
+<div class="paragraph">
+<p>No need to go into details here, since we implement new API methods on demand.</p>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-05 11:46:30 +0100
+Last updated 2026-03-12 13:01:26 +0100
 </div>
 </div>
 </body>
