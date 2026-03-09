@@ -36,17 +36,17 @@ since it is still in beta phase: `4.0.0-beta-1`
 
 === step 2 - Camel and Spring versions  
 
-The above maven command does not check the BOM versions.
+The above maven command does not check the BOM versions of the two frameworks.
 Therefor they are incremented one by one until the repository
 is completly build with `mvn install`.
 
         <camel-version>4.18.0</camel-version>
   <spring-boot-version>4.0.3</spring-boot-version>
 
-SpringBoot was upgraded from 3 to 4.
+SpringBoot was upgraded from 3 to 4 in `v1.1.17`.
 We usually stick to the `LTS` versions provided.
 
-=== step 3 - Java and JDK versions
+=== step 3 - Java and JDK version
 
 Upgrading Java can be fine for the repository.
 Nevertheless we would like to keep a compromise between highest available 
@@ -54,30 +54,83 @@ and lowest backward compatibility for users of the released jar files.
 
         <jdk.version>21</jdk.version>
 
-=== step 4 - Traccar versions
+=== step 4 - Traccar version
 
-This step is more than just a change of pom coordinates.
-Traccar always has and still is evolving at a high pace and
-for this repository especially the REST API is vital.
-Therefor we go through this upgrade process, if there is time :(
+==== pull and run new container
 
-For your purposes check the API version and most REST calls 
-have been available for years and should be (backward) compatible
-to your Traccar Server Version.
+Updating the Docker Traccar version is as simple as incrementing to the desired version. +
+Just change the `traccar.version` in the `bm-parent/pom.xml`
+    
+    <traccar.version>6.12.2</traccar.version>
 
-And the
+and run 
 
-    org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -> 7.14.0
+    ~/git/bm/bm-parent$ ../mvnw docker:run
 
-should be updated with the Traccar Version.
+and see how the new container is pulled and started
+
+    [INFO] --- docker-maven-plugin:0.48.1:run (default-cli) @ bm-parent ---
+    [INFO] DOCKER> Pulling from traccar/traccar
+    01d7766a2e4a: Pull complete 
+    e152e288890f: Pull complete 
+    88ba7e9ad9ed: Pull complete 
+    4f4fb700ef54: Pull complete 
+    [INFO] DOCKER> Digest: sha256:cfd9859e85480b75c30f7d2f31a6e45c429322f6e8d04084b2e60d52b390a3eb
+    [INFO] DOCKER> Status: Downloaded newer image for traccar/traccar:6.12.2-ubuntu
+    [INFO] DOCKER> Pulled traccar/traccar:6.12.2-ubuntu in 19 seconds 
+    [INFO] DOCKER> [traccar/traccar:6.12.2-ubuntu] "traccar": Start container c779cda54c47
+    [INFO] DOCKER> [traccar/traccar:6.12.2-ubuntu] "traccar": Waiting on url http://localhost with method HEAD for status 200..399.
+    [INFO] DOCKER> [traccar/traccar:6.12.2-ubuntu] "traccar": Waited on url http://localhost 5172 ms
+
+All relevant external sources are specified in the `docker-maven-plugin`.
+
+
+==== generate Traccar API
+
+After changing the `traccar.version` the `traccar-openapitools-client` 
+needs to be run in order to create a new `traccar-api-generated`.
+No changes in the project are required and therfor you can simply
+start a complete repository `install` and it should run past the API generation.
+
+goto
+xref:../../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.adoc[`traccar-openapitools-client`] 
+
+
+==== fix `traccar-api-client`
+
+After `traccar-openapitools-client` the `traccar-api-client` compilation 
+will probably fail and you have to delve into this project.
+
+It is vital to understand that the `traccar-api-client` is the fundament 
+for all client implementations. Therefor this _layer_ should be held 
+as constant as possible in order to avoid massive code changes
+all over the repository!
+
+goto
+xref:../../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.adoc[`traccar-api-client`] 
+
+
+
+
+==== todo
+
+
+
+Version number bumps
+
+The bulk of the OpenAPI additions landed around early 2026 (leading into v6.12 series), 
+including the geofence report, health check, and orders support.
 
 
 == release project
 
 1. check pom structure and build order (`mvn clean`)
 2. update `bm.adoc` and `releases.adoc` versioning
+3. generate documentation
+4. set skips before releasing
 
-=== 3. generate adoc/html/mermaid documentation
+
+=== generate documentation
 
 Start `kroki-mermaid`: 
 
@@ -133,7 +186,7 @@ nice2have: +
 start docker if `skip>false`
 
 
-=== 4. skip Docker Integration Tests for light version
+=== skip Docker Integration Tests for light version
 
 The Docker Integration Tests are invaluable for development.
 They should only be committed, if they run with a green bar.

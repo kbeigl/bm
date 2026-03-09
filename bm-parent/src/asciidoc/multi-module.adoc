@@ -8,6 +8,12 @@ The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every `mvn` command executed. 
 It assures that any project is build as required by another.
 
+We use the Maven multi-module project approach for managing distributed applications 
+where different components need to be developed, versioned, and deployed _independently_ 
+while maintaining coherent dependencies centralized.
+This simplifies and standardizes a consistent build process 
+and scaling with a clear separation of concerns.
+
 This is a Java project and the development cycle 
 is defined by the major components:
 
