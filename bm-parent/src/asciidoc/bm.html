@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>Untitled</title>
+<title>repository content and structures</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,202 +436,216 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="book">
 <div id="header">
+<h1>repository content and structures</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_latest_versions">latest versions</a></li>
+<li><a href="#_bm_parent"><code>/bm-parent</code></a></li>
+<li><a href="#_bm_tracker"><code>/bm-tracker</code></a>
+<ul class="sectlevel2">
+<li><a href="#_traccar_trackers">Traccar Trackers</a></li>
+<li><a href="#_the_jeets_tracker">The 'JeeTS Tracker'</a></li>
+<li><a href="#_gps_osmand_tracker"><code>gps-osmand-tracker</code></a></li>
+</ul>
+</li>
+<li><a href="#_bm_traccar"><code>/bm-traccar</code></a>
+<ul class="sectlevel2">
+<li><a href="#_traccar_openapitools_client"><code>traccar-openapitools-client</code></a></li>
+<li><a href="#_traccar_api_client"><code>traccar-api-client</code></a></li>
+<li><a href="#_traccar_realtime_client"><code>traccar-realtime-client</code></a></li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<div class="literalblock">
+<div class="paragraph">
+<p>This repository serves as development environment<br>
+for the
+<a href="https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8"><code>The RealObject Application Framework</code></a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_latest_versions">latest versions</h2>
+<div class="sectionbody">
+<div class="listingblock">
 <div class="content">
-<pre>[INFO] === blue marble simulations               === 1.1.16
-[INFO] --- blue marble parameters                --- 1.1.16
-[INFO] ---- GPS Trackers                         --- 1.1.16
-[INFO] ..... gps-osmand-tracker          1.1.16 ...........
-[INFO] ---- Traccar Clients                      --- 1.1.16
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0 ...........
-[INFO] ..... traccar-realtime-client     6.10.0 ...........</pre>
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.17
+    [INFO] --- blue marble parameters                --- 1.1.17
+    [INFO] ---- GPS Trackers                         --- 1.1.17
+    [INFO] ..... gps-osmand-tracker          1.1.17 ...........
+    [INFO] ---- Traccar Clients                      --- 1.1.17
+    [INFO] ..... traccar-openapitools-client 6.10.0 ...........
+    [INFO] ..... traccar-api-client          6.10.0 ...........
+    [INFO] ..... traccar-realtime-client     6.10.0 ...........</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[NOTE] swapped tracker and traccar modules for natural order
-       after API architecture is in place</pre>
+<div class="paragraph">
+<p>For earlier versions check the
+<a href="releases.html">version history</a></p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations         === 1.1.15-alpha
-[INFO] --- blue marble parameters          --- 1.1.15-alpha
-[INFO] ---- traccar client implementations --- 1.1.15-alpha
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-realtime-client     6.10.0-RC ........
-[INFO] ---- GPS Unit and Tracker           --- 1.1.15-alpha
-[INFO] ..... gps-osmand-tracker          1.1.15-POC .......</pre>
+</div>
+<div class="sect1">
+<h2 id="_bm_parent"><code>/bm-parent</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This <code>bm-sim</code> repository is a <strong>Maven Multi Module</strong> project.
+The Maven Reactor mechanism makes sure to collect all modules
+and assert correct build order with every <code>mvn</code> command executed.
+It assures that any project is build as required by another.</p>
+</div>
+<div class="paragraph">
+<p>If you are not sure about your Maven Version it is highly recommended to use the
+<a href="../../bm-parent/src/asciidoc/maven-maintenance.html">Maven Wrapper</a>
+in the root directory!<br>
+If you modify the versioning make sure the build order matches the listing above.
+Otherwise the Maven Reactor has detected inconsistencies.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../bm-parent/src/asciidoc/bm-parent.html">bm-parent details &#8230;&#8203;</a></p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations               === 1.1.14
-[INFO] --- blue marble parameters                --- 1.1.14
-[INFO] ---- traccar client implementations       --- 1.1.14
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-realtime-client     6.10.0-RC ........
-[INFO] ---- GPS Unit and Tracker                 --- 1.1.14
-[INFO] ..... gps-osmand-tracker          1.1.14-POC  ......</pre>
+</div>
+<div class="sect1">
+<h2 id="_bm_tracker"><code>/bm-tracker</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This <code>bm-tracker</code> branch is used to develop <em>virtual GPS Tracker Simulators</em><br>
+which can track real things by sending their positions frequently.</p>
+</div>
+<div class="paragraph">
+<p>For the ROAF development we want to start bottom up.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>All Devices in the ROAF provide GPS coordinates <em>(lat,lon,fix)</em></strong></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>as a common basis for Framework development.</p>
+</div>
+<div class="paragraph">
+<p>The ROAF vision described in the book is based on simple and platonic rules.<br>
+In order to simulate things, events and interactions of the real world,
+we will need <em>a grid for space and time</em>.<br>
+With respect to the blue marble we might speak of <em>Globe Positioning</em>.</p>
+</div>
+<div class="sect2">
+<h3 id="_traccar_trackers">Traccar Trackers</h3>
+<div class="paragraph">
+<p>In the long run we want to be able to create scenarios with any or all
+<a href="https://www.traccar.org/devices/">devices</a> and
+<a href="https://www.traccar.org/protocols/">protocols</a> implemented in traccar.</p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations               === 1.1.13
-[INFO] --- blue marble parameters                --- 1.1.13
-[INFO] ---- traccar client implementations       --- 1.1.13
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-realtime-client     6.10.0-RC ........
-[INFO] ---- GPS Unit and Tracker            --- 1.1.13-beta
-[INFO] ..... gps-osmand-tracker          1.1.13-beta ......</pre>
+<div class="sect2">
+<h3 id="_the_jeets_tracker">The 'JeeTS Tracker'</h3>
+<div class="paragraph">
+<p>If the Traccar Trackers don&#8217;t fit your business the
+<a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">JeeTS Book</a>
+you demonstrates how to create Protocols with Message Catalogs to fit your business,
+how to integrate your own Tracker with the traccar platform and your business model.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../bm-tracker/src/asciidoc/bm-tracker.html">more about GPS and Tracking &#8230;&#8203;</a></p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations               === 1.1.12
-[INFO] --- blue marble parameters                --- 1.1.12
-[INFO] ---- traccar client implementations       --- 1.1.12
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-realtime-client     6.10.0-RC ........
-[INFO] ---- GPS Unit and Tracker            --- 1.1.12-beta
-[INFO] ..... gps-osmand-tracker          1.1.12-beta ......</pre>
+<div class="sect2">
+<h3 id="_gps_osmand_tracker"><code>gps-osmand-tracker</code></h3>
+<div class="sect3">
+<h4 id="_the_gps_osmand_tracker">The GPS OsmAnd Tracker</h4>
+<div class="paragraph">
+<p>The first ROAF GPS Tracker will serve as a placeholder for more customized trackers.
+We will look at the standard components of a Tracking Device
+and implement the most simple Tracker by using the public <code>OsmAnd</code> protocol.
+You can find the protocol specs
+<a href="https://www.traccar.org/osmand/">here</a>,
+<a href="OsmAndProtocolSpecification.html">here</a> and elsewhere.</p>
+</div>
+<div class="paragraph">
+<p><a href="./../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto gps-osmand-tracker project</a></p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.11-RC
-[INFO] --- blue marble parameters             --- 1.1.11-RC
-[INFO] ---- traccar client implementations    --- 1.1.11-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........
-[INFO] ---- GPS Unit and Tracker              --- 1.1.11 ..
-[INFO] ..... gps-osmand-tracker          1.1.11-beta ......</pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations            === 1.1.10-RC
-[INFO] --- blue marble parameters             --- 1.1.10-RC
-[INFO] ---- traccar client implementations    --- 1.1.10-RC
-[INFO] ..... traccar-openapitools-client 6.10.0 ...........
-[INFO] ..... traccar-api-client          6.10.0-RC ........
-[INFO] ..... traccar-rt-client           6.10.0-RC ........</pre>
+</div>
+<div class="sect1">
+<h2 id="_bm_traccar"><code>/bm-traccar</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>bm-traccar</code> aggregator POM is the development environment
+to code against the <a href="https://www.traccar.org/">Traccar GPS Tracking Platform</a>.
+Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
+The System was thoroughly analyzed in the
+<a href="https://github.com/kbeigl/jeets/blob/master/README.adoc">JeeTS Project</a>
+and
+<a href="https://github.com/kbeigl/jeets/blob/master/README.adoc#literature">JeeTS Book</a>.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../bm-traccar/src/asciidoc/bm-traccar.html">read more to setup and adopt your development environment</a></p>
+</div>
+<div class="paragraph">
+<p>As of <code>v1.1.8</code> we are developing the following three
+cascaded and yet independent artifacts:</p>
+</div>
+<div class="sect2">
+<h3 id="_traccar_openapitools_client"><code>traccar-openapitools-client</code></h3>
+<div class="paragraph">
+<p>The Traccar REST API is defined in a single <code>openapi.yaml</code> file,
+which is processed with the
+<a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI Generator</a>
+to generate a plain Java Client <code>traccar-api-generated-x.y.z.jar</code> from the
+<a href="https://swagger.io/specification/">OpenAPI specification</a>.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
-[INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
-[INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<div class="sect2">
+<h3 id="_traccar_api_client"><code>traccar-api-client</code></h3>
+<div class="sect3">
+<h4 id="_the_traccar_openapi_client">The Traccar OpenAPI Client</h4>
+<div class="paragraph">
+<p>The <code>traccar-api-client</code> is a Java Client Software to provide full (remote) control over your Traccar server.
+And it can be used to integrate your Tracking with your company systems,
+like Human Resources-, Sales- and Fleet Management Software.
+Synchronize your employees with their cars and driver information without utilizing the traccar UI.
+Pull driving reports for your sales team &#8230;&#8203; and much more ;)</p>
+</div>
+<div class="paragraph">
+<p><a href="../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.8
-[INFO] --- blue marble parameters                 --- 1.1.8
-[INFO] ---- traccar client implementations        --- 1.1.8
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
 </div>
+<div class="sect2">
+<h3 id="_traccar_realtime_client"><code>traccar-realtime-client</code></h3>
+<div class="sect3">
+<h4 id="_the_traccar_real_time_client">The Traccar Real-Time Client</h4>
+<div class="paragraph">
+<p>The traccar-rt-client is a Java Client Software
+to provide full (remote) control over and interact
+via live surveillance of your Traccar Server Scenario.</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.7
-[INFO] --- blue marble parameters                 --- 1.1.7
-[INFO] ---- traccar client implementations        --- 1.1.7
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-rt-client              6.8.0 .........</pre>
+<div class="paragraph">
+<p><a href="../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-realtime-client.html">details &#8230;&#8203;</a></p>
 </div>
+<div class="paragraph">
+<p><a href="../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-rt-CLI.html">Quickstart</a></p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.6
-[INFO] --- blue marble parameters                 --- 1.1.6
-[INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6-POC ....... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.5
-[INFO] --- blue marble parameters                 --- 1.1.5
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.4
-[INFO] --- blue marble parameters                 --- 1.1.4
-[INFO] ---- traccar client implementations  6.8.0
-[INFO] ..... traccar-openapitools-client    6.8.0 .........
-[INFO] ..... traccar-api-client             6.8.0 .........
-[INFO] ..... traccar-api-camel              6.6 ...........</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>XX do not use release 1.1.3 XX</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.2
-[INFO] --- blue marble parameters                 --- 1.1.2
-[INFO] ---- traccar client implementations  6.7.1
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
-[INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC
-[INFO] ..... traccar-ws-client              6.7.1-POC ..... POC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] === blue marble simulations                  === 1.1-SNAPSHOT
-[INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
-[INFO] ---- traccar client implementations  6.7.1-RC
-[INFO] ..... traccar-api-camel              6.6 ...........
-[INFO] ..... traccar-openapitools-client    6.7.1 .........
-[INFO] ..... traccar-api-client             6.7.1-RC ...... RC</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>v1.0 initial setup
-    /bm-parent
-    /bm-traccar             v.6.7.1
-        /traccar-api-camel
-        /traccar-api-client
-        /traccar-openapitools-client</pre>
 </div>
 </div>
 </div>
@@ -639,7 +653,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-03 21:23:46 +0100
+Last updated 2026-03-04 13:17:39 +0100
 </div>
 </div>
 </body>

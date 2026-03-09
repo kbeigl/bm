@@ -2,7 +2,10 @@
 .project
 .settings/
 .asciidoctorconfig.adoc
-/src/asciidoc/.asciidoctor/diagram
 .classpath
 .factorypath
 target/
+
+./src/asciidoc/.asciidoctor/diagram
+# Ignore generated SVG cache files
+*.svg.cache

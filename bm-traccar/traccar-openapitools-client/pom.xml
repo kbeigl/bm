@@ -86,6 +86,8 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
+                            <!-- skip generation when -Dopenapi.skip=true -->
+                            <skip>${openapi.skip}</skip>
                             <!-- set remoteInputSpec instead of inputSpec ? -->
                             <inputSpec>https://raw.githubusercontent.com/traccar/traccar/v${traccar.version}/openapi.yaml</inputSpec>
                             <!-- use locally fetched (above) and patched spec
@@ -104,7 +106,7 @@
                             <!-- 
                             <generateSupportingFiles>false</generateSupportingFiles>
                             <supportingFilesToGenerate>pom.xml</supportingFilesToGenerate>
--->
+                            -->
                             <generateModelDocumentation>false</generateModelDocumentation>
                             <generateModelTests>false</generateModelTests>
 
@@ -122,6 +124,7 @@
                                 <!-- doesnt work for method generator -->
                                 <typeMappings>int64=Long</typeMappings>
                             </configOptions>
+                            
                         </configuration>
                     </execution>
                 </executions>
@@ -138,6 +141,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
+                            <!-- skip install of generated client when -Dopenapi.skip=true -->
+                            <skip>${openapi.skip}</skip>
                             <workingDirectory>${project.build.directory}/generated-sources/openapi</workingDirectory>
                             <executable>mvn</executable>
                             <arguments>

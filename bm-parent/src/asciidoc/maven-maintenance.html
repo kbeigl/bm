@@ -444,14 +444,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_step_1_maven_versions">step 1 - Maven versions</a></li>
 <li><a href="#_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</a></li>
-<li><a href="#_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</a></li>
-<li><a href="#_step_4_traccar_versions">step 4 - Traccar versions</a></li>
+<li><a href="#_step_3_java_and_jdk_version">step 3 - Java and JDK version</a></li>
+<li><a href="#_step_4_traccar_version">step 4 - Traccar version</a></li>
 </ul>
 </li>
 <li><a href="#_release_project">release project</a>
 <ul class="sectlevel2">
-<li><a href="#_3_generate_adochtmlmermaid_documentation">3. generate adoc/html/mermaid documentation</a></li>
-<li><a href="#_4_skip_docker_integration_tests_for_light_version">4. skip Docker Integration Tests for light version</a></li>
+<li><a href="#_generate_documentation">generate documentation</a></li>
+<li><a href="#_skip_docker_integration_tests_for_light_version">skip Docker Integration Tests for light version</a></li>
 </ul>
 </li>
 <li><a href="#_maven_reactor">maven reactor</a></li>
@@ -515,7 +515,7 @@ since it is still in beta phase: <code>4.0.0-beta-1</code></p>
 <div class="sect2">
 <h3 id="_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</h3>
 <div class="paragraph">
-<p>The above maven command does not check the BOM versions.
+<p>The above maven command does not check the BOM versions of the two frameworks.
 Therefor they are incremented one by one until the repository
 is completly build with <code>mvn install</code>.</p>
 </div>
@@ -526,12 +526,12 @@ is completly build with <code>mvn install</code>.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>SpringBoot was upgraded from 3 to 4.
+<p>SpringBoot was upgraded from 3 to 4 in <code>v1.1.17</code>.
 We usually stick to the <code>LTS</code> versions provided.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_step_3_java_and_jdk_versions">step 3 - Java and JDK versions</h3>
+<h3 id="_step_3_java_and_jdk_version">step 3 - Java and JDK version</h3>
 <div class="paragraph">
 <p>Upgrading Java can be fine for the repository.
 Nevertheless we would like to keep a compromise between highest available
@@ -544,28 +544,88 @@ and lowest backward compatibility for users of the released jar files.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_step_4_traccar_versions">step 4 - Traccar versions</h3>
+<h3 id="_step_4_traccar_version">step 4 - Traccar version</h3>
+<div class="sect3">
+<h4 id="_pull_and_run_new_container">pull and run new container</h4>
 <div class="paragraph">
-<p>This step is more than just a change of pom coordinates.
-Traccar always has and still is evolving at a high pace and
-for this repository especially the REST API is vital.
-Therefor we go through this upgrade process, if there is time :(</p>
-</div>
-<div class="paragraph">
-<p>For your purposes check the API version and most REST calls
-have been available for years and should be (backward) compatible
-to your Traccar Server Version.</p>
-</div>
-<div class="paragraph">
-<p>And the</p>
+<p>Updating the Docker Traccar version is as simple as incrementing to the desired version.<br>
+Just change the <code>traccar.version</code> in the <code>bm-parent/pom.xml</code></p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>org.openapitools:openapi-generator-maven-plugin .. 7.13.0 -&gt; 7.14.0</pre>
+<pre>&lt;traccar.version&gt;6.12.2&lt;/traccar.version&gt;</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>should be updated with the Traccar Version.</p>
+<p>and run</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>~/git/bm/bm-parent$ ../mvnw docker:run</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and see how the new container is pulled and started</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[INFO] --- docker-maven-plugin:0.48.1:run (default-cli) @ bm-parent ---
+[INFO] DOCKER&gt; Pulling from traccar/traccar
+01d7766a2e4a: Pull complete
+e152e288890f: Pull complete
+88ba7e9ad9ed: Pull complete
+4f4fb700ef54: Pull complete
+[INFO] DOCKER&gt; Digest: sha256:cfd9859e85480b75c30f7d2f31a6e45c429322f6e8d04084b2e60d52b390a3eb
+[INFO] DOCKER&gt; Status: Downloaded newer image for traccar/traccar:6.12.2-ubuntu
+[INFO] DOCKER&gt; Pulled traccar/traccar:6.12.2-ubuntu in 19 seconds
+[INFO] DOCKER&gt; [traccar/traccar:6.12.2-ubuntu] "traccar": Start container c779cda54c47
+[INFO] DOCKER&gt; [traccar/traccar:6.12.2-ubuntu] "traccar": Waiting on url http://localhost with method HEAD for status 200..399.
+[INFO] DOCKER&gt; [traccar/traccar:6.12.2-ubuntu] "traccar": Waited on url http://localhost 5172 ms</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All relevant external sources are specified in the <code>docker-maven-plugin</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_generate_traccar_api">generate Traccar API</h4>
+<div class="paragraph">
+<p>After changing the <code>traccar.version</code> the <code>traccar-openapitools-client</code>
+needs to be run in order to create a new <code>traccar-api-generated</code>.
+No changes in the project are required and therfor you can simply
+start a complete repository <code>install</code> and it should run past the API generation.</p>
+</div>
+<div class="paragraph">
+<p>goto
+<a href="../../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitools.html"><code>traccar-openapitools-client</code></a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_fix_traccar_api_client">fix <code>traccar-api-client</code></h4>
+<div class="paragraph">
+<p>After <code>traccar-openapitools-client</code> the <code>traccar-api-client</code> compilation
+will probably fail and you have to delve into this project.</p>
+</div>
+<div class="paragraph">
+<p>It is vital to understand that the <code>traccar-api-client</code> is the fundament
+for all client implementations. Therefor this <em>layer</em> should be held
+as constant as possible in order to avoid massive code changes
+all over the repository!</p>
+</div>
+<div class="paragraph">
+<p>goto
+<a href="../../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.html"><code>traccar-api-client</code></a></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_todo">todo</h4>
+<div class="paragraph">
+<p>Version number bumps</p>
+</div>
+<div class="paragraph">
+<p>The bulk of the OpenAPI additions landed around early 2026 (leading into v6.12 series),
+including the geofence report, health check, and orders support.</p>
+</div>
 </div>
 </div>
 </div>
@@ -581,10 +641,16 @@ to your Traccar Server Version.</p>
 <li>
 <p>update <code>bm.adoc</code> and <code>releases.adoc</code> versioning</p>
 </li>
+<li>
+<p>generate documentation</p>
+</li>
+<li>
+<p>set skips before releasing</p>
+</li>
 </ol>
 </div>
 <div class="sect2">
-<h3 id="_3_generate_adochtmlmermaid_documentation">3. generate adoc/html/mermaid documentation</h3>
+<h3 id="_generate_documentation">generate documentation</h3>
 <div class="paragraph">
 <p>Start <code>kroki-mermaid</code>:</p>
 </div>
@@ -667,7 +733,7 @@ start docker if <code>skip&gt;false</code></p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_4_skip_docker_integration_tests_for_light_version">4. skip Docker Integration Tests for light version</h3>
+<h3 id="_skip_docker_integration_tests_for_light_version">skip Docker Integration Tests for light version</h3>
 <div class="paragraph">
 <p>The Docker Integration Tests are invaluable for development.
 They should only be committed, if they run with a green bar.
@@ -902,7 +968,7 @@ mvn dependency:resolve -Dclassifier=sources</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-03 21:23:46 +0100
+Last updated 2026-03-08 15:19:35 +0100
 </div>
 </div>
 </body>
