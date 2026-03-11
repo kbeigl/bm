@@ -453,6 +453,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></a></li>
+<li><a href="#_traccar_api_client_upgrades"><code>traccar-api-client</code> upgrades</a></li>
 </ul>
 </div>
 </div>
@@ -492,7 +493,7 @@ given an OpenAPI Spec v3.</p>
 </div>
 <div class="paragraph">
 <p>Note that this Java code generation takes place in the isolated
-<a href="../../traccar-openapitools-client/readme.adoc"><code>traccar-openapitools-client</code></a>
+<a href="../../traccar-openapitools-client/readme.html"><code>traccar-openapitools-client</code></a>
 project. It has to run before this project which is build around the generated artifact.</p>
 </div>
 <div class="admonitionblock tip">
@@ -616,7 +617,20 @@ while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.</
 <div class="sectionbody">
 <div class="paragraph">
 <p>This project is part of a larger software and therefor the Traccar Api Endpoints (<code>operationId</code>)
-are implemented in the order required by the main application.</p>
+are implemented in the order required by the main application.
+During prototyping you should <em>not</em> do any bulk implementations.
+Protoyping is modelling and every new cycle, i.e. <code>x.y.z release</code>
+can introduce new sub APIs and endpoints - as the main application progresses.
+This way the implementation for all sub APIs turns into a mature pattern.
+And interdependencies can be implemented with convenient methods combining common actions.</p>
+</div>
+<div class="paragraph">
+<p>The most important aspect of this project is its <em>layer functionality</em>.
+As the Traccar GTS progresses the REST specification is modified
+and we want to avoid code changes all over our application.
+In the best case the code changes can be restricted to this project.
+The project can fix and hide specification inconsistencies
+and should provide consistent Java methods.</p>
 </div>
 <div class="sect2">
 <h3 id="_sessionapi">SessionApi</h3>
@@ -630,7 +644,7 @@ This works perfectly for APIs that are stateless and check the basic auth header
 </div>
 <div class="paragraph">
 <p>The <code>SessionApi</code> is a special case as <code>REST</code> and <code>HTTP</code> are defined as a stateless protocols.
-A session makes sense, if we log into the browser and keep it open.
+A session makes sense, if we log into the browser UI and keep it open.
 For the <code>traccar-api-client</code> we don&#8217;t need to establish a session for REST interactions.
 The sole purpose is to use the <code>SessionApi</code> to create a session
 and retrieve a <code>JSESSIONID</code> (Java Session Id) to be used with a websocket connection.</p>
@@ -659,10 +673,16 @@ to authorize <em>the real-time data stream</em>.</p>
 <h2 id="_traccar_apiaspect_and_apiexception">Traccar <code>ApiAspect</code> and <code>ApiException</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This API client implementation applies Aspect-Oriented Programming (AOP)
+<p>This API client implementation applies <em>Aspect-Oriented Programming</em> (<strong>AOP</strong>)
 as the technique for handling exceptions in Spring Boot applications.
 This way all exception handling happens in one central <code>ApiAspect</code> class
 and avoids code duplication.</p>
+</div>
+<div class="paragraph">
+<p>We apply AOP, since the Traccar REST API is a moving target.
+SubAPIs are added, methods and types are changed etc.
+With AOP we can grasp a general pattern that applies to <em>all</em> sub APIs,
+even the ones we haven&#8217;t implemented or Traccar will offer in future.</p>
 </div>
 <div class="paragraph">
 <p>Generally any problem in the client software should through an <code>ApiException</code>
@@ -707,10 +727,25 @@ invocation order
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_traccar_api_client_upgrades"><code>traccar-api-client</code> upgrades</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>backref to openapi.yaml format and version</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>openapi.yaml diff</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-08 12:43:45 +0100
+Last updated 2026-03-09 12:36:42 +0100
 </div>
 </div>
 </body>

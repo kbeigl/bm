@@ -244,7 +244,6 @@ On a short term we wan't to avoid hooks inside the repo to keep it simple alap
 ====
 
 
-
 == maven wrapper
 
 To make sure that the complete project is build with a specified Maven Version

@@ -126,6 +126,10 @@
                             <standalone>true</standalone>
                             <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
                             <outputDirectory>${project.basedir}/src/asciidoc</outputDirectory>
+                            <!-- preserve source subdirectory structure when writing output (e.g. bm/bm.adoc -> bm/bm.html) -->
+                            <relativeBaseDir>true</relativeBaseDir>
+                            <!-- keep directory hierarchy from sourceDirectory in outputDirectory -->
+                            <preserveDirectories>true</preserveDirectories>
                             <backend>html5</backend>
                             <doctype>book</doctype>
                             <enableVerbose>true</enableVerbose>
