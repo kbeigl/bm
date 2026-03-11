@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-	Copyright 2025 Kristof Beiglböck kbeigl@web.de
+	Copyright 2026 Kristof Beiglböck kbeigl@web.de
 
 	The blue marble repository licenses this file to you
 	under the Apache License, Version 2.0 (the "License");
@@ -293,6 +293,94 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>${asciidoctor.maven.version}</version>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj-diagram</artifactId>
+                        <version>${asciidoc.diagram.version}</version>
+                    </dependency>
+                </dependencies>
+
+                <executions>
+                    <execution>
+                        <id>generate-html-docs</id>
+                        <phase>generate-resources</phase>
+                        <!-- <phase>prepare-package</phase> -->
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${asciidoc.process.skip}</skip>
+                            <standalone>true</standalone>
+                            <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
+                            <outputDirectory>${project.basedir}/src/asciidoc</outputDirectory>
+                            <!-- preserve source subdirectory structure when
+                            writing output (e.g. bm/bm.adoc -> bm/bm.html) -->
+                            <relativeBaseDir>true</relativeBaseDir>
+                            <!-- keep directory hierarchy from sourceDirectory
+                            in outputDirectory -->
+                            <preserveDirectories>true</preserveDirectories>
+                            <backend>html5</backend>
+                            <doctype>book</doctype>
+                            <enableVerbose>true</enableVerbose>
+                            <requires>
+                                <require>asciidoctor-diagram</require>
+                            </requires>
+                            <attributes>
+                                <kroki-server-url>http://localhost:8000</kroki-server-url>
+                                <kroki-fallback-server-url>https://kroki.io</kroki-fallback-server-url>
+                                <!--
+                                <kroki-server-url>https://kroki.io</kroki-server-url> -->
+                                <kroki-fetch-diagram>true</kroki-fetch-diagram>
+                                <allow-uri-read />
+
+                                <diagram-server-type>kroki_io</diagram-server-type>
+                                <diagram-server-url>http://localhost:8000</diagram-server-url>
+                                <diagram-server-url>https://kroki.io</diagram-server-url>
+                                <diagram-impl>kroki</diagram-impl>
+                                <!-- <imagesdir>images</imagesdir> -->
+                                <data-uri />
+
+                                <asciidoctor-diagram-verbose>false</asciidoctor-diagram-verbose>
+                                <diagram-format>svg</diagram-format>
+                                <diagram-output-dir>svg</diagram-output-dir>
+                                <!--
+                                <diagram-svg-inline>true</diagram-svg-inline> -->
+
+                                <mermaid-diagram-helper>kroki</mermaid-diagram-helper>
+                                <!-- Explicitly enable embedded Mermaid
+                                rendering -->
+                                <mermaid-initialize>true</mermaid-initialize>
+                                <!-- Explicitly disable external Mermaid CLI -->
+                                <mermaid-command>none</mermaid-command>
+                                <mermaid-format>svg</mermaid-format>
+                            </attributes>
+                            <!-- relativeBaseDir>true -->
+                            <sourceDocumentExtensions>
+                                <sourceDocumentExtension>adoc</sourceDocumentExtension>
+                            </sourceDocumentExtensions>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/asciidoc</directory>
+                                    <excludes>
+                                        <exclude>**/*.html</exclude>
+                                        <exclude>**/*.svg</exclude>
+                                        <exclude>**/*.png</exclude>
+                                        <exclude>**/*.svg.cache</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
             <!-- move to pluginManagement ! 
             Repackage existing JAR and WAR archives so that they 
             can be executed from the command line using java -jar.
