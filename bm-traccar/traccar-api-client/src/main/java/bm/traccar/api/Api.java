@@ -29,10 +29,10 @@ public interface Api {
 
   void setBasePath(String host);
 
-  //     apiClient.getAuthentication();
-  //     apiClient.getUsername(); // mail
-  //     apiClient.getPassword(); // password
-  //   return session with mail, if set
+  // apiClient.getAuthentication();
+  // apiClient.getUsername(); // mail
+  // apiClient.getPassword(); // password
+  //    return session with mail, if set
 
   Api.Server getServerApi();
 
@@ -108,7 +108,14 @@ public interface Api {
 
     void deleteDevice(Long deviceId); // DELETE
 
-    List<Device> getDevices(String userId); // GET
+    /* currently no parameters and used by ITests for prototyping.
+     * parameters can be added as needed,
+     * but we can also use the generic getDevices and filter on the client side.
+     * For example, we can add a userId parameter to get only devices of a specific user,
+     * The latter is more flexible and does not require changes to the API,
+     * but it can be less efficient if there are many devices.
+     */
+    List<Device> getDevices(); // GET
 
     // helper methods below based on generic calls above ------------
 

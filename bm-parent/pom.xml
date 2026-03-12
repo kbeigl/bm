@@ -39,11 +39,9 @@
         <!-- simplify build on github and user pulls-->
         <!-- allow skipping openapi generation/install via -Dopenapi.skip=true -->
         <openapi.skip>true</openapi.skip>
-        <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
-        <!-- ITs are skipped, but docker is starting if above is false -->
         <integration.tests.skip>false</integration.tests.skip>
+        <asciidoc.process.skip>true</asciidoc.process.skip>
 
-        <asciidoc.process.skip>false</asciidoc.process.skip>
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
         <asciidoc.diagram.version>3.1.0</asciidoc.diagram.version>
@@ -71,6 +69,8 @@
         <traccar.version>${project.version}</traccar.version> -->
         <traccar.version>6.12.2</traccar.version>
 
+        <!-- docker would start, if docker.skip.tests=false -->
+        <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
         <docker.maven.plugin.version>0.48.1</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>
         <docker.image.name>traccar</docker.image.name>

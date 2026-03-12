@@ -30,13 +30,14 @@ public class DevicesImpl implements Api.Devices {
     devicesApi.devicesIdDelete(integerId);
   }
 
-  /** TODO implement parameters */
+  /** TODO implement individual parameters in dedicated methods */
   @Override
-  public List<Device> getDevices(/* add params here*/ String userId) {
-    // @Nullable Boolean all,
+  public List<Device> getDevices(/* add params here*/ ) {
+    // @Nullable Boolean all,		v6.12.2
     // @Nullable Integer userId,
     // @Nullable Integer id,
-    // @Nullable String uniqueId
-    return devicesApi.devicesGet(null, null, null, userId);
+    // @Nullable String uniqueId,
+    // @Nullable Boolean excludeAttributes
+    return devicesApi.devicesGet(null, null, null, null, null);
   }
 }

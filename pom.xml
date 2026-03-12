@@ -51,7 +51,6 @@
         <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
         <maven-minimum-version>3.8.8</maven-minimum-version>
         <maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
-
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
     </properties>
 
@@ -92,7 +91,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 

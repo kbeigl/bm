@@ -180,9 +180,3 @@ by adding the service account token (with its risks):
 
    <entry key='web.serviceAccountToken'>VIRTUAL_ADMIN_ACCESS</entry>
 ====
-
-
-== implementation
-
-If you are interested in the implementation read on 
-xref:./implementation.adoc[here]
