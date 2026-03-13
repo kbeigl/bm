@@ -38,8 +38,8 @@
     <properties>
         <!-- simplify build on github and user pulls-->
         <!-- allow skipping openapi generation/install via -Dopenapi.skip=true -->
-        <openapi.skip>true</openapi.skip>
-        <integration.tests.skip>false</integration.tests.skip>
+        <openapi.skip>false</openapi.skip>
+        <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
 
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>

@@ -67,7 +67,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-api-client</artifactId>
-            <version>6.10.0-RC</version>
+            <version>${traccar.version}-${project.parent.version}</version>
         </dependency>
         <!-- test -->
         <dependency>
