@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 @Import(ApiAspect.class)
 public class GeneratedSessionApiIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(GeneratedSessionApiIT.class);
+  // explicitly use generated SessionApi
   @Autowired private SessionApi sessionApi;
 
   @Test

@@ -28,6 +28,7 @@ public class UsersApiIT extends BaseIntegrationTest {
     // usersApi.isAdmin(....);
     // create manager with user limit AS ADMIN
     api.setBasicAuth(adminMail, adminPassword);
+    // explicitly use interface method to test ApiService delegation
     usersApi = api.getUsersApi();
     String managerPassword = "manager";
 
@@ -68,7 +69,7 @@ public class UsersApiIT extends BaseIntegrationTest {
     api.setBearerToken(virtualAdmin);
 
     // get nr of users, assert users++, back to nr
-    int userNr = api.getUsersApi().getAllUsers().size();
+    int userNr = api.users.getAllUsers().size();
 
     // create / receive user
     User user = new User();
@@ -77,9 +78,9 @@ public class UsersApiIT extends BaseIntegrationTest {
     user.setEmail("email-1"); // email syntax is not validated !
     user.setPassword("pw-1"); // can't login UI without a password (useful!), backend can without
 
-    User newUser = api.getUsersApi().createUser(user);
+    User newUser = api.users.createUser(user);
     // matching method names !!
-    assertEquals(userNr + 1, api.getUsersApi().getAllUsers().size());
+    assertEquals(userNr + 1, api.users.getAllUsers().size());
 
     // returns the generated id (asserts not null)
     Long userId = newUser.getId();
@@ -87,12 +88,12 @@ public class UsersApiIT extends BaseIntegrationTest {
     // update user
     newUser.setEmail("email-1-b");
 
-    User putUser = api.getUsersApi().updateUser(userId, newUser);
-    assertEquals(userNr + 1, api.getUsersApi().getAllUsers().size());
+    User putUser = api.users.updateUser(userId, newUser);
+    assertEquals(userNr + 1, api.users.getAllUsers().size());
 
     // delete user
-    api.getUsersApi().deleteUser(putUser.getId());
-    assertEquals(userNr, api.getUsersApi().getAllUsers().size());
+    api.users.deleteUser(putUser.getId());
+    assertEquals(userNr, api.users.getAllUsers().size());
   }
 
   /**
@@ -110,7 +111,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     // update user should fail without server call
     try {
-      api.getUsersApi().updateUser(longUserId, user);
+      api.users.updateUser(longUserId, user);
     } catch (ApiException e) {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }
@@ -118,7 +119,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     // delete user should fail without server call
     try {
-      api.getUsersApi().deleteUser(longUserId);
+      api.users.deleteUser(longUserId);
     } catch (ApiException e) {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }

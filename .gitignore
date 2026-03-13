@@ -6,6 +6,9 @@
 .factorypath
 target/
 
+gps-book.adoc
+gps-book.html
+
 ./src/asciidoc/.asciidoctor/diagram
 # Ignore generated SVG cache files
 *.svg.cache

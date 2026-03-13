@@ -25,8 +25,11 @@ import org.springframework.stereotype.Component;
 public class RealTimeController {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeController.class);
 
-  // no dependency injection !
-  private final RealTimeManager stateManager = RealTimeManager.getInstance();
+  private final RealTimeManager stateManager;
+
+  public RealTimeController(RealTimeManager stateManager) {
+    this.stateManager = stateManager;
+  }
 
   @Autowired protected Api api;
   @Autowired private WebSocketRoute liveConnection;

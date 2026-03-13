@@ -54,7 +54,9 @@ public abstract class BaseIntegrationTest {
   @Value("${traccar.user.email}")
   protected String userMail;
 
-  @Autowired protected Api api;
+  // Service is more convenient to use
+  @Autowired protected ApiService api;
+  // @Autowired protected Api api;
 
   Long userId, adminId;
 
@@ -63,12 +65,10 @@ public abstract class BaseIntegrationTest {
     api.setBearerToken(virtualAdmin);
     // dont use these User objects > get it from the database via API and *Id
     // User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
-    User user =
-        api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
+    User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
     userId = user.getId();
     logger.info("Created User {} (id={})", userMail, userId);
-    User admin =
-        api.getUsersApi().createUserWithCredentials(adminName, adminPassword, adminMail, true);
+    User admin = api.users.createUserWithCredentials(adminName, adminPassword, adminMail, true);
     adminId = admin.getId();
     logger.info("Created Admin {} (id={})", adminMail, adminId);
   }
@@ -78,9 +78,9 @@ public abstract class BaseIntegrationTest {
     // api.setBearerToken(virtualAdmin);
     api.setBasicAuth(adminMail, adminPassword);
     // catch Execption in case user or admin have been deleted in a test
-    api.getUsersApi().deleteUser(userId);
+    api.users.deleteUser(userId);
     logger.info("Deleted User {} (id={})", userMail, userId);
-    api.getUsersApi().deleteUser(adminId);
+    api.users.deleteUser(adminId);
     logger.info("Deleted Admin {} (id={})", adminMail, adminId);
   }
 }

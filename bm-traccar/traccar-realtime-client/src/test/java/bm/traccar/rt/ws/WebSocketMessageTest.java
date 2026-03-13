@@ -4,6 +4,7 @@ import bm.traccar.api.ApiConfig;
 import bm.traccar.api.ApiService;
 import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.Position;
+import bm.traccar.rt.RealTimeManager;
 import bm.traccar.ws.SessionManager;
 import bm.traccar.ws.WebSocketRoute;
 import org.apache.camel.ProducerTemplate;
@@ -18,7 +19,13 @@ import org.springframework.test.context.ContextConfiguration;
 @CamelSpringBootTest
 @EnableAutoConfiguration
 @ContextConfiguration(
-    classes = {ApiService.class, ApiConfig.class, WebSocketRoute.class, SessionManager.class})
+    classes = {
+      ApiConfig.class,
+      ApiService.class,
+      WebSocketRoute.class,
+      SessionManager.class,
+      RealTimeManager.class
+    })
 // DOES NOT extend BaseReaTimeScenarioTest
 // no server required (IT), only CBR unit test
 public class WebSocketMessageTest {

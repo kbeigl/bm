@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.17</version>
+        <version>1.1.18</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>1.1.17</version>
+            <version>1.1.18</version>
             <scope>test</scope>
         </dependency>
         <!-- No test-jar classifier dependency; gps-osmand-tracker exposes main test-friendly config in main sources -->
@@ -87,7 +87,24 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-            </plugin>            
+            </plugin>
+            <!-- move up -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot-maven-plugin-version}</version>
+                <!-- leave here -->
+                <configuration>
+                    <mainClass>bm.traccar.RealTimeClient</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

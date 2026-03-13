@@ -59,22 +59,21 @@ public class TrackerOsmAnd {
     this.safeId = uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_");
   }
 
+  private String getRouteId(String prefix) {
+    return prefix
+        + (safeId == null
+            ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
+            : safeId);
+  }
+
   @PreDestroy
   private void destroyRoutes() {
     if (camel == null) {
       return;
     }
-    // remove both kinds of routes (old direct: transmitters and new seda-based senders)
-    String directRouteId =
-        "send-osmand-route-"
-            + (safeId == null
-                ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
-                : safeId);
-    String sedaRouteId =
-        "seda-send-osmand-route-"
-            + (safeId == null
-                ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
-                : safeId);
+    String directRouteId = getRouteId("send-osmand-route-");
+    String sedaRouteId = getRouteId("seda-send-osmand-route-");
+    // redundant code - extract to helper method
     try {
       if (camel.getRouteController().getRouteStatus(directRouteId) != null) {
         camel.getRouteController().stopRoute(directRouteId);

@@ -30,7 +30,7 @@ class SimulatorTest {
 
     // Wait for 5 seconds while the Camel route runs in the background
     // The route ticks every 500ms and sends a message every ~100 meters.
-    Thread.sleep(100 * 1000);
+    Thread.sleep(10 * 1000);
 
     System.out.println("------------------------------------------------------------------");
     System.out.println("Simulation run complete.");

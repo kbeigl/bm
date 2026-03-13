@@ -1,7 +1,7 @@
 
 :toc:
 
-= `traccar-api-client` implementation
+== Traccar API Implementation
 
 This software is based on a generated *Java Spring REST Client* from the Traccar REST specification.
 The single package (`bm.traccar.api`) implementation wraps the Java client in a *Spring* @Service

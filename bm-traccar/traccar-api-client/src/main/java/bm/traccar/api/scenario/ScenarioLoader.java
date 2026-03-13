@@ -95,7 +95,7 @@ public class ScenarioLoader {
           seek = createdUser;
           // IF the user wants to add own devices
           seek.setDeviceLimit(3);
-          seek = api.getUsersApi().updateUser(hide.getId(), hide);
+          seek = api.getUsersApi().updateUser(seek.getId(), seek);
           seek.setPassword(u.password);
           break;
       }

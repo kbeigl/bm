@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.17</version>
+        <version>1.1.18</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -33,14 +33,20 @@
     <name>--- blue marble parameters                ---</name>
     <description>
         Parent POM for common definitions and constants for all sources.
+        Acts as the bill of materials for the entire project.
+        - Declares all dependency and plugin version properties centrally
+        - Imports the Spring Boot and Apache Camel Spring Boot BOMs
+        - Configures shared build plugins applied to all child modules:
     </description>
 
     <properties>
         <!-- simplify build on github and user pulls-->
         <!-- allow skipping openapi generation/install via -Dopenapi.skip=true -->
-        <openapi.skip>false</openapi.skip>
+        <openapi.skip>true</openapi.skip>
         <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
@@ -57,12 +63,11 @@
         <maven-failsafe-plugin-version>3.5.5</maven-failsafe-plugin-version>
         <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
         <maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
-        
+
         <!-- prefer LTS versions -->
         <camel-version>4.18.0</camel-version>
         <spring-boot-version>4.0.3</spring-boot-version>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot-maven-plugin-version>3.2.2</spring-boot-maven-plugin-version>
 
         <!-- actual traccar vs sub!project version !
         traccar version is used for docker image, traccar development only in bm-traccar 
@@ -91,6 +96,8 @@
             
         <logging.pattern.file>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level ${PID:-
             } --- [${spring.application.name:-}] [%15.15t] %logger{36} : %msg%n</logging.pattern.file>
+
+        <repo.version>1.1.18</repo.version>
     </properties>
 
     <dependencyManagement>

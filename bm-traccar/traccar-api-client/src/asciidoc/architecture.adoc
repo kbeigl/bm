@@ -45,7 +45,7 @@ sequenceDiagram
 ....
 
 
-== The Traccar API
+== Traccar API @Service
 
 The Traccar OpenAPI Client wraps the Traccar API in a Spring @Service -- simple as that. +
 You can always counter check against the latest 
@@ -151,7 +151,6 @@ Check the `*.*IT` integration test files for demo code.
 
 ==== application.properties
 
-  # traccar.host=http://localhost
   traccar.host=http://localhost
   traccar.user.name=admin
   traccar.user.password=admin
@@ -180,3 +179,58 @@ by adding the service account token (with its risks):
 
    <entry key='web.serviceAccountToken'>VIRTUAL_ADMIN_ACCESS</entry>
 ====
+
+
+== Traccar API Interface
+
+If you don't want to use the Traccar `@Service` and rather implement your own,
+you should start with the Traccar `API interface.
+The coding is similar (and using the same implementations) 
+
+
+[source,java]
+----
+package your.company.app...;
+
+import bm.traccar.api.Api                   // <1>
+
+public class TraccarUsers {
+
+    @Autowired
+    private Api api;                        // <1>
+
+    public static void main(String[] args) { 
+    
+        api.setBasicAuth(mail, password);   // <2>
+//      api.setBearerToken(token);
+        
+        User user = new User();             // <3>
+        user.setName("user-1");
+        user.setEmail("email-1");
+        user.setPassword("pw-1");
+
+        // ApiService syntax        
+        User userOnServer = api.users.createUser(user);
+        // Api interface syntax             // <4>
+        User userOnServer = api.getUsersApi().createUser(user);
+        
+    }
+}
+----
+<1> this time we are auto wiring the `Api interface`
+
+<2> choose and set your authentication 
+
+<3> create a `new User` (DTO) in your software for your employees 
+
+<4> create a `new User` (Entity) on your Traccar Server
+
+By using the `Api interface` you can also get individual
+sub API implementations:
+
+    Api.Users users = api.getUsersApi()
+    User newUser = users.createUser(user);
+
+This can be convenient, if you don't want to mess with many APIs
+and focus the implementation on User Management, for example.
+

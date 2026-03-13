@@ -48,7 +48,7 @@ class TrackerRealTimeClientIT extends BaseRealTimeClientTest {
     // wait for websocket message processing and
     // check if messages are received in realtime client
 
-    sleep(30 * 1000); // wait for messages to be processed
+    sleep(10 * 1000); // wait for messages to be processed
   }
 
   @Test

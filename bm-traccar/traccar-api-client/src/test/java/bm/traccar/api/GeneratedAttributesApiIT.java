@@ -23,6 +23,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 @Import({ApiConfig.class, AttributesTestConfig.class})
 public class GeneratedAttributesApiIT {
 
+  // explicitly use the generated API to test the generated code, not the ApiService.
   @Autowired private AttributesApi attributesApi;
 
   @Value("${traccar.web.serviceAccountToken}")

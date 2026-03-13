@@ -7,6 +7,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /* create abstract base class for all processors that handle entity messages,
  * centralize common logic, like mapping, to add more processing steps in the future,
@@ -16,9 +18,15 @@ import org.slf4j.LoggerFactory;
  * Processor that handles device messages from Traccar WebSocket. Expects incoming message body to
  * be a Collection or array of device maps or a single device map.
  */
+@Component
 public class DeviceProcessor implements Processor {
   private static final Logger logger = LoggerFactory.getLogger(DeviceProcessor.class);
-  private final RealTimeManager stateManager = RealTimeManager.getInstance();
+  private final RealTimeManager stateManager;
+
+  @Autowired
+  public DeviceProcessor(RealTimeManager stateManager) {
+    this.stateManager = stateManager;
+  }
 
   @Override
   public void process(Exchange exchange) throws Exception {

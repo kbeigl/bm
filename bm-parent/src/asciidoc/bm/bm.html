@@ -440,9 +440,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
+<li><a href="#_intro">intro</a></li>
 <li><a href="#_latest_versions">latest versions</a></li>
+<li><a href="#_technology_stack">Technology Stack</a></li>
 <li><a href="#_bm_parent_maven_multi_module"><code>/bm-parent</code> - Maven Multi Module</a></li>
-<li><a href="#_bm_tracker_virtual_gps_tracker_simulators"><code>/bm-tracker</code> - Virtual GPS Tracker Simulators</a>
+<li><a href="#_bm_tracker_gps_tracker_simulators"><code>/bm-tracker</code> - GPS Tracker Simulators</a>
 <ul class="sectlevel2">
 <li><a href="#_traccar_trackers">Traccar Trackers</a></li>
 <li><a href="#_the_jeets_tracker">The 'JeeTS Tracker'</a></li>
@@ -470,18 +472,28 @@ for the
 </div>
 </div>
 <div class="sect1">
+<h2 id="_intro">intro</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Blue Marble Simulations (bm) is a Java-based multi-module Maven project focused on GPS tracking simulations.
+It provides client-side tooling around Traccar, integrating it with Spring Boot and Apache Camel
+to simulate and process real-time location data.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_latest_versions">latest versions</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.17
-    [INFO] --- blue marble parameters                --- 1.1.17
-    [INFO] ---- GPS Trackers                         --- 1.1.17
-    [INFO] ..... gps-osmand-tracker                      1.1.17
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.17
-    [INFO] ..... traccar-openapitools-client      6.12.2
-    [INFO] ..... traccar-api-client               6.12.2-1.1.17
-    [INFO] ..... traccar-realtime-client          6.12.2-1.1.17</code></pre>
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.18
+    [INFO] --- blue marble parameters                --- 1.1.18
+    [INFO] ---- GPS Trackers                         --- 1.1.18
+    [INFO] ..... gps-osmand-tracker                      1.1.18
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.18
+    [INFO] ..... traccar-openapitools-client      6.12.2 ......
+    [INFO] ..... traccar-api-client               6.12.2-1.1.18
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.18</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -495,13 +507,87 @@ for the
 </div>
 </div>
 <div class="sect1">
+<h2 id="_technology_stack">Technology Stack</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Technology Stack as of <code>v1.1.18</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Layer</th>
+<th class="tableblock halign-left valign-top">Technology</th>
+<th class="tableblock halign-left valign-top">Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Language</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Java</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">21 (LTS)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maven</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≥ 3.8.8</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">App Framework</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spring Boot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0.3</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integration Test Infrastructure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker via Fabric8 plugin</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.48.1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unit Testing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JUnit 5 (and Camel testing)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.20.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integration / Routing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Apache Camel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.18.0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GPS Server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Traccar</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.12.2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code Formatting</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Spotify fmt-maven-plugin</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2.29</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Documentation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AsciiDoc / AsciidoctorJ / Kroki / Mermaid</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_bm_parent_maven_multi_module"><code>/bm-parent</code> - Maven Multi Module</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This <code>bm-sim</code> repository is a <strong>Maven Multi Module</strong> project.
+<p>This <code>bm-sim</code> repository is a <strong>Maven Multi Module</strong> project with multi-tier hierarchy.
 The Maven Reactor mechanism makes sure to collect all modules
 and assert correct build order with every <code>mvn</code> command executed.
 It assures that any project is build as required by another.</p>
+</div>
+<div class="paragraph">
+<p>The Parent POM defines all dependency versions, plugin config,
+Docker setup for Traccar, and AsciiDoc doc generation and
+acts as the BOM (bill of materials) for all sub-modules.</p>
 </div>
 <div class="paragraph">
 <p>If you are not sure about your Maven Version it is highly recommended to use the
@@ -516,11 +602,14 @@ Otherwise the Maven Reactor has detected inconsistencies.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_bm_tracker_virtual_gps_tracker_simulators"><code>/bm-tracker</code> - Virtual GPS Tracker Simulators</h2>
+<h2 id="_bm_tracker_gps_tracker_simulators"><code>/bm-tracker</code> - GPS Tracker Simulators</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This <code>bm-tracker</code> branch is used to develop <em>virtual GPS Tracker Simulators</em><br>
 which can track real things by sending their positions frequently.</p>
+</div>
+<div class="paragraph">
+<p>Trackers represent the 'sender' side.</p>
 </div>
 <div class="paragraph">
 <p>For the ROAF development we want to start bottom up.</p>
@@ -581,6 +670,10 @@ You can find the protocol specs
 <a href="OsmAndProtocolSpecification.html">here</a> and elsewhere.</p>
 </div>
 <div class="paragraph">
+<p>The implemetation is using a SEDA queue as an async ingress with retry/backoff,
+being a solid Camel pattern for resilient message delivery.</p>
+</div>
+<div class="paragraph">
 <p><a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto gps-osmand-tracker project</a></p>
 </div>
 </div>
@@ -602,8 +695,10 @@ and
 <p><a href="../../../../bm-traccar/src/asciidoc/bm-traccar.html">read more to setup and adopt your development environment</a></p>
 </div>
 <div class="paragraph">
-<p>As of <code>v1.1.8</code> we are developing the following three
-cascaded and yet independent artifacts:</p>
+<p>As of <code>v1.1.8</code> we are developing the following three cascaded and yet independent artifacts as a layered architecture.
+The separation between <code>traccar-openapitools-client</code> (generated), <code>traccar-api-client</code> (wrapper),
+and <code>traccar-realtime-client</code> (orchestration) is deliberate and well-executed.
+The Api interface acts as a clean façade hiding all REST complexity.</p>
 </div>
 <div class="sect2">
 <h3 id="_traccar_openapitools_client"><code>traccar-openapitools-client</code></h3>
@@ -628,15 +723,20 @@ Synchronize your employees with their cars and driver information without utiliz
 Pull driving reports for your sales team &#8230;&#8203; and much more ;)</p>
 </div>
 <div class="paragraph">
+<p>Technically the project is a higher-level Spring Boot + Camel REST client wrapper over the Traccar API.</p>
+</div>
+<div class="paragraph">
 <p><a href="../../../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.html">details &#8230;&#8203;</a></p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_traccar_realtime_client"><code>traccar-realtime-client</code></h3>
 <div class="paragraph">
-<p>The traccar-rt-client is a Java Client Software
+<p>The <code>traccar-rt-client</code> is a Java Client Software
 to provide full (remote) control over and interact
-via live surveillance of your Traccar Server Scenario.</p>
+via live surveillance of your Traccar Server Scenario.
+A dual-lock approach (<code>ConcurrentHashMap</code> for concurrent reads and <code>synchronized (deviceMapLock)</code>
+for multi-map atomic writes) always assures a stable realtime state.</p>
 </div>
 <div class="paragraph">
 <p><a href="../../../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-realtime-client.html">details &#8230;&#8203;</a></p>
@@ -647,7 +747,7 @@ via live surveillance of your Traccar Server Scenario.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-11 13:16:48 +0100
+Last updated 2026-03-14 21:07:46 +0100
 </div>
 </div>
 </body>

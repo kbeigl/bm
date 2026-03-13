@@ -581,7 +581,7 @@ This prevents data duplication and makes updates atomic.
 For example, a <code>Device</code> object will contain a <code>positionId</code> instead of the entire position object.</p>
 </li>
 <li>
-<p>Maps for <code>O(1)</code> Lookups<br>
+<p>Maps for <em>fast</em> <code>O(1)</code> Lookups<br>
 Data is stored in Maps where the key is the entity&#8217;s <code>id</code>.
 This allows for extremely fast lookups when an update comes in,
 which is essential for real-time performance.</p>
@@ -590,38 +590,40 @@ which is essential for real-time performance.</p>
 </div>
 <div class="sect2">
 <h3 id="_realtimemanager">RealTimeManager</h3>
-<div class="colist arabic">
-<ol>
+<div class="paragraph">
+<p>The <code>RealTimeManager</code> is a thread-safe Singleton class
+to manage the concurrent real-time state of the Traccar client,
+also known as StateManager in RealTime context.</p>
+</div>
+<div class="ulist">
+<ul>
 <li>
-<p>The <code>RealTimeManager</code> is a thread-safe Singleton class to manage
-the real-time state of the Traccar client, also known as StateManager in RealTime context.</p>
+<p>It is annotated with <code>@Component</code>, so Spring creates a singleton for the application context.</p>
 </li>
 <li>
-<p>By using the <code>new</code> operator Spring mechanisms are overriden.</p>
+<p>It uses <code>ConcurrentHashMap</code> for its internal state,
+which provides thread-safe access and updates.
+from WebSocket listener background threads.</p>
 </li>
-<li>
-<p>The private constructor locks external usage and only the static instance is provided.</p>
-</li>
-<li>
-<p>It uses ConcurrentHashMaps to allow thread safe updates
-from WebSocket listener background threads.<br>
-Data is stored in maps for fast <code>O(1)</code> lookups by ID.</p>
-</li>
-</ol>
+</ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">public final class RealTimeManager {                                       <b class="conum">(1)</b>
-
-  private static final RealTimeManager INSTANCE = new RealTimeManager();   <b class="conum">(2)</b>
-
-  private RealTimeManager() {}                                             <b class="conum">(3)</b>
-  public static RealTimeManager getInstance() { return INSTANCE; }
-
-  private final Map&lt;Long, User&gt; users = new ConcurrentHashMap&lt;&gt;();         <b class="conum">(4)</b>
-  private final Map&lt;Long, Device&gt; devices = new ConcurrentHashMap&lt;&gt;();
+<pre class="highlight"><code class="language-java" data-lang="java">  private final Map&lt;Long, User&gt;     users     = new ConcurrentHashMap&lt;&gt;();
+  private final Map&lt;Long, Device&gt;   devices   = new ConcurrentHashMap&lt;&gt;();
   private final Map&lt;Long, Position&gt; positions = new ConcurrentHashMap&lt;&gt;();</code></pre>
 </div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Synchronization is used (<code>deviceMapLock</code>) to ensure atomic updates for related maps.</p>
+</li>
+<li>
+<p>The class manages real-time entities (User, Device, Position)<br>
+and their relationships safely across threads.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>Note that there is no API involved.</p>
@@ -662,8 +664,8 @@ as you read on:</p>
 <div class="content">
 <pre class="highlight"><code class="language-java" data-lang="java">class RealTimeManagerIT extends BaseReaTimeScenarioTest { // sets up scenario
 
-  @Autowired protected Api api;
-  private RealTimeManager stateManager = RealTimeManager.getInstance();
+    @Autowired protected Api api;
+    private RealTimeManager stateManager = RealTimeManager.getInstance();
 
     // login
     api.setBasicAuth(scenario.admin.getEmail(), scenario.admin.getPassword());
@@ -711,28 +713,42 @@ and then connects to the WebSocket to receive and process live updates,
 feeding everything into the thread-safe state manager.</p>
 </div>
 <div class="paragraph">
-<p>Basically the <code>RealTimeController</code> is holding</p>
+<p>Basic <code>RealTimeController</code> design:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Component                                                    <b class="conum">(1)</b>
+public class RealTimeController {
+
+  private final RealTimeManager stateManager;                 <b class="conum">(2)</b>
+
+  public RealTimeController(RealTimeManager stateManager) {   <b class="conum">(3)</b>
+    this.stateManager = stateManager;
+  }
+
+  @Autowired protected Api api;                               <b class="conum">(4)</b>
+  @Autowired private WebSocketRoute liveConnection;           <b class="conum">(5)</b></code></pre>
+</div>
 </div>
 <div class="colist arabic">
 <ol>
 <li>
-<p>the <code>Api</code> to access the server actively</p>
+<p><code>@Component</code>: Spring creates a singleton</p>
 </li>
 <li>
-<p>the <code>TraccarWebSocketRoute</code> for updates in the background</p>
+<p><code>private final RealTimeManager</code> exclusive to controller</p>
 </li>
 <li>
-<p>the <code>RealTimeManager</code> to stay in sync with the server</p>
+<p>Instantiated by the Spring framework.
+Injects the RealTimeManager dependency via constructor injection.</p>
+</li>
+<li>
+<p><code>Api</code> to access the server actively</p>
+</li>
+<li>
+<p>Traccar <code>WebSocketRoute</code> for updates in the background</p>
 </li>
 </ol>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">public class RealTimeController {
-  private final RealTimeManager stateManager = RealTimeManager.getInstance(); &lt;!--<b class="conum">(1)</b>--&gt;
-  @Autowired protected Api api;                                               &lt;!--<b class="conum">(2)</b>--&gt;
-  @Autowired private TraccarWebSocketRoute traccarLiveConnection;             &lt;!--<b class="conum">(3)</b>--&gt;</code></pre>
-</div>
 </div>
 <div class="paragraph">
 <p>We will look at the <code>TraccarWebSocketRoute</code> soon.<br>
@@ -889,7 +905,7 @@ The rest of your application can then safely read from the <code>TraccarStateMan
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-03 21:23:46 +0100
+Last updated 2026-03-16 18:26:45 +0100
 </div>
 </div>
 </body>

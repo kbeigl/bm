@@ -237,7 +237,7 @@ From the repository root `/bm`, either:
 [NOTE]
 ====
 In earlier releases (before `v1.1.16` we had to use the above practice 
-to switch the natural order of repo branches to `/tracker` before `/traccer`.
+to switch the natural order of repo branches to `/tracker` before `/traccar`.
 This development order was used to provide a GTS, before developing GPS Trackers.
 
 On a short term we wan't to avoid hooks inside the repo to keep it simple alap

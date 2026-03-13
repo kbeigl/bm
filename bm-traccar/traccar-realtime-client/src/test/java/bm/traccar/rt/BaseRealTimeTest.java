@@ -28,13 +28,20 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @SpringBootTest // (classes = BaseRealTimeTest.TestConfig.class)
 @ContextConfiguration(
-    classes = {ApiService.class, ApiConfig.class, ScenarioLoader.class, ScenarioConfig.class})
+    classes = {
+      ApiService.class,
+      ApiConfig.class,
+      ScenarioLoader.class,
+      ScenarioConfig.class,
+      RealTimeManager.class
+    })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseRealTimeTest {
   // private static final Logger logger = LoggerFactory.getLogger(BaseRealTimeTest.class);
 
   @Autowired ScenarioLoader scenario;
+  @Autowired protected RealTimeManager stateManager;
 
   @BeforeAll
   public void setup() throws ApiException {

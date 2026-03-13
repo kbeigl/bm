@@ -489,7 +489,7 @@ providing a stable interface for application developers.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_the_traccar_api">The Traccar API</h2>
+<h2 id="_traccar_api_service">Traccar API @Service</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Traccar OpenAPI Client wraps the Traccar API in a Spring @Service&#8201;&#8212;&#8201;simple as that.<br>
@@ -640,8 +640,7 @@ Check the <code>*.*IT</code> integration test files for demo code.</p>
 <h4 id="_application_properties">application.properties</h4>
 <div class="literalblock">
 <div class="content">
-<pre># traccar.host=http://localhost
-traccar.host=http://localhost
+<pre>traccar.host=http://localhost
 traccar.user.name=admin
 traccar.user.password=admin
 traccar.user.email=admin@domain.com</pre>
@@ -698,10 +697,80 @@ by adding the service account token (with its risks):</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_traccar_api_interface">Traccar API Interface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you don&#8217;t want to use the Traccar <code>@Service</code> and rather implement your own,
+you should start with the Traccar `API interface.
+The coding is similar (and using the same implementations)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package your.company.app...;
+
+import bm.traccar.api.Api                   // <b class="conum">(1)</b>
+
+public class TraccarUsers {
+
+    @Autowired
+    private Api api;                        // <b class="conum">(1)</b>
+
+    public static void main(String[] args) {
+
+        api.setBasicAuth(mail, password);   // <b class="conum">(2)</b>
+//      api.setBearerToken(token);
+
+        User user = new User();             // <b class="conum">(3)</b>
+        user.setName("user-1");
+        user.setEmail("email-1");
+        user.setPassword("pw-1");
+
+        // ApiService syntax
+        User userOnServer = api.users.createUser(user);
+        // Api interface syntax             // <b class="conum">(4)</b>
+        User userOnServer = api.getUsersApi().createUser(user);
+
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>this time we are auto wiring the <code>Api interface</code></p>
+</li>
+<li>
+<p>choose and set your authentication</p>
+</li>
+<li>
+<p>create a <code>new User</code> (DTO) in your software for your employees</p>
+</li>
+<li>
+<p>create a <code>new User</code> (Entity) on your Traccar Server</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>By using the <code>Api interface</code> you can also get individual
+sub API implementations:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Api.Users users = api.getUsersApi()
+User newUser = users.createUser(user);</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can be convenient, if you don&#8217;t want to mess with many APIs
+and focus the implementation on User Management, for example.</p>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-11 21:35:35 +0100
+Last updated 2026-03-15 12:31:06 +0100
 </div>
 </div>
 </body>

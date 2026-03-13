@@ -30,7 +30,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
     // 'login' as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
     showCredentials();
-    List<User> users = api.getUsersApi().getAllUsers();
+    List<User> users = api.users.getAllUsers();
     logger.info("admin users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
@@ -39,7 +39,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     // change back to SuperUserAccess
     api.setBearerToken(virtualAdmin);
-    users = api.getUsersApi().getAllUsers();
+    users = api.users.getAllUsers();
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }
@@ -66,7 +66,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     showCredentials();
 
-    List<User> users = api.getUsersApi().getAllUsers();
+    List<User> users = api.users.getAllUsers();
     logger.info("'user' users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
@@ -75,7 +75,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
     apiClient.setPassword(null);
     apiClient.setBearerToken(virtualAdmin);
 
-    users = api.getUsersApi().getAllUsers();
+    users = api.users.getAllUsers();
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }

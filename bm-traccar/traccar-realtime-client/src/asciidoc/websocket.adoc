@@ -314,7 +314,7 @@ and can change it any time in the program flow.
 
 <3> create a `new User` (DTO) in your software for your employees 
 
-<3> create a `new User` (Entity) in your Traccar Server +
+<4> create a `new User` (Entity) in your Traccar Server +
 The new User (DTO) is returned with a unique ID from the server.  
 
 And that is all you need to create users, devices etc.

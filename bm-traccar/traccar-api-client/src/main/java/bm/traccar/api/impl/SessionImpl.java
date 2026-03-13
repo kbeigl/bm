@@ -3,6 +3,7 @@ package bm.traccar.api.impl;
 import bm.traccar.api.Api;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.model.dto.User;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class SessionImpl implements Api.Session {
 
   @Override
   public String createSessionGetJsessionId(String mail, String password) {
-    logger.debug(" create session for {}/{}", mail, password);
+    logger.debug(" create session for {}", mail); // don't log password
     ResponseEntity<User> response = sessionApi.sessionPostWithHttpInfo(mail, password);
     String jSessionId = extractJsessionId(response);
     if (jSessionId != null) {
@@ -50,9 +51,11 @@ public class SessionImpl implements Api.Session {
   }
 
   private String extractJsessionId(ResponseEntity<User> response) {
-    String setCookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-    String sessionId = setCookieHeader.split(";")[0].split("=")[1];
-    return sessionId;
+    // if the header is absent > NullPointerException
+    List<String> cookies = response.getHeaders().get("Set-Cookie");
+    if (cookies == null || cookies.isEmpty()) return null;
+    String[] parts = cookies.get(0).split(";")[0].split("=", 2);
+    return parts.length == 2 ? parts[1] : null;
   }
 
   @Override

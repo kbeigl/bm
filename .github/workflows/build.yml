@@ -1,0 +1,7 @@
+      - name: Build with Maven (excluding integration tests and doc generation)
+        run: mvn install
+          --file pom.xml
+          -Dintegration.tests.skip=true
+          -Ddocker.skip.tests=true
+          -Dopenapi.skip=false
+          -Dasciidoc.process.skip=true

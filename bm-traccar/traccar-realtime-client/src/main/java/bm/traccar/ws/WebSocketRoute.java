@@ -80,16 +80,13 @@ public class WebSocketRoute extends RouteBuilder {
         .when(simple("${body[devices]} != null"))
         .log("devices message received: ${body}")
         .setBody(simple("${body[devices]}"))
-        // change all processors to Spring Beans ?
-        // .bean(DeviceProcessor.class) if no state needed
-        // keep it simple for now
-        .process(new DeviceProcessor())
+        .bean(DeviceProcessor.class)
 
         // ===== positions
         .when(simple("${body[positions]} != null"))
         .log("positions message received: ${body}")
         .setBody(simple("${body[positions]}"))
-        .process(new PositionProcessor())
+        .bean(PositionProcessor.class)
 
         // ===== unknown/unimplemented message
         .otherwise()

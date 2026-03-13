@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers when pushing tags like v1.0, v2.1.3, etc.
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn install --file pom.xml
+
+      - name: Find JAR files
+        id: find_jars
+        run: |
+          echo "openapitools_client=$(find bm-traccar/traccar-openapitools-client/target -name 'traccar-openapitools-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')" >> $GITHUB_OUTPUT
+          echo "api_client=$(find bm-traccar/traccar-api-client/target -name 'traccar-api-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')" >> $GITHUB_OUTPUT
+          echo "realtime_client=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*.jar.original')" >> $GITHUB_OUTPUT
+          echo "realtime_client_original=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar.original')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload traccar-openapitools-client.jar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_jars.outputs.openapitools_client }}
+          asset_name: traccar-openapitools-client.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload traccar-api-client.jar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_jars.outputs.api_client }}
+          asset_name: traccar-api-client.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload traccar-realtime-client.jar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_jars.outputs.realtime_client }}
+          asset_name: traccar-realtime-client.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload traccar-realtime-client.jar.original
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_jars.outputs.realtime_client_original }}
+          asset_name: traccar-realtime-client.jar.original
+          asset_content_type: application/java-archive

@@ -1,14 +1,23 @@
 package bm.traccar.ws.entities;
 
+import bm.traccar.rt.RealTimeManager;
 import java.util.ArrayList;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-// @Component("positionProcessor")
+@Component
 public class PositionProcessor implements Processor {
   private static final Logger logger = LoggerFactory.getLogger(PositionProcessor.class);
+  private final RealTimeManager stateManager;
+
+  @Autowired
+  public PositionProcessor(RealTimeManager stateManager) {
+    this.stateManager = stateManager;
+  }
 
   @Override
   // or Bean method processPositions(Map<String, Object> positions)

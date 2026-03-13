@@ -1,4 +1,13 @@
 
+    [INFO] === blue marble simulations               === 1.1.18
+    [INFO] --- blue marble parameters                --- 1.1.18
+    [INFO] ---- GPS Trackers                         --- 1.1.18
+    [INFO] ..... gps-osmand-tracker                      1.1.18
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.18
+    [INFO] ..... traccar-openapitools-client      6.12.2 ......
+    [INFO] ..... traccar-api-client               6.12.2-1.1.18
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.18
+
     [NOTE] upgrade to Spring 4, Maven 4 pending
 
     [INFO] === blue marble simulations               === 1.1.17

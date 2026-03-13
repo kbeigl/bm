@@ -104,7 +104,7 @@ Core Design Principles
     This prevents data duplication and makes updates atomic. 
     For example, a `Device` object will contain a `positionId` instead of the entire position object.
 
-* Maps for `O(1)` Lookups +
+* Maps for _fast_ `O(1)` Lookups +
     Data is stored in Maps where the key is the entity's `id`. 
     This allows for extremely fast lookups when an update comes in, 
     which is essential for real-time performance.
@@ -112,31 +112,25 @@ Core Design Principles
 
 === RealTimeManager
 
-<1> The `RealTimeManager` is a thread-safe Singleton class to manage 
-the real-time state of the Traccar client, also known as StateManager in RealTime context.
+The `RealTimeManager` is a thread-safe Singleton class 
+to manage the concurrent real-time state of the Traccar client, 
+also known as StateManager in RealTime context.
 
-<2> By using the `new` operator Spring mechanisms are overriden.
+    •  It is annotated with `@Component`, so Spring creates a singleton for the application context.
+    •  It uses `ConcurrentHashMap` for its internal state, 
+       which provides thread-safe access and updates.
+       from WebSocket listener background threads.
 
-<3> The private constructor locks external usage and only the static instance is provided. 
-
-<4> It uses ConcurrentHashMaps to allow thread safe updates 
-from WebSocket listener background threads. +
-Data is stored in maps for fast `O(1)` lookups by ID.
-
-    
 [source,java]
 ----
-public final class RealTimeManager {                                       <1>
-
-  private static final RealTimeManager INSTANCE = new RealTimeManager();   <2>
-
-  private RealTimeManager() {}                                             <3>
-  public static RealTimeManager getInstance() { return INSTANCE; }
-
-  private final Map<Long, User> users = new ConcurrentHashMap<>();         <4>
-  private final Map<Long, Device> devices = new ConcurrentHashMap<>();
+  private final Map<Long, User>     users     = new ConcurrentHashMap<>();
+  private final Map<Long, Device>   devices   = new ConcurrentHashMap<>();
   private final Map<Long, Position> positions = new ConcurrentHashMap<>();
 ----
+
+    •  Synchronization is used (`deviceMapLock`) to ensure atomic updates for related maps.
+    •  The class manages real-time entities (User, Device, Position) + 
+       and their relationships safely across threads.
 
 Note that there is no API involved.
 
@@ -167,8 +161,8 @@ as you read on:
 ----
 class RealTimeManagerIT extends BaseReaTimeScenarioTest { // sets up scenario
 
-  @Autowired protected Api api;
-  private RealTimeManager stateManager = RealTimeManager.getInstance();
+    @Autowired protected Api api;
+    private RealTimeManager stateManager = RealTimeManager.getInstance();
   
     // login
     api.setBasicAuth(scenario.admin.getEmail(), scenario.admin.getPassword());
@@ -207,19 +201,29 @@ It handles authentication, fetches the initial state via the REST API,
 and then connects to the WebSocket to receive and process live updates, 
 feeding everything into the thread-safe state manager.
 
-Basically the `RealTimeController` is holding 
-
-<1> the `Api` to access the server actively
-<2> the `TraccarWebSocketRoute` for updates in the background
-<3> the `RealTimeManager` to stay in sync with the server
+Basic `RealTimeController` design: 
 
 [source,java]
 ----
+@Component                                                    <1>
 public class RealTimeController {
-  private final RealTimeManager stateManager = RealTimeManager.getInstance(); <!--1-->
-  @Autowired protected Api api;                                               <!--2-->
-  @Autowired private TraccarWebSocketRoute traccarLiveConnection;             <!--3-->
+
+  private final RealTimeManager stateManager;                 <2>
+
+  public RealTimeController(RealTimeManager stateManager) {   <3>
+    this.stateManager = stateManager;
+  }
+
+  @Autowired protected Api api;                               <4>
+  @Autowired private WebSocketRoute liveConnection;           <5>
 ----
+
+<1> `@Component`: Spring creates a singleton
+<2> `private final RealTimeManager` exclusive to controller 
+<3> Instantiated by the Spring framework. 
+    Injects the RealTimeManager dependency via constructor injection.
+<4> `Api` to access the server actively
+<5> Traccar `WebSocketRoute` for updates in the background
 
 We will look at the `TraccarWebSocketRoute` soon. +
 For now you can run the `RealTimeControllerIT` 

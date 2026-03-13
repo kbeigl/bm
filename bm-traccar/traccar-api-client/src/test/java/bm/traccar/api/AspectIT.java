@@ -37,14 +37,14 @@ public class AspectIT extends BaseIntegrationTest {
     // api.getApiClient().setBasePath(host);
 
     api.setBasicAuth(userMail, userPassword);
-    List<User> users = api.getUsersApi().getAllUsers();
+    List<User> users = api.users.getAllUsers();
     // this only returns users as admin
     assertEquals(0, users.size());
 
     // bad password
     api.setBasicAuth(userMail, userPassword + "XXX");
     try {
-      users = api.getUsersApi().getAllUsers();
+      users = api.users.getAllUsers();
     } catch (ApiException e) {
       logger.error("caught ApiException: {}", e.getMessage());
       assertTrue(
@@ -58,14 +58,14 @@ public class AspectIT extends BaseIntegrationTest {
   @Test
   public void userLoginApiClient() {
 
-    // api.getUsersApi().getUsers returns null instead of empty list !?
+    // api.users.getUsers returns null instead of empty list !?
     // switch Auth method, login as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
-    List<User> users = api.getUsersApi().getAllUsers();
+    List<User> users = api.users.getAllUsers();
     // assertEquals(users.size(), 0);
 
     api.setBearerToken(virtualAdmin);
-    users = api.getUsersApi().getAllUsers();
+    users = api.users.getAllUsers();
     // assertEquals(users.size(), 1);
   }
 
@@ -91,7 +91,7 @@ public class AspectIT extends BaseIntegrationTest {
             RuntimeException.class,
             () -> {
               // without catching ApiException
-              api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
+              api.users.createUserWithCredentials(userName, userPassword, userMail, false);
             });
     logger.error("caught ApiException: {}", exception.getMessage());
     assertTrue(exception instanceof ApiException, "exception is not an ApiException");
@@ -115,7 +115,7 @@ public class AspectIT extends BaseIntegrationTest {
     // does this make sense without a valid host? move up?
     api.setBearerToken(virtualAdmin);
     try {
-      api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
+      api.users.createUserWithCredentials(userName, userPassword, userMail, false);
     } catch (ApiException exception) {
       logger.error("caught ApiException: {}", exception.getMessage());
       assertTrue(
@@ -134,7 +134,7 @@ public class AspectIT extends BaseIntegrationTest {
   public void createExistingUser() {
 
     try { // .. to create existing user again
-      api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail, false);
+      api.users.createUserWithCredentials(userName, userPassword, userMail, false);
     } catch (ApiException e) {
       if (e.getMessage().equals(ApiException.APIEX_BAD_REQUEST)) {
         logger.error("ApiException caught: {}", e.getMessage());

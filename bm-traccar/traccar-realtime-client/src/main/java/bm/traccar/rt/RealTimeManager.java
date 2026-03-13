@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * The RealTimeManager synchronizes the 'RealTimeModel' of the included Traccar entities.
@@ -19,23 +20,17 @@ import org.slf4j.LoggerFactory;
  * <p>A thread-safe Singleton class to manage the real-time state of the client. It uses
  * ConcurrentHashMaps to allow safe updates from background webSocket threads.
  */
-public final class RealTimeManager {
+@Component
+public class RealTimeManager {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeManager.class);
 
-  private static final RealTimeManager INSTANCE = new RealTimeManager();
-  private User currentUser;
+  private volatile User currentUser;
   private volatile boolean isAuthenticated = false;
-
-  private RealTimeManager() {}
-
-  public static RealTimeManager getInstance() {
-    return INSTANCE;
-  }
 
   private final Map<Long, User> users = new ConcurrentHashMap<>();
   private final Map<Long, Device> devices = new ConcurrentHashMap<>();
   private final Map<Long, Position> positions = new ConcurrentHashMap<>();
-  // map for O(1) lookup from device.uniqueId -> deviceId (database Id)
+  // map for O(1) lookup from device.uniqueId -> deviceId = database Id
   private final Map<String, Long> deviceIdByUniqueId = new ConcurrentHashMap<>();
   // lock to keep devices and deviceIdByUniqueId consistent
   private final Object deviceMapLock = new Object();

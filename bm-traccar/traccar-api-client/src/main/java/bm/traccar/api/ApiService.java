@@ -12,7 +12,6 @@ import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
 import bm.traccar.invoke.auth.HttpBasicAuth;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,7 +26,7 @@ import org.springframework.stereotype.Service;
 @Service // ("traccarApiService")
 public class ApiService implements Api {
 
-  @Autowired private ApiClient apiClient;
+  private final ApiClient apiClient;
 
   protected ApiClient getApiClient() {
     return this.apiClient;
@@ -75,16 +74,18 @@ public class ApiService implements Api {
 
   /* constructor injection makes dependencies explicit and objects immutable. */
   public ApiService(
+      ApiClient apiClient,
       SessionApi sessionApi,
       UsersApi usersApi,
       DevicesApi devicesApi,
       ServerApi serverApi,
       PermissionsApi permissionsApi) {
+    this.apiClient = apiClient;
     // sub interface  = new sub interface implementation (wrapping generated API)
-    this.session = new SessionImpl(sessionApi);
     this.users = new UsersImpl(usersApi);
-    this.devices = new DevicesImpl(devicesApi);
     this.server = new ServerImpl(serverApi);
+    this.devices = new DevicesImpl(devicesApi);
+    this.session = new SessionImpl(sessionApi);
     this.permissions = new PermissionsImpl(permissionsApi);
   }
 

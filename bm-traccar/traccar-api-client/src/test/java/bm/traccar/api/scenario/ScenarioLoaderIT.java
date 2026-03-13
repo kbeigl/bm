@@ -24,6 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class ScenarioLoaderIT {
   private static final Logger logger = LoggerFactory.getLogger(ScenarioLoaderIT.class);
 
+  // apply interface Api instead of ApiService
   @Autowired protected Api api;
   @Autowired ScenarioLoader scenarioSetup;
 
