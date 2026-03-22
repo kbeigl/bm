@@ -18,18 +18,21 @@ to simulate and process real-time location data.
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.18
-    [INFO] --- blue marble parameters                --- 1.1.18
-    [INFO] ---- GPS Trackers                         --- 1.1.18
-    [INFO] ..... gps-osmand-tracker                      1.1.18
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.18
+    [INFO] === blue marble simulations               === 1.1.19
+    [INFO] --- blue marble parameters                --- 1.1.19
+    [INFO] ---- GPS Trackers                         --- 1.1.19
+    [INFO] ..... gps-osmand-tracker                      1.1.19
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.19
     [INFO] ..... traccar-openapitools-client      6.12.2 ......
-    [INFO] ..... traccar-api-client               6.12.2-1.1.18
-    [INFO] ..... traccar-realtime-client          6.12.2-1.1.18
+    [INFO] ..... traccar-api-client               6.12.2-1.1.19
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.19
 -----------------
 
 For earlier versions check the 
 xref:releases.adoc[version history] 
+
+== builds and releases
+
 
 TODO:  
 xref:../../../../bm-traccar/traccar-realtime-client/src/asciidoc/traccar-rt-CLI.adoc[Quickstart]
@@ -48,11 +51,11 @@ Technology Stack as of `v1.1.18`:
 
 | App Framework | Spring Boot | 4.0.3
 
-| Integration Test Infrastructure | Docker via Fabric8 plugin | 0.48.1
+| Integration / Routing | Apache Camel | 4.18.0
 
 | Unit Testing | JUnit 5 (and Camel testing) | 5.20.0
 
-| Integration / Routing | Apache Camel | 4.18.0
+| Integration Test Infrastructure | Docker via Fabric8 plugin | 0.48.1
 
 | GPS Server | Traccar | 6.12.2
 

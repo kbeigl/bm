@@ -8,8 +8,6 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,17 +15,12 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
 
       - name: Build with Maven
-      run: mvn install
-        --file pom.xml
-        -Dintegration.tests.skip=true
-        -Ddocker.skip.tests=true
-        -Dopenapi.skip=false
-        -Dasciidoc.process.skip=true
+        run: mvn install --file pom.xml
 
       - name: Find JAR files
         id: find_jars

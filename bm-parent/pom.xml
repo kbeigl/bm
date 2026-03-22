@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.18</version>
+        <version>1.1.19</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -34,31 +34,32 @@
     <description>
         Parent POM for common definitions and constants for all sources.
         Acts as the bill of materials for the entire project.
-        - Declares all dependency and plugin version properties centrally
-        - Imports the Spring Boot and Apache Camel Spring Boot BOMs
-        - Configures shared build plugins applied to all child modules:
+        - declares all dependency and plugin version properties centrally
+        - imports the Spring Boot and Apache Camel Spring Boot BOMs
+        - configures shared build plugins applied to all child modules:
     </description>
 
     <properties>
         <!-- simplify build on github and user pulls-->
-        <!-- allow skipping openapi generation/install via -Dopenapi.skip=true -->
-        <openapi.skip>true</openapi.skip>
+        <openapi.skip>false</openapi.skip>
         <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
 
+        <maven.javadoc.skip>false</maven.javadoc.skip>
+        
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
-        <!-- AsciidoctorJ Diagram for Mermaid support -->
-        <asciidoc.diagram.version>3.1.0</asciidoc.diagram.version>
-
-        <fmt-maven-plugin-version>2.29</fmt-maven-plugin-version>
+        <!-- actual traccar vs sub!project version !
+        traccar version is used for docker image, traccar development only in
+        bm-traccar 
+        <traccar.version>${project.version}</traccar.version> -->
+        <traccar.version>6.12.2</traccar.version>
 
         <!-- ${java.runtime.version} and requireJavaVersion -->
         <jdk.version>21</jdk.version>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
-   <!-- <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version> -->
+        <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
         <maven-surefire-plugin-version>3.5.5</maven-surefire-plugin-version>
         <maven-failsafe-plugin-version>3.5.5</maven-failsafe-plugin-version>
         <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
@@ -66,13 +67,14 @@
 
         <!-- prefer LTS versions -->
         <camel-version>4.18.0</camel-version>
-        <spring-boot-version>4.0.3</spring-boot-version>
-        <spring-boot-maven-plugin-version>3.2.2</spring-boot-maven-plugin-version>
+        <spring-boot-version>4.0.4</spring-boot-version>
+        <spring-boot-maven-plugin-version>4.1.0-M3</spring-boot-maven-plugin-version>
 
-        <!-- actual traccar vs sub!project version !
-        traccar version is used for docker image, traccar development only in bm-traccar 
-        <traccar.version>${project.version}</traccar.version> -->
-        <traccar.version>6.12.2</traccar.version>
+        <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
+        <!-- AsciidoctorJ Diagram for Mermaid support -->
+        <asciidoc.diagram.version>3.1.0</asciidoc.diagram.version>
+
+        <fmt-maven-plugin-version>2.29</fmt-maven-plugin-version>
 
         <!-- docker would start, if docker.skip.tests=false -->
         <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
@@ -81,10 +83,11 @@
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
         <docker.image.os>ubuntu</docker.image.os>
-        
+
         <!-- avoid agent warning since Java 21 in surefire and failsafe testing. 
         TODO Version should be derived from spring/camel stack!
-        see https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+        see
+        https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine> -->
         <mockito.version>5.20.0</mockito.version>
 
@@ -93,11 +96,9 @@
         <logging.pattern.console>%d{yy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level
             ${PID:- } --- [${spring.application.name:-}] [%15.15t] %logger{36} :
             %msg%n</logging.pattern.console>
-            
+
         <logging.pattern.file>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level ${PID:-
             } --- [${spring.application.name:-}] [%15.15t] %logger{36} : %msg%n</logging.pattern.file>
-
-        <repo.version>1.1.18</repo.version>
     </properties>
 
     <dependencyManagement>
@@ -147,7 +148,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
         <pluginManagement>
             <plugins>
@@ -156,7 +157,9 @@
                     <version>${maven-surefire-plugin-version}</version>
                     <configuration>
                         <argLine>
-                            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Dlogging.pattern.console="${logging.pattern.console}" -Dlogging.pattern.file="${logging.pattern.file}"
+                            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                            -Dlogging.pattern.console="${logging.pattern.console}"
+                            -Dlogging.pattern.file="${logging.pattern.file}"
                         </argLine>
                     </configuration>
                 </plugin>
@@ -175,7 +178,9 @@
                                 <classesDirectory>
                                     ${project.build.outputDirectory}</classesDirectory>
                                 <argLine>
-                                    -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Dlogging.pattern.console="${logging.pattern.console}" -Dlogging.pattern.file="${logging.pattern.file}"
+                                    -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                                    -Dlogging.pattern.console="${logging.pattern.console}"
+                                    -Dlogging.pattern.file="${logging.pattern.file}"
                                 </argLine>
                             </configuration>
                         </execution>
@@ -261,6 +266,18 @@
                          -->
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot-maven-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -297,6 +314,13 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin-version}</version>
+                <configuration>
+                    <skip>${maven.javadoc.skip}</skip>
+                    <!-- Suppress Javadoc warnings introduced by newer JDKs -->
+                    <doclint>none</doclint>
+                    <!-- Do not fail the build on Javadoc errors/warnings -->
+                    <failOnError>false</failOnError>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>

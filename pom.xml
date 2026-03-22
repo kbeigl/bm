@@ -23,7 +23,7 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.18</version>
+    <version>1.1.19</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations               ===</name>
@@ -50,7 +50,8 @@
 
     <properties>
         <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
-        <maven-minimum-version>3.8.8</maven-minimum-version>
+        <!-- always generate new maven wrapper version! -->
+        <maven-minimum-version>3.9.14</maven-minimum-version>
         <maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
@@ -92,13 +93,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
             </plugin>
         </plugins>
     </build>

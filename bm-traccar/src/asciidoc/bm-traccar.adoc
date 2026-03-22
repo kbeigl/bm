@@ -11,7 +11,7 @@ include::setup-docker.adoc[]
  
 include::test-database.adoc[]
  
-include::setup-tests.adoc[]
+// include::setup-tests.adoc[] moved to maven plugins
 
 include::setup-development.adoc[]
  

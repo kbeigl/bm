@@ -448,7 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_step_4_traccar_version">step 4 - Traccar version</a></li>
 </ul>
 </li>
-<li><a href="#_release_project">release project</a>
+<li><a href="#_push_project">push project</a>
 <ul class="sectlevel2">
 <li><a href="#_generate_documentation">generate documentation</a></li>
 <li><a href="#_skip_docker_integration_tests_for_light_version">skip Docker Integration Tests for light version</a></li>
@@ -511,6 +511,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>In this case we are <em>not</em> upgrading to Maven 4 yet,
 since it is still in beta phase: <code>4.0.0-beta-1</code></p>
 </div>
+<div class="ulist checklist">
+<ul class="checklist">
+<li>
+<p>&#10063; Update the maven wrapper as described below</p>
+</li>
+<li>
+<p>&#10063; Update the <code>maven-minimum-version</code> in <code>bm/pom.xml</code></p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_step_2_camel_and_spring_versions">step 2 - Camel and Spring versions</h3>
@@ -522,7 +532,7 @@ is completly build with <code>mvn install</code>.</p>
 <div class="literalblock">
 <div class="content">
 <pre>      &lt;camel-version&gt;4.18.0&lt;/camel-version&gt;
-&lt;spring-boot-version&gt;4.0.3&lt;/spring-boot-version&gt;</pre>
+&lt;spring-boot-version&gt;4.0.4&lt;/spring-boot-version&gt;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -631,7 +641,7 @@ including the geofence report, health check, and orders support.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_release_project">release project</h2>
+<h2 id="_push_project">push project</h2>
 <div class="sectionbody">
 <div class="olist arabic">
 <ol class="arabic">
@@ -968,7 +978,7 @@ mvn dependency:resolve -Dclassifier=sources</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-17 21:55:32 +0100
+Last updated 2026-03-23 18:12:50 +0100
 </div>
 </div>
 </body>

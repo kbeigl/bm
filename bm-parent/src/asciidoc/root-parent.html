@@ -555,6 +555,7 @@ and most important - the list of submodules.</p>
 <div class="content">
 <pre class="highlight"><code class="language-xml" data-lang="xml">    &lt;modules&gt;
         &lt;module&gt;bm-parent&lt;/module&gt;
+        &lt;module&gt;bm-tracker&lt;/module&gt;
         &lt;module&gt;bm-traccar&lt;/module&gt;
                 ...
     &lt;/modules</code></pre>
@@ -572,27 +573,56 @@ It starts by running the <code>os-maven-plugin</code> (actually a Maven <code>&l
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">[INFO] Scanning for projects...
-[INFO] ---------------------------------------------------
-[INFO] Detecting the operating system and CPU architecture
-[INFO] ---------------------------------------------------
-[INFO] os.detected.name: linux
-[INFO] os.detected.arch: x86_64
-[INFO] os.detected.bitness: 64
-[INFO] os.detected.version: 6.11
-[INFO] os.detected.version.major: 6
-[INFO] os.detected.version.minor: 11
-[INFO] os.detected.release: tuxedo
-[INFO] os.detected.release.version: 22.04
-[INFO] os.detected.release.like.tuxedo: true
-[INFO] os.detected.release.like.ubuntu: true
-[INFO] os.detected.release.like.debian: true
-[INFO] os.detected.classifier: linux-x86_64</code></pre>
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] Scanning for projects...
+    [INFO] ---------------------------------------------------
+    [INFO] Detecting the operating system and CPU architecture
+    [INFO] ---------------------------------------------------
+    [INFO] os.detected.name: linux
+    [INFO] os.detected.arch: x86_64
+    [INFO] os.detected.bitness: 64
+    [INFO] os.detected.version: 6.11
+    [INFO] os.detected.version.major: 6
+    [INFO] os.detected.version.minor: 11
+    [INFO] os.detected.release: tuxedo
+    [INFO] os.detected.release.version: 22.04
+    [INFO] os.detected.release.like.tuxedo: true
+    [INFO] os.detected.release.like.ubuntu: true
+    [INFO] os.detected.release.like.debian: true
+    [INFO] os.detected.classifier: linux-x86_64</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>which provides Maven parameters, like <code>${os.detected.name}</code>,<br>
 to direct the build lifecycle as required for your targeted system.</p>
+</div>
+<div class="paragraph">
+<p>And it helps to detect and identify problems in different environments.<br>
+For exmple the build on github actions is running on <code>ubuntu-latest</code> and<br>
+the build on the local machine (above) is running on <code>ubuntu 22.04</code>.<br>
+If you look at the build on
+<a href="https://github.com/kbeigl/bm/actions">github actions</a>
+you can locate differences in the <code>build-and-release</code> workflow</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">  [INFO] os.detected.version: 6.14
+  [INFO] os.detected.release: ubuntu
+  [INFO] os.detected.release.version: 24.04</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>These subtle differences can raise subtle problems!</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_project_setup">project setup</h3>
@@ -643,10 +673,79 @@ to ensure Camel dependencies are using supported JARs from the release.</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_dotfiles">Dotfiles</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Dotfiles are text-based configuration files (e.g. <code>.gitignore</code>) for Unix-like systems,<br>
+named after the "." prefix that hides them.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Make sure you have set your file browser tool to show hidden files.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Dotfiles are also part of this repository to serve various purposes.</p>
+</div>
+<div class="sect2">
+<h3 id="_githubworkflows"><code>.github/workflows/</code></h3>
+<div class="paragraph">
+<p>This directory contains the YAML files for GitHub Actions, which automate workflows for the repository.</p>
+</div>
+<div class="paragraph">
+<p><code><a href="https://github.com/kbeigl/bm/actions" class="bare">https://github.com/kbeigl/bm/actions</a></code></p>
+</div>
+<div class="paragraph">
+<p>TODO: <code>java-version: '21'</code> is currently hardcoded in both files</p>
+</div>
+<div class="sect3">
+<h4 id="_build_yml"><code>build.yml</code></h4>
+<div class="paragraph">
+<p>This workflow is triggered on every push or pull request to the main branches.<br>
+Its primary role is to build the project and run tests to ensure code quality and integration.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_release_yml"><code>release.yml</code></h4>
+<div class="paragraph">
+<p>This workflow automates the release process.
+It is triggered when a new version tag (e.g., <code>v1.0.0</code>) is pushed.
+The workflow builds the project, creates a new GitHub release,
+and attaches the generated JAR files as release assets.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mvnwrapper"><code>.mvn/wrapper/</code></h3>
+<div class="sect3">
+<h4 id="_maven_wrapper_properties"><code>maven-wrapper.properties</code></h4>
+<div class="paragraph">
+<p>todo (locate existing descriptions)</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gitignore"><code>.gitignore</code></h3>
+<div class="paragraph">
+<p>todo (locate existing descriptions)</p>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-08 12:43:45 +0100
+Last updated 2026-03-23 17:39:22 +0100
 </div>
 </div>
 </body>

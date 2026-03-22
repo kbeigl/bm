@@ -72,6 +72,6 @@ Choose your own entry point and format to navigate through the documentation
 depending on your environment.
 
 Or browse the 
-https://kbeigl.github.io/bm/src/asciidoc/bm.html[*bm Github Pages*]
+link:https://kbeigl.github.io/bm/bm-parent/src/asciidoc/bm/bm.html[*bm Github Pages*]
 for a smooth reading experience.
 

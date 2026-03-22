@@ -504,19 +504,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_sql_with_maven">15. sql with Maven</a></li>
 </ul>
 </li>
-<li><a href="#_testing_with_traccar_server">Testing with Traccar Server</a>
-<ul class="sectlevel1">
-<li><a href="#_surefire_vs_failsafe_testing_with_docker">16. surefire vs failsafe testing with docker</a></li>
-<li><a href="#_docker_maven_plugin_2">17. docker-maven-plugin</a></li>
-<li><a href="#_maven_failsafe_plugin">18. maven-failsafe-plugin</a></li>
-</ul>
-</li>
 <li><a href="#_setup_development_environment">setup development environment</a>
 <ul class="sectlevel1">
 <li><a href="#_credentials">credentials</a></li>
-<li><a href="#_surefire_vs_failsafe">19. surefire vs failsafe</a></li>
-<li><a href="#_browser_ui">20. browser UI</a></li>
-<li><a href="#_run_integration_tests">21. run integration tests</a></li>
+<li><a href="#_surefire_vs_failsafe">16. surefire vs failsafe</a></li>
+<li><a href="#_browser_ui">17. browser UI</a></li>
+<li><a href="#_run_integration_tests">18. run integration tests</a></li>
 </ul>
 </li>
 </ul>
@@ -1511,147 +1504,6 @@ $ sudo chmod 777 database*
 </div>
 </div>
 </div>
-<h1 id="_testing_with_traccar_server" class="sect0">Testing with Traccar Server</h1>
-<div class="openblock partintro">
-<div class="content">
-<div class="paragraph">
-<p>The Traccar Clients are basically an interface between REST and Java passing Entities.
-Therefor there is no need for cumbersom JUnit test setups or mocking
-to test the technology we rely on.
-The functionality is achieved by wiring diffent technology components
-together, configure and run them.</p>
-</div>
-<div class="paragraph">
-<p>The Traccar Client is <em>not</em> a software with complex implementations of Java Units.
-Actually it is merely an interface between REST and Java passing Entities.
-The functionality is achieved by wiring diffent technology components
-together, configure and run them.</p>
-</div>
-<div class="paragraph">
-<p>For example the Camel <code>RestOpenApiComponent</code>
-is already being tested with each Camel build. These tests should not be repeated.
-see
-<a href="https://github.com/apache/camel/tree/main/components/camel-rest-openapi/src/test/java/org/apache/camel/component/rest/openapi">RestOpenApiComponent JUnit tests</a></p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_surefire_vs_failsafe_testing_with_docker">16. surefire vs failsafe testing with docker</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The aim of this project is to remote control a Traccar Server
-by reacting to live information.<br>
-So we can take a broader approach to testing by setting up a Traccar Server for tests.
-This makes the actual build of the Traccar Client software faster.
-We use the Maven lifecycle to start a traccar docker container
-and apply failsafe to <em>make sure the container is stoped after testing</em>:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>[INFO] --- docker-maven-plugin:0.46.0:stop (stop) @ traccar-api-client ---
-[INFO] DOCKER&gt; [traccar/traccar:6.7.1-ubuntu] "traccar":
-                Stop and removed container 7ef24f3a8f58 after 0 ms</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To speed up test development the traccar container can be started via command line
-and the Integration Tests (<strong>*IT</strong>) can be run as JUnit Tests against a running server.
-This is a one liner <em>inside the <code>bm-traccar</code> branch</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-xml" data-lang="xml">~/git/bm/bm-traccar$ mvn docker:run
-[INFO] --- docker-maven-plugin:0.46.0:run (default-cli) @ bm-traccar ---
-[INFO] DOCKER&gt; [traccar/traccar:6.10.0-ubuntu] "traccar": Start container 6083b17b2da9
-[INFO] DOCKER&gt; [traccar/traccar:6.10.0-ubuntu] "traccar": Waiting on url http://localhost with method HEAD for status 200..399.
-[INFO] DOCKER&gt; [traccar/traccar:6.10.0-ubuntu] "traccar": Waited  on url http://localhost 4954 ms</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The developer can login to the Traccar Frontend to inspect test results and more.</p>
-</div>
-<div class="paragraph">
-<p>The botton line is that emphasis is placed on integration testing
-using Maven’s Failsafe plugin in combination with Docker.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_docker_maven_plugin_2">17. docker-maven-plugin</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Requirements to docker are dead simple:
-We need a traccar container out of the box, configure it to our needs,
-introspect the logs at runtime and finally using the traccar UI
-to visualize what&#8217;s going on!</p>
-</div>
-<div class="paragraph">
-<p>Since the project does not dockerize anything,
-the plugin should not be to fancy about docker, kubernetes, cloud etc.
-After setting up the project once, the focus is on using Spring Test framework
-and Camel&#8217;s testing utilities to <code>mvn verify</code> integration logic and not unit-level.</p>
-</div>
-<div class="paragraph">
-<p>There is no need to integrate Docker into the source code with
-<a href="https://camel.apache.org/components/4.8.x/docker-component.html">Docker :: Apache Camel</a>
-or the like, since this is not a docker project.</p>
-</div>
-<div class="paragraph">
-<p>The choice is fabric8&#8217;s <code>docker-maven-plugin</code></p>
-</div>
-<div class="quoteblock">
-<blockquote>
-<div class="paragraph">
-<p>This is a Maven plugin for managing Docker images and containers.<br>
-It focuses on two major aspects for a Docker build integration:<br>
-Building Images and  Running Containers.</p>
-</div>
-</blockquote>
-<div class="attribution">
-&#8212; fabric8io/docker-maven-plugin
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_maven_failsafe_plugin">18. maven-failsafe-plugin</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>specifically for integration testing, focusing on lifecycle and reporting for integration tests.</p>
-</div>
-<div class="paragraph">
-<p>Run Docker containers during the integration test phase to manage container lifecycle.</p>
-</div>
-<div class="paragraph">
-<p>Failsafe and Docker Integration: Combining Failsafe plugin with Docker management
-to execute tests within a Dockerized environment and ensure proper test lifecycle.</p>
-</div>
-<div class="paragraph">
-<p><a href="https://maven.apache.org/surefire/maven-failsafe-plugin/" class="bare">https://maven.apache.org/surefire/maven-failsafe-plugin/</a><br>
-<a href="https://maven.apache.org/surefire/maven-failsafe-plugin/usage.html" class="bare">https://maven.apache.org/surefire/maven-failsafe-plugin/usage.html</a></p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>-&gt; Usage in multi-module projects
-  &lt;pluginManagement&gt;
-    &lt;plugins&gt;
-      &lt;plugin&gt;
-        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-        &lt;artifactId&gt;maven-failsafe-plugin&lt;/artifactId&gt;</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>-&gt; Reporting integration test results   LATER
-  &lt;reporting&gt;
-  &lt;plugins&gt;
-    &lt;plugin&gt;
-      &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-      &lt;artifactId&gt;maven-surefire-report-plugin&lt;/artifactId&gt;</pre>
-</div>
-</div>
-</div>
-</div>
 <h1 id="_setup_development_environment" class="sect0">setup development environment</h1>
 <div class="openblock partintro">
 <div class="content">
@@ -1700,7 +1552,7 @@ in the <code>application.properties</code> file</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_surefire_vs_failsafe">19. surefire vs failsafe</h2>
+<h2 id="_surefire_vs_failsafe">16. surefire vs failsafe</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can 'turn off' the docker management in the project by removing
@@ -1777,7 +1629,7 @@ i.e. set the repo back to production.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_browser_ui">20. browser UI</h2>
+<h2 id="_browser_ui">17. browser UI</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now there is one last thing to do, before running the ITests:
@@ -1835,7 +1687,7 @@ login with the new credentials</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_run_integration_tests">21. run integration tests</h2>
+<h2 id="_run_integration_tests">18. run integration tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now the repository is setup for development
@@ -1867,7 +1719,7 @@ and you can use the familiar Maven commands</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-11-08 12:43:45 +0100
+Last updated 2026-03-23 17:39:22 +0100
 </div>
 </div>
 </body>

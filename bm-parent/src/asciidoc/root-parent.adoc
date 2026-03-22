@@ -70,6 +70,7 @@ link:https://github.com/kbeigl/jeets/blob/master/pom.xml[JeeTS repository]
 ----
     <modules>
         <module>bm-parent</module>
+        <module>bm-tracker</module>
         <module>bm-traccar</module>
                 ...
     </modules
@@ -82,26 +83,51 @@ It starts by running the `os-maven-plugin` (actually a Maven `<extension>`)
 
 [source,text]
 -----------------
-[INFO] Scanning for projects...
-[INFO] ---------------------------------------------------
-[INFO] Detecting the operating system and CPU architecture
-[INFO] ---------------------------------------------------
-[INFO] os.detected.name: linux
-[INFO] os.detected.arch: x86_64
-[INFO] os.detected.bitness: 64
-[INFO] os.detected.version: 6.11
-[INFO] os.detected.version.major: 6
-[INFO] os.detected.version.minor: 11
-[INFO] os.detected.release: tuxedo
-[INFO] os.detected.release.version: 22.04
-[INFO] os.detected.release.like.tuxedo: true
-[INFO] os.detected.release.like.ubuntu: true
-[INFO] os.detected.release.like.debian: true
-[INFO] os.detected.classifier: linux-x86_64
+    [INFO] Scanning for projects...
+    [INFO] ---------------------------------------------------
+    [INFO] Detecting the operating system and CPU architecture
+    [INFO] ---------------------------------------------------
+    [INFO] os.detected.name: linux
+    [INFO] os.detected.arch: x86_64
+    [INFO] os.detected.bitness: 64
+    [INFO] os.detected.version: 6.11
+    [INFO] os.detected.version.major: 6
+    [INFO] os.detected.version.minor: 11
+    [INFO] os.detected.release: tuxedo
+    [INFO] os.detected.release.version: 22.04
+    [INFO] os.detected.release.like.tuxedo: true
+    [INFO] os.detected.release.like.ubuntu: true
+    [INFO] os.detected.release.like.debian: true
+    [INFO] os.detected.classifier: linux-x86_64
 -----------------
 
 which provides Maven parameters, like `${os.detected.name}`, +
 to direct the build lifecycle as required for your targeted system.
+
+And it helps to detect and identify problems in different environments. +
+For exmple the build on github actions is running on `ubuntu-latest` and +  
+the build on the local machine (above) is running on `ubuntu 22.04`. +
+If you look at the build on 
+https://github.com/kbeigl/bm/actions[github actions]
+you can locate differences in the `build-and-release` workflow
+
+[source,text]
+-----------------
+  [INFO] os.detected.version: 6.14
+  [INFO] os.detected.release: ubuntu
+  [INFO] os.detected.release.version: 24.04
+-----------------
+
+[CAUTION]
+====
+These subtle differences can raise subtle problems!
+====
+
+
+
+
+
+
 
 === project setup
 
@@ -137,3 +163,61 @@ https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml[JeeTS repositor
   
        <groupId>org.apache.camel.springboot</groupId>
     <artifactId>camel-spring-boot-dependencies</artifactId>
+
+    
+== Dotfiles
+
+Dotfiles are text-based configuration files (e.g. `.gitignore`) for Unix-like systems, +
+named after the "." prefix that hides them. 
+[IMPORTANT]
+====
+Make sure you have set your file browser tool to show hidden files.
+====
+
+Dotfiles are also part of this repository to serve various purposes.
+
+
+=== `.github/workflows/`
+
+This directory contains the YAML files for GitHub Actions, which automate workflows for the repository.
+
+`https://github.com/kbeigl/bm/actions`
+
+TODO: `java-version: '21'` is currently hardcoded in both files
+
+
+==== `build.yml`
+
+This workflow is triggered on every push or pull request to the main branches. +
+Its primary role is to build the project and run tests to ensure code quality and integration.
+
+
+==== `release.yml`
+
+This workflow automates the release process. 
+It is triggered when a new version tag (e.g., `v1.0.0`) is pushed. 
+The workflow builds the project, creates a new GitHub release, 
+and attaches the generated JAR files as release assets.
+
+
+=== `.mvn/wrapper/`
+
+==== `maven-wrapper.properties`
+
+todo (locate existing descriptions)
+
+
+=== `.gitignore` 
+
+todo (locate existing descriptions)
+
+
+
+
+
+
+
+
+
+
+
