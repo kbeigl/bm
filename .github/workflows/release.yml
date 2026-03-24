@@ -22,12 +22,13 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-      run: ./mvnw install
-        --file pom.xml
-        -Dintegration.tests.skip=true
-        -Ddocker.skip.tests=true
-        -Dopenapi.skip=false
-        -Dasciidoc.process.skip=true
+        run: |
+          ./mvnw install \
+            --file pom.xml \
+            -Dintegration.tests.skip=true \
+            -Ddocker.skip.tests=true \
+            -Dopenapi.skip=false \
+            -Dasciidoc.process.skip=true
 
       - name: Find JAR files
         id: find_jars
