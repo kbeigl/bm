@@ -42,6 +42,7 @@ public class TrackerQueueDisruptionTest {
     available = new AtomicBoolean(true);
 
     createServer(port);
+    sleepMillis(500);
 
     // test a single tracker only
     String uniqueId = "4711";
