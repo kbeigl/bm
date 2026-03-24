@@ -50,7 +50,8 @@ public class TrackerQueueDisruptionTest {
 
     // send first message while server is up -> should be delivered, not enqueued
     tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0, 13.0));
-    sleepMillis(500);
+    // sleepMillis(500); - timing problems on github actions
+    waitForRequests(1, 2000);
     // assertEquals(0, queue.size(), "Queue should be empty when server is up");
     assertTrue(requestCount.get() >= 1, "Server should have received at least one request");
 
@@ -78,6 +79,13 @@ public class TrackerQueueDisruptionTest {
 
     // assertTrue(flushed, "Queued messages should be flushed after server becomes available");
 
+  }
+
+  private void waitForRequests(int expectedCount, long timeoutMs) throws InterruptedException {
+    long start = System.currentTimeMillis();
+    while (requestCount.get() < expectedCount && System.currentTimeMillis() - start < timeoutMs) {
+      Thread.sleep(50);
+    }
   }
 
   /** Create minimal OsmAnd GPS message with current timestamp. */
