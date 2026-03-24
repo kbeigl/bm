@@ -1,14 +1,5 @@
 
-
-= The Traccar Real Time Client
-
-The `traccar-realtime-client` is a Java Client Software to provide full (remote) control over
-and interact via live surveillance of your Traccar Server Scenario. 
-It can be used to observe, predict and react to live events - defined by your business.
-For exmple you can control the timing of a _rendez vous_ point for logistic vehicles.
-
-
-== Real Time Systems
+= Real Time Systems
 
 Modern Advanced Driver Assistant Systems (ADAS) can serve as an example of _Real Time Systems_.
 They are monitoring the vehicle _and_ observing the environment 
@@ -99,13 +90,13 @@ Core Design Principles
     All data is held in a single, well-defined state object. 
 
 * Normalization +
-    Each entity type (`User, Device, Position, Geofence`..) is stored in its own "table" or `map`. 
+    Each entity type (`User, Device, Position, Geofence`..) is stored in its own "table" or `map`. +
     Objects reference each other by `ID` rather than nesting the full object. 
     This prevents data duplication and makes updates atomic. 
     For example, a `Device` object will contain a `positionId` instead of the entire position object.
 
 * Maps for _fast_ `O(1)` Lookups +
-    Data is stored in Maps where the key is the entity's `id`. 
+    Data is stored in Maps where the key is the entity's `id`. +
     This allows for extremely fast lookups when an update comes in, 
     which is essential for real-time performance.
     
@@ -118,7 +109,7 @@ also known as StateManager in RealTime context.
 
     •  It is annotated with `@Component`, so Spring creates a singleton for the application context.
     •  It uses `ConcurrentHashMap` for its internal state, 
-       which provides thread-safe access and updates.
+       which provides thread-safe access and updates
        from WebSocket listener background threads.
 
 [source,java]
@@ -128,14 +119,16 @@ also known as StateManager in RealTime context.
   private final Map<Long, Position> positions = new ConcurrentHashMap<>();
 ----
 
-    •  Synchronization is used (`deviceMapLock`) to ensure atomic updates for related maps.
-    •  The class manages real-time entities (User, Device, Position) + 
+•  Synchronization is used (`deviceMapLock`) to ensure atomic updates for related maps.
+•  The class manages real-time entities (`User, Device, Position ..`) + 
        and their relationships safely across threads.
 
 Note that there is no API involved.
 
 
-==== Data Flow & Interaction
+==== RealTimeManagerIT
+
+Data Flow & Interaction
 
 Now we need to develop methods for state modifications. +
 We have to load initial entities and then update them 
@@ -159,7 +152,7 @@ as you read on:
 
 [source,java]
 ----
-class RealTimeManagerIT extends BaseReaTimeScenarioTest { // sets up scenario
+class RealTimeManagerIT extends BaseRealTimeTest { // sets up scenario
 
     @Autowired protected Api api;
     private RealTimeManager stateManager = RealTimeManager.getInstance();
@@ -269,10 +262,12 @@ And now the software is running an waiting for server updates:
 
  traccarWebSocketDynamicRoute          : Received Traccar WebSocket update: {"positions":[]}
  traccarWebSocketMessageProcessingRoute:    Process WebSocket raw  message: {"positions":[]}
- traccarWebSocketMessageProcessingRoute:    Process WebSocket json message: {positions=[]}
+ traccarWebSocketMessageProcessingRoute:    Process WebSocket json message: { positions=[] }
+
+These empty messages are useful as a connection heart beat and to detect connectivity issues.
 
 
-== Real Time Updates
+=== Real Time Updates
 
 As indicated the `TraccarWebSocketRoute` updates 
 the `TraccarStateManager` similar the the controller.
@@ -284,11 +279,11 @@ xref:./websocket.adoc[here].
 
 === sample messages
 
-To keep a distributed systems integrity you need to have all models in mind.
+To keep a distributed system integrity you need to have all models in mind.
 
 xref:../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.adoc#_the_model[The Model for Tracker Development]  
 defines a GPS message from a unique device. +
-The REST yml file provides a bigger 
+The REST `openapi.yml` file provides a bigger 
 xref:../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.adoc#_model_deviations[model for a complete GTS]. +
 These models deviate and must be mapped to each other.
 
@@ -310,14 +305,14 @@ while the uniqueId always refers to a unique tracker.
 The latter must be used in a scenario to track the device.
 
 Anyhow the database Ids are important for referencing. +
-The above device references the `positionId=198`, +
-vice versa the position has the reference `deviceId=554`.
+The above `device` references the `positionId=198`, +
+vice versa the `position` has the reference to `deviceId=554` - and *not* to the `uniqueId=10`!
 
     {positions=
       [
         {id=198,
         attributes={distance=0.0, totalDistance=0.0, motion=true}, deviceId=554, protocol=osmand,
-        serverTime=2026-02-19T19:46:41.300+00:00, 
+        serverTime=2026-02-19T19:46:41.300+00:00,                  ============
         deviceTime=2026-02-19T19:46:41.000+00:00, 
            fixTime=2026-02-19T19:46:41.000+00:00,
         valid=true, latitude=52.0, longitude=13.0, altitude=30.0, speed=10.0, course=20.0, 

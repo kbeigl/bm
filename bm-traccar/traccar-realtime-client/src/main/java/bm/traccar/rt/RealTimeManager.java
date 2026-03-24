@@ -87,25 +87,28 @@ public class RealTimeManager {
   }
 
   // DO NOT load initial list of positions from server!
-  // a scenario will have a start time (genesis)
+  // a scenario will have a start time (genesis) and end (doomsday, -time)
   // and we only want positions after that time
 
   /** Adds or updates a position and - crucially - also updates associated device's state. */
   public void addOrUpdatePosition(Position position) {
     if (position == null) return;
 
-    // 1. Add/update the position in the positions map.
-    positions.put(position.getId(), position);
+    // Perform mutations under deviceMapLock so position insertion and device maps remain consistent
+    synchronized (deviceMapLock) {
+      // 1. Add/update the position in the positions map.
+      positions.put(position.getId(), position);
 
-    // 2. Find the associated device and update its references.
-    Device device = devices.get(position.getDeviceId());
-    if (device != null) {
-      device.setPositionId(position.getId());
-      device.setLastUpdate(position.getServerTime()); // .. make sense ?
-      // update device stati based on position data
-      // e.g., if position.getAttributes().get("ignition") is true/false.
-      // raise events ...
-      device.setStatus("online");
+      // 2. Find the associated device and update its references.
+      Device device = devices.get(position.getDeviceId());
+      if (device != null) {
+        device.setPositionId(position.getId());
+        device.setLastUpdate(position.getServerTime()); // .. make sense ?
+        // update device stati based on position data
+        // e.g., if position.getAttributes().get("ignition") is true/false.
+        // raise events ...
+        device.setStatus("online");
+      }
     }
   }
 

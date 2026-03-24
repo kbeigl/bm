@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,13 +25,14 @@ public class RealTimeController {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeController.class);
 
   private final RealTimeManager stateManager;
+  private final Api api; // or ApiService !?
+  private final WebSocketRoute liveConnection;
 
-  public RealTimeController(RealTimeManager stateManager) {
+  public RealTimeController(RealTimeManager stateManager, Api api, WebSocketRoute liveConnection) {
+    this.api = api;
     this.stateManager = stateManager;
+    this.liveConnection = liveConnection;
   }
-
-  @Autowired protected Api api;
-  @Autowired private WebSocketRoute liveConnection;
 
   /**
    * Authenticates with the server, loads initial data, and connects to the WebSocket.
@@ -41,14 +41,15 @@ public class RealTimeController {
    */
   public boolean loginAndInitialize(User admin) throws Exception { // specify Exception
 
+    // try bad credentials
+    api.setBasicAuth(admin.getEmail(), admin.getPassword());
+
     try {
-      // try bad credentials
-      api.setBasicAuth(admin.getEmail(), admin.getPassword());
       // fetch current user WITH ID to verify login
       loadInitialServerEntities();
 
     } catch (ApiException e) {
-      System.err.println("Login failed: " + e.getMessage());
+      logger.error("Login failed: {}", e.getMessage());
       return false;
     }
 
@@ -58,7 +59,7 @@ public class RealTimeController {
     // after initialization was successful
     stateManager.setLoginUser(admin);
     logger.info(
-        "User logged in: " + stateManager.getCurrentUser().map(User::getName).orElse("N/A"));
+        "User logged in: {}", stateManager.getCurrentUser().map(User::getName).orElse("N/A"));
 
     return true;
   }
@@ -72,9 +73,11 @@ public class RealTimeController {
    */
   private void loadInitialServerEntities() throws ApiException {
 
-    logger.info("--- Loading initial users from server...   ---");
     List<User> initialUsers = new ArrayList<>();
+    // following line should verify that credentials are correct ..
     initialUsers = api.getUsersApi().getAllUsers();
+    // .. proceed with correct credentials
+    logger.info("--- Loading initial users from server...   ---");
     // users from other tests are listed! -> permission management
     initialUsers.forEach(u -> logger.info("User.id{}: {}", u.getId(), u.getEmail()));
     stateManager.loadInitialUsers(initialUsers);
@@ -130,6 +133,18 @@ public class RealTimeController {
 
   public Optional<Device> getDeviceById(long id) {
     return stateManager.getDeviceById(id);
+  }
+
+  /**
+   * Returns the Device for a given uniqueId, or Optional.empty() if not found.
+   *
+   * @param uniqueId the unique identifier of the device
+   * @return Optional containing the Device if present, otherwise empty
+   */
+  public Optional<Device> getDeviceIdByUniqueId(String uniqueId) {
+    long deviceId = stateManager.lookupDeviceIdByUniqueId(uniqueId);
+    if (deviceId == -1L) return Optional.empty();
+    return stateManager.getDeviceById(deviceId);
   }
 
   public Optional<Position> getPositionById(long id) {

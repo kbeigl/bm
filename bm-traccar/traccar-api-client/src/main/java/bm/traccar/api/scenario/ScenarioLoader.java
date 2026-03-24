@@ -49,7 +49,7 @@ public class ScenarioLoader {
             .createUserWithCredentials(user.name, user.password, user.email, user.administrator);
     // for test purposes ONLY we set the password for simplicity
     admin.setPassword(user.password);
-    logger.debug("Created User.id{}: {}/{}", admin.getId(), admin.getName(), admin.getPassword());
+    logger.debug("Created User.id{}: {}/***", admin.getId(), admin.getName());
 
     // continue as admin who is not part of the scenario!
     api.setBasicAuth(admin.getEmail(), admin.getPassword());

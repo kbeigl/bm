@@ -37,10 +37,21 @@ jobs:
       - name: Find JAR files
         id: find_jars
         run: |
-          echo "openapitools_client=$(find bm-traccar/traccar-openapitools-client/target -name 'traccar-openapitools-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')" >> $GITHUB_OUTPUT
-          echo "api_client=$(find bm-traccar/traccar-api-client/target -name 'traccar-api-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')" >> $GITHUB_OUTPUT
-          echo "realtime_client=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*.jar.original')" >> $GITHUB_OUTPUT
-          echo "realtime_client_original=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar.original')" >> $GITHUB_OUTPUT
+          OPENAPITOOLS=$(find bm-traccar/traccar-openapitools-client/target -name 'traccar-openapitools-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          API_CLIENT=$(find bm-traccar/traccar-api-client/target -name 'traccar-api-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
+          REALTIME=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*.jar.original')
+          REALTIME_ORIG=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar.original')
+
+          echo "openapitools_client=$OPENAPITOOLS" >> $GITHUB_OUTPUT
+          echo "api_client=$API_CLIENT" >> $GITHUB_OUTPUT
+          echo "realtime_client=$REALTIME" >> $GITHUB_OUTPUT
+          echo "realtime_client_original=$REALTIME_ORIG" >> $GITHUB_OUTPUT
+
+          # Extract versioned filenames directly from the found paths
+          echo "openapitools_client_name=$(basename $OPENAPITOOLS)" >> $GITHUB_OUTPUT
+          echo "api_client_name=$(basename $API_CLIENT)" >> $GITHUB_OUTPUT
+          echo "realtime_client_name=$(basename $REALTIME)" >> $GITHUB_OUTPUT
+          echo "realtime_client_original_name=$(basename $REALTIME_ORIG)" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
@@ -60,7 +71,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_jars.outputs.openapitools_client }}
-          asset_name: traccar-openapitools-client.jar
+          asset_name: ${{ steps.find_jars.outputs.openapitools_client_name }}
           asset_content_type: application/java-archive
 
       - name: Upload traccar-api-client.jar
@@ -70,7 +81,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_jars.outputs.api_client }}
-          asset_name: traccar-api-client.jar
+          asset_name: ${{ steps.find_jars.outputs.api_client_name }}
           asset_content_type: application/java-archive
 
       - name: Upload traccar-realtime-client.jar
@@ -80,7 +91,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_jars.outputs.realtime_client }}
-          asset_name: traccar-realtime-client.jar
+          asset_name: ${{ steps.find_jars.outputs.realtime_client_name }}
           asset_content_type: application/java-archive
 
       - name: Upload traccar-realtime-client.jar.original
@@ -90,5 +101,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_jars.outputs.realtime_client_original }}
-          asset_name: traccar-realtime-client.jar.original
+          asset_name: ${{ steps.find_jars.outputs.realtime_client_original_name }}
           asset_content_type: application/java-archive

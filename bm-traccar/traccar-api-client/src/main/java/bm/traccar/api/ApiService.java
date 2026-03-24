@@ -38,8 +38,7 @@ public class ApiService implements Api {
    */
   @Override
   public void setBasicAuth(String mail, String password) {
-    String nul = null;
-    apiClient.setBearerToken(nul);
+    apiClient.setBearerToken((String) null);
     apiClient.setUsername(mail);
     apiClient.setPassword(password);
   }
@@ -89,6 +88,8 @@ public class ApiService implements Api {
     this.permissions = new PermissionsImpl(permissionsApi);
   }
 
+  // currently public for convenience (api.users)
+  // can be private if not needed outside of this class.
   public final Api.Users users;
   public final Api.Devices devices;
   public final Api.Session session;

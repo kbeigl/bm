@@ -21,9 +21,16 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- consider, validate and test with maven wrapper
+         already includes Spring Boot BOM
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+    </parent> -->
+
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.19</version>
+    <version>1.1.20</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations               ===</name>
@@ -50,8 +57,10 @@
 
     <properties>
         <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
-        <!-- always generate new maven wrapper version! -->
-        <maven-minimum-version>3.9.14</maven-minimum-version>
+        <!-- always generate new maven wrapper version!
+        <maven-minimum-version>3.9.14</maven-minimum-version> -->
+        <!-- lower version for github and eclipes m2e -->
+        <maven-minimum-version>3.9.12</maven-minimum-version>
         <maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->

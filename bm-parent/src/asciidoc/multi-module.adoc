@@ -19,7 +19,8 @@ is defined by the major components:
 
 == Maven build tool 
  
-Implies major versioning, dependency management, plugin configuration, 
+Implies `major.minor.patch` versioning (sometimes with -RC, -POC etc. to indicate the build status)
+, dependency management, plugin configuration, 
 build lifecycle and finally release management.
 If available and feasible external tools, i.e. plugins, like the 
 xref:../../../bm-traccar/traccar-openapitools-client/readme.adoc[OpenAPI Generator]

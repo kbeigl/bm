@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>The Traccar Real Time Client</title>
+<title>Real Time Systems</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,21 +436,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="book">
 <div id="header">
-<h1>The Traccar Real Time Client</h1>
+<h1>Real Time Systems</h1>
 </div>
 <div id="content">
 <div id="preamble">
-<div class="sectionbody">
-<div class="paragraph">
-<p>The <code>traccar-realtime-client</code> is a Java Client Software to provide full (remote) control over
-and interact via live surveillance of your Traccar Server Scenario.
-It can be used to observe, predict and react to live events - defined by your business.
-For exmple you can control the timing of a <em>rendez vous</em> point for logistic vehicles.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_real_time_systems">Real Time Systems</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Modern Advanced Driver Assistant Systems (ADAS) can serve as an example of <em>Real Time Systems</em>.
@@ -575,14 +564,14 @@ All data is held in a single, well-defined state object.</p>
 </li>
 <li>
 <p>Normalization<br>
-Each entity type (<code>User, Device, Position, Geofence</code>..) is stored in its own "table" or <code>map</code>.
+Each entity type (<code>User, Device, Position, Geofence</code>..) is stored in its own "table" or <code>map</code>.<br>
 Objects reference each other by <code>ID</code> rather than nesting the full object.
 This prevents data duplication and makes updates atomic.
 For example, a <code>Device</code> object will contain a <code>positionId</code> instead of the entire position object.</p>
 </li>
 <li>
 <p>Maps for <em>fast</em> <code>O(1)</code> Lookups<br>
-Data is stored in Maps where the key is the entity&#8217;s <code>id</code>.
+Data is stored in Maps where the key is the entity&#8217;s <code>id</code>.<br>
 This allows for extremely fast lookups when an update comes in,
 which is essential for real-time performance.</p>
 </li>
@@ -602,7 +591,7 @@ also known as StateManager in RealTime context.</p>
 </li>
 <li>
 <p>It uses <code>ConcurrentHashMap</code> for its internal state,
-which provides thread-safe access and updates.
+which provides thread-safe access and updates
 from WebSocket listener background threads.</p>
 </li>
 </ul>
@@ -620,7 +609,7 @@ from WebSocket listener background threads.</p>
 <p>Synchronization is used (<code>deviceMapLock</code>) to ensure atomic updates for related maps.</p>
 </li>
 <li>
-<p>The class manages real-time entities (User, Device, Position)<br>
+<p>The class manages real-time entities (<code>User, Device, Position ..</code>)<br>
 and their relationships safely across threads.</p>
 </li>
 </ul>
@@ -629,7 +618,10 @@ and their relationships safely across threads.</p>
 <p>Note that there is no API involved.</p>
 </div>
 <div class="sect3">
-<h4 id="_data_flow_interaction">Data Flow &amp; Interaction</h4>
+<h4 id="_realtimemanagerit">RealTimeManagerIT</h4>
+<div class="paragraph">
+<p>Data Flow &amp; Interaction</p>
+</div>
 <div class="paragraph">
 <p>Now we need to develop methods for state modifications.<br>
 We have to load initial entities and then update them
@@ -662,7 +654,7 @@ as you read on:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">class RealTimeManagerIT extends BaseReaTimeScenarioTest { // sets up scenario
+<pre class="highlight"><code class="language-java" data-lang="java">class RealTimeManagerIT extends BaseRealTimeTest { // sets up scenario
 
     @Autowired protected Api api;
     private RealTimeManager stateManager = RealTimeManager.getInstance();
@@ -814,16 +806,16 @@ bm.traccar.rt.RealTimeController      : User logged in: admin</pre>
 <div class="content">
 <pre>traccarWebSocketDynamicRoute          : Received Traccar WebSocket update: {"positions":[]}
 traccarWebSocketMessageProcessingRoute:    Process WebSocket raw  message: {"positions":[]}
-traccarWebSocketMessageProcessingRoute:    Process WebSocket json message: {positions=[]}</pre>
+traccarWebSocketMessageProcessingRoute:    Process WebSocket json message: { positions=[] }</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These empty messages are useful as a connection heart beat and to detect connectivity issues.</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_real_time_updates">Real Time Updates</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_real_time_updates">Real Time Updates</h3>
 <div class="paragraph">
 <p>As indicated the <code>TraccarWebSocketRoute</code> updates
 the <code>TraccarStateManager</code> similar the the controller.</p>
@@ -834,15 +826,16 @@ and the <code>TraccarWebSocketRoute</code> is a complete Camel implementation
 and is described in more detail
 <a href="./websocket.html">here</a>.</p>
 </div>
+</div>
 <div class="sect2">
 <h3 id="_sample_messages">sample messages</h3>
 <div class="paragraph">
-<p>To keep a distributed systems integrity you need to have all models in mind.</p>
+<p>To keep a distributed system integrity you need to have all models in mind.</p>
 </div>
 <div class="paragraph">
 <p><a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.html#_the_model">The Model for Tracker Development</a>
 defines a GPS message from a unique device.<br>
-The REST yml file provides a bigger
+The REST <code>openapi.yml</code> file provides a bigger
 <a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-tracker-impl.html#_model_deviations">model for a complete GTS</a>.<br>
 These models deviate and must be mapped to each other.</p>
 </div>
@@ -869,8 +862,8 @@ The latter must be used in a scenario to track the device.</p>
 </div>
 <div class="paragraph">
 <p>Anyhow the database Ids are important for referencing.<br>
-The above device references the <code>positionId=198</code>,<br>
-vice versa the position has the reference <code>deviceId=554</code>.</p>
+The above <code>device</code> references the <code>positionId=198</code>,<br>
+vice versa the <code>position</code> has the reference to <code>deviceId=554</code> - and <strong>not</strong> to the <code>uniqueId=10</code>!</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -878,7 +871,7 @@ vice versa the position has the reference <code>deviceId=554</code>.</p>
   [
     {id=198,
     attributes={distance=0.0, totalDistance=0.0, motion=true}, deviceId=554, protocol=osmand,
-    serverTime=2026-02-19T19:46:41.300+00:00,
+    serverTime=2026-02-19T19:46:41.300+00:00,                  ============
     deviceTime=2026-02-19T19:46:41.000+00:00,
        fixTime=2026-02-19T19:46:41.000+00:00,
     valid=true, latitude=52.0, longitude=13.0, altitude=30.0, speed=10.0, course=20.0,
@@ -905,7 +898,7 @@ The rest of your application can then safely read from the <code>TraccarStateMan
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-21 12:40:26 +0100
+Last updated 2026-04-09 11:54:06 +0200
 </div>
 </div>
 </body>

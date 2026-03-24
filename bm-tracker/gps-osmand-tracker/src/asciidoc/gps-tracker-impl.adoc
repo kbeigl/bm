@@ -3,6 +3,14 @@
 
 = Implementation Path
 
+|===
+
+| File Name | Main Heading | # Headings | # Lines | 
+
+| gps-tracker-impl.adoc | Implementation Path | 10 | 200 | | upgrade-traccar.adoc | Traccar Server Upgrade | 1 | 13 | | setup-development.adoc | setup development environment | 8 | 120 | | .asciidoctorconfig.adoc (various) | (config file, no headings) | 0 | ~20 | | OsmAndProtocolSpecification.adoc | OsmAnd Protocol Specification | 6 | 70 | | client-development.adoc | Traccar Client Development | 2 | 60 | | readme.adoc (various) | project documentation | 1 | 10 | | 
+
+|===
+
 In the long run we want to track every _Thing_ (real physical object) acting in a scenario. + 
 Since every message implies the devices `uniqueId`, one Message Broker
 could operate as _one single_ Tracker for a _complete_ scenario.
@@ -132,8 +140,19 @@ and a `json devices` message sent via websocket:
 ----
 
 Both messages have the devices `uniqueId` in common to refer to the same device. +
-Yet the two models deviate by the two attributes `calendar` and `expirationTime`. +
+Yet the two models deviate by the two attributes `calendarId` and `expirationTime`. +
 Important information for ETL stuff like mapping.
+
+We are using the `com.fasterxml.jackson.databind.ObjectMapper` for JSON handling in a WebSocket Route.
+Have a look at the `bm.traccar.ws.entities.EntityMapper` class for the pre-configured ObjectMapper.
+In the logs you can see the JSON messages sent by the server 
+and the DTOs created by the ObjectMapper.
+And you can see the `WARNING` about the unknown fields, _which are not mapped to the DTOs_:
+
+    WARN  [vert.x-worker-thread-4] bm.traccar.ws.entities.EntityMapper 
+    - UNIMPLEMENTED unknown field 'calendarId' 
+      when deserializing bm.traccar.generated.model.dto.Device 
+      - skipping
 
 The other attributes of our Tracker Model `record`
 can be found in the `Position` class:
@@ -156,10 +175,6 @@ package bm.gps;                      bm.traccar.generated.model.dto;
 ----
 
 
-
-
-
-
 === geo precision
 
 Another thing worth mentioning is the _value_- and type safety of decimals. +
@@ -169,7 +184,7 @@ The openapi generator creates the `Position` class with `BigDecimal` types
 
 The difference between `BigDecimal` and `double` is precision against performance. +
 For financial computation the precision, 
-i.e. the exact sequence of numbers after the point, is indisputable. +
+i.e. the exact sequence of digits after the point, is indisputable. +
 With `double` the decimal values are not always precise. +
 For example, there is no precise decimal representation of one Third. +
 Therefor some tricky algorithm with memory has to make sure `1 / 3 * 3` is exactly `1`.

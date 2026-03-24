@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.19</version>
+        <version>1.1.20</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
-    <version>${traccar.version}-${project.parent.version}</version>
+    <version>${traccar.version}-${project.parent.version}-poc</version>
 
     <name>..... traccar-realtime-client</name>
     <description>traccar-realtime-client</description>
@@ -63,20 +63,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
-        <!-- automate versioning for bm modules -->
+        
+        <!-- versioning for bm modules -->
         <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-api-client</artifactId>
             <version>${traccar.version}-${project.parent.version}</version>
         </dependency>
+        
         <!-- test -->
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>1.1.19</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- No test-jar classifier dependency; gps-osmand-tracker exposes main test-friendly config in main sources -->
     </dependencies>
 
     <build>

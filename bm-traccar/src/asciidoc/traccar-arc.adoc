@@ -1,0 +1,81 @@
+= /bm-traccar
+
+// first level heading is used for the document title
+// for bm-traccar documentation
+
+// :toc:
+// :icons: font
+// :sectnums:
+
+// second level heading for first section of bm-traccar documentation
+== Traccar Server Components
+
+=== Overview
+
+We are using the Traccar Server as our GTS and thanks to Open Source we have full insight. +
+Anyhow we have decided to abstract the GTS to its REST API. +
+Here, we want to provide and maintain a brief overview of the Traccar Server Components
+that we are coding against.
+
+=== Traccar Server Components
+
+The Traccar website provides a wide overview on the  
+https://www.traccar.org/architecture/[Traccar Architecture].
+
+We will highlight the Traccar Components corresponding 
+to `bm` counterparts as they are developed.
+In this diagram, we have highlighted the components 
+that we are coding against in `bm-traccar` and `bm-tracker` branches. +
+
+
+[mermaid]
+....
+flowchart LR
+
+  %% Devices
+  DEV@{ shape: processes, label: "Devices<br/>TCP / UDP / HTTP ." }
+  
+  %% Server components
+  subgraph Traccar Server .
+    direction TB
+    DCS["Device Communication Server gateway"]
+    BACK["Backend ."]
+    WS["WebSocket Route ."]
+    Database[("Model (positions, devices, users..)")]
+
+    REST["REST ."]
+
+    REST -->|CRUD .| BACK
+    BACK -->|live .| WS
+    
+    BACK <-->|read / write| Database
+    DCS -->|live .| BACK
+  end
+
+  %% Frontend components
+  subgraph Traccar Frontend .
+    direction LR
+    UI["GUI ."] 
+    Map["Map"] 
+    Admin["Admin"] 
+
+    UI <--> WS
+    UI <--> Map
+  end
+
+  DEV --> DCS
+  DEV --> DCS
+  DEV --> DCS
+  DEV --> DCS
+
+  REST <--> UI
+
+  Admin <--> UI
+
+
+  %% Notes
+  classDef comp fill:#f8f9fa,stroke:#222,stroke-width:1px;
+....
+
+
+

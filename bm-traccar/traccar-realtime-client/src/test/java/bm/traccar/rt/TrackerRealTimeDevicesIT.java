@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * The Tracker should be independant!
+ * The Tracker is designed to be independant!
  *
  * <p>Integration tests for the OsmAndTracker client component in BaseRealTimeClient context, i.e.
  * scenario. Dependencies to api and real-time-client modules are only required for integration
@@ -25,18 +25,18 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @ActiveProfiles("test")
 @Import(GpsOsmandTrackerConfig.class)
-class TrackerRealTimeClientIT extends BaseRealTimeClientTest {
-  private static final Logger logger = LoggerFactory.getLogger(TrackerRealTimeClientIT.class);
+class TrackerRealTimeDevicesIT extends BaseRealTimeClientTest {
+  private static final Logger logger = LoggerFactory.getLogger(TrackerRealTimeDevicesIT.class);
 
   @Autowired TrackerRegistration registrationService;
   TrackerOsmAnd runnerTracker, chaser1Tracker, chaser2Tracker, mobileTracker;
 
   @Test
-  void tracker2server2realtime() throws Exception {
+  void tracker2traccar2realtime() throws Exception {
     logger.info("\n\t\t********** tracker2server2realtime() **********");
 
     controller
-        .getDeviceById(0L)
+        .getDeviceIdByUniqueId(scenario.runnerDevice.getUniqueId())
         .ifPresent(d -> logger.info("stateManager device: {}", d.getName()));
 
     // use tracker setters and sendNow without message
@@ -48,7 +48,7 @@ class TrackerRealTimeClientIT extends BaseRealTimeClientTest {
     // wait for websocket message processing and
     // check if messages are received in realtime client
 
-    sleep(10 * 1000); // wait for messages to be processed
+    sleep(5 * 1000); // wait for messages to be processed
   }
 
   @Test
@@ -134,16 +134,12 @@ class TrackerRealTimeClientIT extends BaseRealTimeClientTest {
         logger.debug("No TrackerRegistration available in this context.");
         return;
       }
-
       if (scenario.realDevice != null)
         mobileTracker = registrationService.registerTracker(scenario.realDevice.getUniqueId());
-
       if (scenario.runnerDevice != null)
         runnerTracker = registrationService.registerTracker(scenario.runnerDevice.getUniqueId());
-
       if (scenario.chaser1Device != null)
         chaser1Tracker = registrationService.registerTracker(scenario.chaser1Device.getUniqueId());
-
       if (scenario.chaser2Device != null)
         chaser2Tracker = registrationService.registerTracker(scenario.chaser2Device.getUniqueId());
 

@@ -1,4 +1,4 @@
-
+// first level heading for consecutive sections of bm-traccar documentation
 = Traccar Client Development
 
 The `bm-traccar` module, i.e. Maven subbranch, is the development environment 
@@ -19,15 +19,18 @@ dockerized for automated integration testing
 [mermaid]
 ....
 flowchart TD
-    subgraph root module
-        bm-traccar["bm-traccar"] 
+    subgraph bm/
+        bm-traccar["/bm-traccar"] 
         docker-integration["Docker Integration"]
         testing-setup["IntegrationTest Setup"]
         database-handling["Database Setup"]
     end
+    
+    style bm/ fill:#bcd6f6
   
     traccar-module["Traccar Module"]
     traccar-server["Traccar Server"]
+    style traccar-server fill:#ffffde
 
     bm-traccar --> docker-integration
     bm-traccar --> testing-setup
@@ -37,6 +40,5 @@ flowchart TD
     traccar-module <--> traccar-server
 
     docker-integration --> traccar-server
-    database-handling --> traccar-server
+    database-handling -- backdoor <br> validation --> traccar-server
 ....
-

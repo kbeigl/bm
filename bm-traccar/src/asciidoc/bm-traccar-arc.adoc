@@ -1,7 +1,8 @@
-= bm-traccar Architecture
-:toc:
-:icons: font
-:sectnums:
+== bm-traccar architecture
+
+// :toc:
+// :icons: font
+// :sectnums:
 
 == Overview
 
@@ -21,17 +22,26 @@ The parent project `bm-traccar` aggregates three submodules: +
 
 This diagram shows the runtime flow from REST API calls to real-time event processing and WebSocket communication.
 
+// TODO bm color
+// box rgb(188, 214, 246) bm-traccar
+// conflicts with lines of the sequence diagram
+// this works
+// box rgb(255, 255, 222) bm-traccar
+ 
 [mermaid]
 ....
+%%{init: {'themeVariables': { 'sequenceNumberColor': '#000', 'actorLineColor': '#333' }}}%%
 sequenceDiagram
     participant UserApp as client Application <br/> buisiness logic
-    box bm-traccar
+    box rgb(188, 214, 246) bm-traccar
         participant RT as RealTimeController
         participant WS as TraccarWebSocketRoute
         participant APIClient as traccar-api-client
     end
-    participant TraccarServer as Traccar Server
-
+    box rgb(255, 255, 222) Traccar Server
+        participant TraccarServer as Traccar Server
+    end
+    
     RT->>APIClient: initialize scenario via REST API 
     APIClient->>TraccarServer: HTTP Request
     TraccarServer-->>APIClient: HTTP Response (JSON)
@@ -62,12 +72,17 @@ the local `RealTimeController`, which is automatically kept
 up to date with the Server Status. This is a clear separation
 of the application from client-server communication.
 
-== bm-traccar Package Architecture
+== bm-traccar packages
 
 bm.traccar @SpringbootApplication will scan all subpackages,
 i.e. the other Maven Projects in the bm-traccar branch.
 
-packages
+packages are organized by technical layers, e.g. API client, 
+WebSocket client, real-time processing, DTOs, etc.
+
+.. and project structure, e.g. generated code from OpenAPI, 
+custom API client code, real-time processing code.
+
 [source,xml]
 ----
     bm.traccar
@@ -76,6 +91,3 @@ packages
     bm.traccar.api
     bm.traccar.generated...
 ----
-
-
- 

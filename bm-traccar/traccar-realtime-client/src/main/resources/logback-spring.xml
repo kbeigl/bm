@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+  <!-- Centralized log pattern for the application -->
+  <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm} %-5level %logger{36} - %msg%n"/>
+
+  <!-- Console appender using the centralized pattern -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+      <charset>utf8</charset>
+    </encoder>
+  </appender>
+
+  <!-- Optional rolling file appender (uncomment to enable) -->
+  <!--
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/application.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${LOG_PATTERN}</pattern>
+      <charset>utf8</charset>
+    </encoder>
+  </appender>
+  -->
+
+  <!-- Set sensible defaults and quiet third-party loggers -->
+  <logger name="org.springframework" level="WARN"/>
+  <logger name="org.apache" level="WARN"/>
+  <logger name="org.hibernate" level="WARN"/>
+
+  <!-- Application package log level; adjust as needed -->
+  <logger name="bm.traccar" level="INFO"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <!-- <appender-ref ref="FILE"/> -->
+  </root>
+
+</configuration>

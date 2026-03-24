@@ -1,11 +1,19 @@
 
 :toc: left
-:toclevels: 3
+:toclevels: 2
 :doctype: book
+
+= The Traccar Real Time Client
+
+The `traccar-realtime-client` is a Java Client Software to provide full (remote) control over
+and interact via live surveillance of your Traccar Server Scenario. 
+It can be used to observe, predict and react to live events - defined by your business.
+For exmple you can control the timing of a _rendez vous_ point for logistic vehicles.
+
 
 include::traccar-rt-client.adoc[]
 
-include::traccar-rt-CLI.adoc[]
-
 include::websocket.adoc[]
+
+include::traccar-rt-quickstart.adoc[]
  

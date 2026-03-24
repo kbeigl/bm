@@ -28,7 +28,7 @@ public final class EntityMapper {
                     String propertyName)
                     throws IOException {
                   logger.warn(
-                      "Unknown field '{}' when deserializing {} - skipping",
+                      "UNIMPLEMENTED unknown field '{}' when deserializing {} - skipping",
                       propertyName,
                       beanOrClass == null ? "<null>" : beanOrClass.getClass().getName());
                   jp.skipChildren();

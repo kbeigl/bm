@@ -7,7 +7,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /* create abstract base class for all processors that handle entity messages,
@@ -23,7 +22,7 @@ public class DeviceProcessor implements Processor {
   private static final Logger logger = LoggerFactory.getLogger(DeviceProcessor.class);
   private final RealTimeManager stateManager;
 
-  @Autowired
+  // @Autowired
   public DeviceProcessor(RealTimeManager stateManager) {
     this.stateManager = stateManager;
   }
@@ -50,7 +49,15 @@ public class DeviceProcessor implements Processor {
         Device d = EntityMapper.get().convertValue(item, Device.class);
         if (d != null) {
 
-          // ???? USE CONTROLLER TO UPDATE STATE, NOT DIRECTLY IN RTM ????
+          /* processor reaches directly into RealTimeManager, bypassing RealTimeController.
+           * This breaks the intended layering where the controller mediates all state transitions.
+           * If the controller ever needs to intercept device updates (e.g., trigger events, validate state),
+           * 	this direct coupling will prevent it.
+           * The processor should not directly manipulate the state manager.
+           * Instead, it should delegate to the controller, which can then decide how to handle the update
+           * (e.g., update the state manager, trigger events, etc.). This keeps the architecture clean and maintainable.
+           * Fix: Inject RealTimeController into DeviceProcessor instead of RealTimeManager, and delegate via a controller method.
+           */
           stateManager.addOrUpdateDevice(d);
 
           logger.info("Updated device with id={} / uniqueId={}", d.getId(), d.getUniqueId());

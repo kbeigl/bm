@@ -1,9 +1,11 @@
 package bm.gps.tracker;
 
 import bm.gps.MessageOsmand;
+import java.io.IOException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.http.base.HttpOperationFailedException;
 
 /**
  * Sender is an alternative to Transmitter that uses a Camel SEDA endpoint as its ingress. Messages
@@ -33,8 +35,11 @@ public class TrackerSender extends RouteBuilder {
     // errorHandler( deadLetterChannel("log:dead?level=ERROR")...
 
     // TODO: use parameters for  Error Handling Policy (app.props)
-    // catche connection issues and HTTP errors (like 503 Service Unavailable)
-    onException(Exception.class) // narrow down to specific exceptions
+    // catch connection issues and HTTP errors (like 503 Service Unavailable)
+    // Narrow exception handling to IO and HTTP operation failures instead of all Exceptions
+    // Some RouteBuilder variants require a single exception class per onException call,
+    // so register two handlers with the same retry policy.
+    onException(IOException.class)
         .maximumRedeliveries(5) // Try 5 times
         .redeliveryDelay(2000) // Wait 2 seconds between tries
         .useExponentialBackOff()
@@ -43,7 +48,16 @@ public class TrackerSender extends RouteBuilder {
         .handled(true) // Don't crash the whole route
         .log("Failed to reach server after retries. Giving up on ${body}");
 
-    // forward to SEDA queue for asynchronous processing, returns instantly!
+    onException(HttpOperationFailedException.class)
+        .maximumRedeliveries(5)
+        .redeliveryDelay(2000)
+        .useExponentialBackOff()
+        .backOffMultiplier(2)
+        .retryAttemptedLogLevel(LoggingLevel.WARN)
+        .handled(true)
+        .log("Failed to reach server after retries. Giving up on ${body}");
+
+    // forward to SEDA queue for asynchronous processing, returns *instantly*!
     from(directEndpoint)
         .routeId(directRouteId)
         .log(

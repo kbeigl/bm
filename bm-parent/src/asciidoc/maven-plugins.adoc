@@ -1,8 +1,13 @@
 
+:title: Maven Plugins
+:toc: left
+
+
 = Maven `<plugins>`
 
 Each section provides a short introduction to each tool 
-with links to lookup and learn more details.
+with supporting links to drill down.
+
 
 == Asciidoctor 
 
@@ -101,6 +106,132 @@ link:https://google.github.io/styleguide/javaguide.html[Google Java Style]. +
 The plugin is strict about styling, cannot be configured by design 
 and automatically formats the code before compilation.
 
+
+== Logging
+
+=== overview
+
+In a multi-module project, it is important to have a consistent logging framework across all modules.
+Even more important is to have a logging framework that is easy to configure -
+depending on the environment:
+
+It is vital for each *Module Development Team* to establish their own logging. 
+
+- at *Development Time* you want to see `DEBUG` logs in the console, 
+  you want to see the logs in the IDE and you want to be able to change the logging level on the fly.
+  Also you might want to add system infos, like the `PID` and other technical details. +
+  
+- for *Testing* you want to have a clear separation between test logs and application logs.
+
+- at *Build Time* you want to have the option to disable application logs and you want to have the option to save logs to a file for later analysis.
+  
+- at *Runtime* you want to have a more structured logging, with timestamps, log levels and maybe even JSON output for log aggregation.
+  A rolling file appender is a good option for this, since it will automatically rotate the logs and keep a certain number of log files.
+  This can be vital for customer communication and support.
+
+Note that the above is generally a wish list and not (ever) in place! +
+A Developer must be able to easily change the logging configuration for dedicated needs. +
+Therefore we are experimenting with the setup and it will progress on the way. 
+
+=== evaluation
+
+For Testing (see next section) with surefire and failsafe 
+we _could_ add a `logging.pattern` to the `pom.xml`:
+
+[source,xml]
+----
+    <logging.pattern.console>
+        [${spring.application.name}]:- %d{yy-MM-dd'T'HH:mm:ss.SSSXXX} 
+        %-10level == [%10.10t] %logger{36} : %msg%n
+    </logging.pattern.console>
+    <logging.pattern.file>...</logging.pattern.file>
+----
+
+and then configure the logging patterns directly in the test tools:
+
+[source,xml]
+----
+    <plugin>
+     1)  <artifactId>maven-surefire-plugin</artifactId>
+  OR 2)  <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+     1)         <argLine>
+                    -Dlogging.pattern.console=${logging.pattern.console}
+                    -Dlogging.pattern.file="${logging.pattern.file}"
+    
+  OR 2)         <systemPropertyVariables>
+                    <logging.pattern.console>
+                        ${logging.pattern.console}
+                    </logging.pattern.console>
+----
+
+This approach has different side effects:
+
+- you can not have line breaks in the logging pattern +
+  For example the Eclipse JUnit runner does not support line breaks in the logging pattern. +
+  If you Update the Project the line with breaks is copied into the JUnit runner.
+
+- you can not use `${PID:-}` or even `${spring.application.name}` in the logging pattern, +
+    since these are not when updating the project and configuring the JUnit runner.
+
+Another approach is to create a dedicated _logging_ (or _common_) module, +
+which would bloat the project with a module that is not really needed.
+
+
+=== `spring-boot-starter-logging`
+
+The choice of logging framework is based on the fact that it is widely used, +
+well supported and has a good integration with Spring Boot and Camel
+and is aware of a Multimodule project structure.
+
+Starting with `v1.1.20` we will use the `spring-boot-starter-logging` 
+dependency in the parent `pom`, 
+which includes Logback as the default logging framework:
+
+[source,xml]
+----
+     <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+     </dependency>
+----
+
+Apache Camel integrates seamlessly with the logging facade `SLF4J`, 
+so all Camel routes, processors, 
+and the `log:` EIP will respect the same logging configuration.
+
+We can add the `camel-spring-boot-starter` dependency 
+to ensure that Camel's logging is properly configured.
+And you can add important exclusions, 
+if you see "multiple SLF4J bindings" warnings:
+
+[source,xml]
+----
+<!-- 
+    <dependency>
+        <groupId>org.apache.camel.springboot</groupId>
+        <artifactId>camel-spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+ -->
+----
+
+=== `logback-spring.xml`
+
+Spring Boot will automatically detect `logback-spring.xml` (or `logback.xml`) 
+on the classpath and use it for the entire application, 
+including all dependent modules and Camel routes.
+
+To be continued ...
+
+    •  Created logback-spring.xml that centralizes the log pattern via a LOG_PATTERN property.
+    •  Provides a console appender that uses the pattern: +
+            %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n
+    •  Includes a commented rolling file appender you can enable by uncommenting.
+    •  Lowers noisy frameworks to WARN (org.springframework, org.apache, org.hibernate).
+    •  Sets bm.traccar package to INFO and root logger to INFO.
 
 == Testing with Traccar Server
 

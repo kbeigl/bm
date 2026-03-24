@@ -28,13 +28,16 @@ This sequence diagram illustrates how components interact at runtime for REST AP
 
 [mermaid]
 ....
+%%{init: {'themeVariables': { 'sequenceNumberColor': '#000', 'actorLineColor': '#333' }}}%%
 sequenceDiagram
     participant BusinessApp
-    box bm-traccar
+    box rgb(188, 214, 246) bm-traccar
         participant ApiClient as traccar-api-client <br/> Api.java interface
         participant OpenApi as traccar-openapitools-client <br/> ApiClient.java
     end
-    participant TraccarServer
+    box rgb(255, 255, 222) TraccarServer
+        participant TraccarServer
+    end
 
     BusinessApp->>ApiClient: Call business method
     ApiClient->>OpenApi: Use generated REST client

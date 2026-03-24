@@ -1,0 +1,388 @@
+
+:toc:
+:toclevels: 4
+
+= Real Time Apps 
+
+
+== Proof of Concept
+
+The `RealTimeClient` is a fundamental component of our evolving real-time system, 
+responsible for connecting to the server and providing real-time data.
+It also concludes the initial development of a GPS Tracker with a corresponding real-time client.
+Or from the coding perspective, it concludes prototyping of the ground layers `/bm-tracker` and `/bm-traccar`. +
+_It does not mean_ that we will stop developing, rather that we have implemented the core functionality
+and put the components in place - to be further improved and extended with new features.
+
+
+== Real Time Application Structure
+
+Let's focus on the Traccar Server components that we are coding against in `bm-traccar` and `bm-tracker` branches. +
+We can roughly divide Real Time Applications into three Layers:
+
+* Traccar Frontend
+* Traccar Server
+* Real Time Application
+
+[mermaid, target="traccar-realtime-layers"]
+....
+graph BT
+ 
+    subgraph RT [Real Time Application Layer] 
+        DEV@{ shape: processes, label: "gps-tracker<br/>simulations" }
+        OpenAPI[openapi<br> Entities] 
+        API[api-client<br> Java Entities] 
+        RTC[realtime-client<br> Java Entities]
+    end 
+    
+    subgraph TS [Traccar Server .] 
+        DCS[DCS<br>Netty] 
+        REST[REST<br/>Entities] 
+        Database[("Entity Model<br>org.traccar.model")]
+        WS[Websocket<br/>Entities] 
+    end 
+    
+    subgraph FE [Traccar Frontend] 
+        ADMIN[Admin .] 
+        UI[Jetty<br>web server] 
+        MAP[Map] 
+    end 
+
+    REST <--> | http/s:<br>json | UI
+    
+    DEV -->|protocol .<br>port | DCS
+    OpenAPI <--> | http/s:<br>json | REST
+    RTC <--> | websocket:<br>json | WS
+    
+    style RT fill:#bcd6f6
+....
+
+We have chosen Traccar Server as our GPS Tracking System and
+it's part of the design to use Traccar "out of the box". +
+A Tracking System should serve as a reliable, efficient and _incorruptible_ backend +
+and as an observer (and recorder) of the real world (overlay) with augmented simulations.
+
+
+=== Traccar Frontend
+
+The Traccar Frontend serves as the interactive user interface for the Traccar Server. +
+With the relevant credentials, users can log in to the frontend and access various features +
+such as device management, real-time tracking, and data analysis. +
+If the user has admin credentials, they can interact with a scenario on the Traccar Frontend. +
+He has the power to unregister unwanted users and devices as a final measure.
+
+==== Map
+
+The Map of the Traccar Frontend, provides a visual representation of the tracked devices and their locations in real time. +
+*Developers* shoud never forget to wittness the map in action. 
+Even when stepping through the debugger. +
+For *Observers* it can be used for showcasing the real-time scenarios.
+
+
+=== Traccar Server
+
+We have reduced the targeted components of the Traccar Server to these three:
+
+* DCS
+* REST
+* Websocket
+
+==== DCS
+
+The Device Communication Server (DCS) is the core component responsible for accepting data from GPS trackers.
+While Traccar provides a complete GTS, industrial crowdsourcing projects are often focussed on a bare DCS.
+As a matter of fact, the `bm-traccar` branch is focused on sending GPS data with a `deviceId` 
+to different protocols mapped to different ports.
+
+The `bm-traccar` branch is strictly focused on the coding against various DCS, +
+each defined by a `protocol` mapped to a `port` in `traccar.xml`.
+
+==== REST & Entities
+
+The REST API provides the ability to interact with the server programmatically.
+We are using a standard OpenAPI generator to create Java client code from the Traccar REST API specification.
+This not only provides a "connector" to the server but also generates Traccar's _Data Model Entities_.
+These entities are used across the application, ensuring consistency in data representation and manipulation.
+
+Most of the interactions with the server, are done by exchanging these entities in different formats and messages.
+
+==== Websocket
+
+The WebSocket also sends data in the form of entities, which have to be processed by the Real Time Client.
+
+
+== Real Time Application Types
+
+We have described the two Traccar Layers relevant to our development. +
+Now let's focus on the blue (marble) Real Time Application Layer.
+
+
+=== GPS Tracker Simulations
+
+With one or more `gps-*-tracker`-s, we can create a simple real-time application 
+to send GPS data to a Tracking System, or more precise to its DCS.
+At this point (`v1.1.20`) there is no evaluation of plausibility of consecutive GPS data.
+
+==== GPS Motion
+
+Consecutive GPS data describes the *Motion* of a device. +
+Anyhow its still a long way to simulate realistic motion in the real world, +
+like a car travelling on a road, or a person walking in a park. +
+In order to simulate realistic motion, we will use a simple trick: +
+We'll just use recorded *GPS Tracks* and "play" them back in real time. 
+
+Note that the Traccar Server also serves as a *GPS recorder*! +
+So, if you have a GPS Tracker registered on the server, + 
+you can simply record a track and extract it as a GPS file, + 
+which can then be used for simulations - or *GPS Playback*.
+
+And remember, that this connection to and extraction from the Database is forbidden in the `bm` repositories! +
+No worries here, we can use the `traccar-api-client` to create a simple ETL process to extract the GPS files. 
+
+
+==== The `gps-player`
+
+[mermaid, target="gps-player"]
+....
+graph BT
+ 
+    subgraph RT [GPS Tracker Application .] 
+        DEV@{ shape: processes, label: "gps-tracker/s" }
+        API@{ shape: processes, label: "gps-player/s" }
+        Files@{ shape: docs, label: "gps files"}
+    end 
+    
+    subgraph TS [Traccar Server .] 
+        DCS[DCS .] 
+        Database[("Traccar ERM .")]
+    end 
+    
+    Files <-.- |manual or .<br>API REST .| Database
+    DEV --> DCS
+    
+    style RT fill:#bcd6f6
+....
+
+
+One or more `gps-tracker` s already make up a simple tracker application.
+
+When developing full fledged applications, we will need to simulate realistic motion,
+and for that we will create the `gps-player` to play back recorded GPS tracks.
+This `gps-player` should be helpful for realtime development and testing, 
+but also for showcasing the real-time scenarios to observers. 
+This makes it a candidate for a `bm-tracker` component on a long run
+and will be developed in the `bm-tracker` branch.
+
+
+=== Traccar API Client
+
+A simple API client to interact with the Traccar Server is straight forward.
+By adding the `traccar-api-client` as a dependency, 
+you can connect your businiess entities to the server and exchange data in real time.
+
+
+[mermaid, target="api-client"]
+....
+graph BT
+ 
+    subgraph BA [Your Buisiness Entities] 
+        Emp[Drivers<br>Employees]
+        Car[Cars .]
+        Per[Permissions ]
+    end 
+ 
+    subgraph RT [Real Time Application] 
+        OpenAPI[openapi] 
+        API[api-client] 
+    end 
+    
+    subgraph TS [Traccar Server .] 
+        REST[REST .] 
+    end 
+    
+    Emp --> API
+    Car --> API
+    Per --> API
+    OpenAPI <--> | http/s:<br>json | REST
+    
+    style RT fill:#bcd6f6
+....
+
+You can create little routines to 
+
+* un/register cars as devices on the server
+* un/register drivers as users on the server
+* pull driving reports of sales people by day, week, month
+* ... and much more
+
+by a push of a button, or by a scheduled job. 
+
+Simply transform your Business Entities to the Traccar REST API entities +
+and send them to the server to receive the Entity `Id`-s. 
+
+
+== Real Time Application Testing
+
+Above we have described two layers of a real-time software system: Tracker Simuations and Traccar API as connector to the GTS.
+In the `traccar-realtime-client` everything comes together in the `RealTimeClient`.
+
+All components are orchestrated in the `BaseRealTimeClientTest`
+and this `abstract base Class` for integration tests of the RealTimeClient 
+provides a full test environment by setting up and tearing down a complete scenario.
+
+We already have provided similar test environments +
+`RealTimeManagerIT` for `RealTimeManager` and + 
+`RealTimeControllerIT` for `RealTimeController`.
+
+The `BaseRealTimeClientTest` can be extended to different Integration Tests. +
+For one, it is used to continuously develop the components and interaction. +
+For you as a developer, it is the best way to understand the inner workings of the system. +
+For your business, it can be a starting point for a real-time exchange and feed.
+
+
+=== `BaseRealTimeClientTest`
+
+This section describes the full integration test cycle from sending data + 
+to the traccar server to receiving and processing it in the Real Time Client.
+
+This `BaseRealTimeClientTest` covers the entire flow of data from the trackers to the server to the Real Time Client,
+including the setup of a scenario on the server.
+This will provide a full test cycle of the Real Time Client for Developers 
+without loosing focus on progress and development of _new features_.
+
+
+`BaseRealTimeClientTest` is an abstract base class for integration tests of the RealTimeClient. +
+It provides a full test environment by setting up and tearing down a complete scenario, 
+including the Traccar server, the real-time client, and the necessary test data. 
+This class ensures that each test runs with a fresh and isolated context, 
+making it suitable for verifying the end-to-end flow from tracker data ingestion to real-time client processing.
+
+[mermaid]
+....
+flowchart LR
+    BRTCT[BaseRealTimeClientTest .]
+
+    BRTCT -- DOCKER> Start container --> TraccarServer[Traccar Server .]
+    BRTCT -- controller.loginAndInitialize(user) --> RealTimeClient[RealTimeClient]
+    BRTCT -- setupScenario() --> Scenario[Scenario<br>Test Data]
+
+    TraccarServer -- send data --> RealTimeClient
+    Scenario -- API> provide Entities --> TraccarServer
+....
+
+Key features:
+
+- Uses Spring Boot's test context to start the RealTimeClient application with all required beans and configuration.
+- Injects major components such as `RealTimeController`, `RealTimeClient`, and `ScenarioLoader` for use in tests.
+- The `@BeforeAll` setup method initializes the scenario and logs in the controller, +
+  ensuring the system is ready for integration testing.
+- The `@AfterAll` teardown method cleans up the scenario and shuts down the controller, including WebSocket routes.
+- `@BeforeAll` and  `@AfterAll` methods are static, providing a consistent environment for all tests.
+- Designed to be extended by concrete test classes (e.g., `TrackerRealTimeClientIT`) +
+  that implement specific integration test cases.
+
+This base class enables comprehensive integration testing of the real-time data flow, 
+supporting developers to ensure that new features and changes work correctly in a realistic environment.
+
+=== registering Trackers
+
+It is vital to understand that the branches `/bm-tracker` and `/bm-traccar` 
+are part of _one distributed system_, +
+while the GPS Tracker (sender) and the Real Time Client (receiver) are separate components - by Design. +
+Distributed development with common versioning 
+and integration testing over different the branches.
+
+[IMPORTANT]
+====
+The `BaseRealTimeClientTest` _does not actually create Trackers_ ! +
+The Trackers are only pre/registered in the Server Scenario. +
+It is like registering your smartphone on the traccar server, +
+before even sending any data to the GTS.
+====
+
+If you want to create a round trip for GPS data, 
+you need to have Trackers registered in the server scenario. +
+This can easily be achieved by pre-registering the Trackers in the extending test class, 
+for example in `TrackerRealTimeDevicesIT`:
+
+[source,java]
+----
+    package bm.traccar.rt;
+    
+    class TrackerRealTimeDevicesIT extends BaseRealTimeClientTest
+    
+      @Autowired TrackerRegistration registrationService;
+      TrackerOsmAnd runnerTracker, chaser1Tracker, chaser2Tracker, mobileTracker;
+                    =============
+      @BeforeAll
+      public void registerScenarioTrackers() {
+            :
+            runnerTracker = registrationService
+                           .registerTracker(scenario.runnerDevice.getUniqueId());
+            :                                =====================
+      }
+----
+
+done by using the `TrackerRegistration` service, which is part of the server's API.
+
+
+== progressing
+
+With the `BaseRealTimeClientTest` in place, we will next develop the `gps-player` as described above.
+
+Note that the `gps-player` will be developed as a new project in the `bm-tracker` branch, +
+while the `BaseRealTimeClientTest` is part of the `traccar-realtime-client` project. 
+
+This is covered by the "Maven Multi Module" build sequence as the `bm-tracker` branch +
+contains the `gps-player` module, which is built before the `bm-traccar` branch. +
+Therefore, we can use the `gps-tracker` for `gps-player` development in the `BaseRealTimeClientTest`.
+
+
+[mermaid, target="base-realtime-test"]
+....
+graph BT
+ 
+    subgraph BRTCT[gps-player development] 
+        PLAY@{ shape: processes, label: "gps-player" }
+        Files@{ shape: docs, label: "gps files"}
+        TEST[sent/received data<br>performance/latency]
+    end 
+    style BRTCT fill:#bcd6f6
+    
+    subgraph RT [Real Time Application Layer] 
+        subgraph TR [Tracker Registration]
+            DEV@{ shape: processes, label: "gps-tracker" }
+        end
+        subgraph APIC [BaseRealTimeClientTest .]
+            API[api-client<br> Java Entities] 
+            RTC[realtime-client<br> Java Entities]
+        end
+    end 
+    style TR fill:#bcd6f6
+    style APIC fill:#bcd6f6
+    
+    PLAY   -->|playback | DEV
+    Files <-->|create   | API
+    TEST  <-->|validate<br>assert | RTC
+    
+    subgraph TS [Traccar Server .] 
+        DCS[DCS .] 
+        REST[REST .] 
+        WS[Websocket] 
+    end 
+    
+    DEV  --> | live tracking  | DCS
+    API <--> | administration | REST
+    RTC <--> | live feedback  | WS
+    
+....
+
+=== outlook
+
+Let's head on to the next chapter to start developing the `gps-player v1.1.21`. +
+And while we're at it, we will also provide GPS files to be used for the simulations. +
+And then we will create a showcase with many motorcycle tracks, +
+which can also be used for performance testing of the real-time capabilities of the system. 
+
+
+

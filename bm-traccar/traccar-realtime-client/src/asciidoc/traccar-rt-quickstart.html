@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>CLI Quick Start</title>
+<title>Quickstart: Real Time Console</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,102 +436,275 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="book">
 <div id="header">
-<h1>CLI Quick Start</h1>
+<h1>Quickstart: Real Time Console</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_traccar_rt_client_release"><code>traccar-rt-client</code> <strong>Release</strong></a>
+<ul class="sectlevel2">
+<li><a href="#_prerequisites">prerequisites</a></li>
+<li><a href="#_download_release">download release</a></li>
+<li><a href="#_provide_credentials">provide credentials</a></li>
+<li><a href="#_prepare_tracking">prepare tracking</a></li>
+<li><a href="#_run_the_client">run the client</a></li>
+<li><a href="#_console_output">console output</a></li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>After creating the three layers around the <code>ApiClient</code>, <code>Api interface</code>
-and <code>RealTimeManager</code> these are combined
-in the <code>@SpringBootApplication  RealTimeClient</code>.</p>
+<p>The three layers around the <code>ApiClient</code>, <code>Api interface</code> and <code>RealTimeManager</code><br>
+are combined in the <code>@SpringBootApplication  RealTimeClient</code>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_run_realtimeclient_cli">run <code>RealTimeClient</code> CLI</h2>
+<h2 id="_traccar_rt_client_release"><code>traccar-rt-client</code> <strong>Release</strong></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>traccar-rt-client</code> does not provide any webservices.
-It is a plain command line interface (CLI) to connect to a traccar server
-from the command line and read what&#8217;s going on.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>@SpringBootApplication
-public class RealTimeClient implements CommandLineRunner</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Therefor it is a solid building block for real time applications.
+<p>The <code>traccar-rt-client</code> is a simple client application that connects to a traccar server and listens for real-time updates.
+It can be used as a solid building block for real time applications.
 You can integrate it in your application and code against the
 <code>RealTimeManager</code> as if it was the traccar server.</p>
 </div>
 <div class="paragraph">
-<p>pick up the <code>traccar-rt-client-6.10.0-RC.jar</code></p>
+<p>We will go through the steps for the simplest case,<br>
+havng <em>one</em> user without special permissions<br>
+with <em>one</em> device on the server.</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>put it in <code>/someFolder/traccar-rt-client-6.10.0-RC.jar</code></p>
+<p>Logon to the traccar server to witness the motion of your devices on the map<br>
+and open the console to see the real time updates as they come in.</p>
 </div>
-<div class="paragraph">
-<p>(release url)</p>
+</td>
+</tr>
+</table>
 </div>
+<div class="sect2">
+<h3 id="_prerequisites">prerequisites</h3>
 <div class="paragraph">
-<p>copy app.props</p>
-</div>
-<div class="paragraph">
-<p>enter credentials</p>
-</div>
-<div class="paragraph">
-<p>run java, mvn spring:run ..</p>
-</div>
-<div class="paragraph">
-<p>start your traccar client or your tracker connected to traccar</p>
-</div>
-<div class="paragraph">
-<p>watch the console over the map</p>
-</div>
-<div class="paragraph">
-<p>If you don&#8217;t have a traccar server you can sign up
-at one of traccar&#8217;s demo servers.</p>
-</div>
-<div class="paragraph">
-<p>RealTimeClient is a Spring Boot application that:</p>
+<p>All you need is</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Starts RealTimeController on launch.</p>
+<p>a Java runtime and online access to the Traccar Server</p>
 </li>
 <li>
-<p>Reads admin credentials from application.properties.</p>
+<p>a <strong>Traccar Server Address</strong> to connect to and a <strong>User Account</strong></p>
 </li>
 <li>
-<p>Logs in as the admin user when starting.</p>
-</li>
-<li>
-<p>Remains running until manually shutdown (e.g., Ctrl+C), and supports graceful shutdown.</p>
-<div class="literalblock">
-<div class="content">
-<pre>modify RealTimeClient to a @SpringBootApplication that starts the RealTimeController
-and log in as traccar.admin.name as provided in the application.properties and can be gracefully shutdown manually</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>You can run the application as usual (e.g., with mvn spring-boot:run or java -jar),
-and it will log in and initialize the real-time controller using the configured admin credentials.</pre>
-</div>
-</div>
+<p>a <strong>Device</strong> on a traccar server to connect to.</p>
 </li>
 </ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you are not familiar with traccar server, you can sign up on a public demo server<br>
+and use your smartphone as a tracker with the traccar client app &#8230;&#8203; within minutes!</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_download_release">download release</h3>
+<div class="paragraph">
+<p>You can pick up the latest release from the
+<a href="https://github.com/kbeigl/bm">repo home</a>,
+go the Release section and click on <strong>latest</strong> label.</p>
+</div>
+<div class="paragraph">
+<p>Or look at all
+<a href="https://github.com/kbeigl/bm/releases">realeases</a>
+and pick a version of the <code>traccar-realtime-client-u.v.w-x.y.z[-suffix].jar</code>.</p>
+</div>
+<div class="paragraph">
+<p>The first Release Candidate is <code>traccar-realtime-client-6.12.2-1.1.20-RC.jar</code></p>
+</div>
+<div class="paragraph">
+<p>Download the jar in any folder</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>/any/folder/traccar-realtime-client-6.12.2-1.1.20-RC.jar</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>traccar-realtime-client-u.v.w-x.y.z[-suffix].jar.original
+                                                ---------</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>is the original jar without the <code>application.properties</code> file.<br>
+It was <code>repackaged</code> with the <code>spring-boot-maven-plugin</code><br>
+to include Spring Boot dependencies and the <code>application.properties</code> file.<br></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_provide_credentials">provide credentials</h3>
+<div class="paragraph">
+<p>Extract the <code>application.properties</code> from the jar and copy it to the same folder as the jar:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ cd /any/folder
+$ jar xf traccar-rt-client-6.10.0-RC.jar application.properties</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or create a new <code>application.properties</code> file in the same folder<br>
+and provide the necessary credentials and server address.<br>
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    # http:// or secure https://
+    traccar.protocol=https://
+
+    # port can be empty for default port (80 for http, 443 for https)
+    traccar.port=
+
+    traccar.host=${traccar.protocol}demo3.traccar.org${traccar.port}
+
+    traccar.name=acount name
+    traccar.password=secret
+    traccar.email=my@mail.com</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_prepare_tracking">prepare tracking</h3>
+<div class="paragraph">
+<p>Login to the traccar server with the provided credentials and make sure you have a device on the server.<br>
+Turn on the tracker and make sure it is connected to the server, sending updates and showing up on the map.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_run_the_client">run the client</h3>
+<div class="paragraph">
+<p>First make the jar executable:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ chmod 777 traccar-realtime-client-6.12.2-1.1.20-RC.jar</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then execute the jar:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>$ java -jar traccar-realtime-client-6.12.2-1.1.20-RC.jar</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the client remains running until manually shutdown gracefully with <code>Ctrl+C</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_console_output">console output</h3>
+<div class="paragraph">
+<p>First you will see the startup messages</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    Starting RealTimeClient using Java 21.0.10 with PID 704815
+    Apache Camel 4.18.0 (camel-1) is starting
+    Routes startup (total:2)
+    Started RealTimeClient in 3.519 seconds (process running for 4.207)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>then the login process and loading of initial data from the server</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    Login RealTimeController for 'kbeigl@web.de' to traccar server 'https://demo3.traccar.org` ...
+    --- Loading initial users from server...   ---
+    --- Loading initial devices from server... ---
+    Device.id879: Kristof
+    Connected to WebSocket on demo3.traccar.org:443
+    User logged in: Kristof
+    RealTimeController started and logged in successfully.
+    Application running. Press Ctrl+C to exit.</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As desccribed above we are demonstrating the simplest case with one user,
+restricted permissions and a single device.
+You can see that this user does not have access to any users,
+but the device <code>Device.id879</code> is loaded and available in the client.
+This is the device we are tracking.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>and finally the real time updates as they come in</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    positions message received: {positions=[{id=74626756, attributes={..}, deviceId=879 ...
+    PositionProcessor: received 1 Position message/s.
+    process json message: [{id=74626756, attributes={..}, deviceId=879 ...
+                                                          ============</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>until you shutdown the connection:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">    : Graceful shutdown initiated.
+    Apache Camel 4.18.0 (camel-1) is shutting down (timeout:45s)
+    Routes stopped (total:3)
+        Stopped traccar-ws-dynamic-route (vertx-websocket://wss://demo3.traccar.org/api/socket)
+        Stopped process-websocket-message-route (direct://start-websocket-connection)
+        Stopped traccar-login-route (direct://traccarLogin)
+    Apache Camel 4.18.0 (camel-1) shutdown in 24ms (uptime:58s)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Happy Tracking :)</p>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-20 11:34:09 +0100
+Last updated 2026-04-10 12:34:27 +0200
 </div>
 </div>
 </body>

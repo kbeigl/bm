@@ -30,11 +30,11 @@ public class RealTimeClient implements CommandLineRunner {
   @Value("${traccar.email}")
   private String email;
 
-  /**
-   * Start RealTimeClient and wait for messages
-   *
-   * @param args
-   */
+  // only for logging purposes for quickstart
+  @Value("${traccar.host}")
+  private String host;
+
+  /** Start RealTimeClient and wait for messages */
   public static void main(String[] args) {
     SpringApplication app = new SpringApplication(RealTimeClient.class);
     app.setWebApplicationType(WebApplicationType.NONE);
@@ -51,7 +51,8 @@ public class RealTimeClient implements CommandLineRunner {
     admin.setName(name);
     admin.setPassword(password);
     admin.setEmail(email);
-    logger.info("Starting RealTimeController login for admin: {}", admin.getEmail());
+    logger.info(
+        "Login RealTimeController for '{}' to traccar server '{}` ...", admin.getEmail(), host);
     boolean success = controller.loginAndInitialize(admin);
     if (success) {
       logger.info("RealTimeController started and logged in successfully.");

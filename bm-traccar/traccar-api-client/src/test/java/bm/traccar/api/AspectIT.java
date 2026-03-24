@@ -95,9 +95,14 @@ public class AspectIT extends BaseIntegrationTest {
             });
     logger.error("caught ApiException: {}", exception.getMessage());
     assertTrue(exception instanceof ApiException, "exception is not an ApiException");
+    String expected = String.format(ApiException.APIEX_NO_CONNECTION, invalidHost);
     assertTrue(
-        exception.getMessage().equals(ApiException.APIEX_NO_CONNECTION),
-        "ApiException sent wrong message");
+        exception.getMessage().equals(expected),
+        "ApiException sent wrong message: expected='"
+            + expected
+            + "' got='"
+            + exception.getMessage()
+            + "'");
 
     // reset host for consecutive tests
     api.setBasePath(host);
@@ -118,9 +123,14 @@ public class AspectIT extends BaseIntegrationTest {
       api.users.createUserWithCredentials(userName, userPassword, userMail, false);
     } catch (ApiException exception) {
       logger.error("caught ApiException: {}", exception.getMessage());
+      String expected = String.format(ApiException.APIEX_NO_CONNECTION, invalidHost);
       assertTrue(
-          exception.getMessage().equals(ApiException.APIEX_NO_CONNECTION),
-          "ApiException sent wrong message");
+          exception.getMessage().equals(expected),
+          "ApiException sent wrong message: expected='"
+              + expected
+              + "' got='"
+              + exception.getMessage()
+              + "'");
     }
     // reset host for consecutive tests
     api.setBasePath(host);

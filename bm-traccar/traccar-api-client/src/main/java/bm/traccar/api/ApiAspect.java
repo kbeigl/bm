@@ -54,6 +54,7 @@ public class ApiAspect {
     // I/O errors (e.g., connection refused, timeout)
     if (thrown instanceof ResourceAccessException) {
       logger.debug("ResourceAccessException");
+      logger.warn(thrown.getMessage());
       return ApiException.APIEX_NO_CONNECTION;
 
     } else if (thrown instanceof RestClientResponseException) {
@@ -77,10 +78,8 @@ public class ApiAspect {
 
         // does this ever occur?
         return hscEx.getMessage();
-      } else {
         // does this ever occur?
-        return ApiException.APIEX_CLIENT_REST;
-      }
+      } else return ApiException.APIEX_CLIENT_REST;
 
     } else if (thrown instanceof UnknownContentTypeException uctEx) {
       logger.error("UnknownContentTypeException");

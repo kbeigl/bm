@@ -28,8 +28,7 @@ class TrackerMessagesIT extends BaseRealTimeClientTest {
     TrackerOsmAnd trackerReal, trackerRunner, trackerChaser1, trackerChaser2;
 
     logger.info("Setup scenario devices");
-
-    // how to lookup tracker by name + device id ?
+    // lookup tracker by name + device id ?
     trackerReal = registrationService.registerTracker(scenario.realDevice.getUniqueId());
     trackerRunner = registrationService.registerTracker(scenario.runnerDevice.getUniqueId());
 
