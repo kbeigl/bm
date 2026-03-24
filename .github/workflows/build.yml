@@ -21,7 +21,7 @@ jobs:
           cache: maven
 
       - name: Build with Maven (excluding integration tests and doc generation)
-        run: mvn install
+        run: ./mvnw install
           --file pom.xml
           -Dintegration.tests.skip=true
           -Ddocker.skip.tests=true
