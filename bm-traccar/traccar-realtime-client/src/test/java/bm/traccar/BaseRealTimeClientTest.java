@@ -32,7 +32,7 @@ public abstract class BaseRealTimeClientTest {
 
   // inject some major components to be used in tests
   @Autowired protected RealTimeController controller;
-  @Autowired protected RealTimeClient client;
+  // @Autowired protected RealTimeClient client;
   @Autowired protected ScenarioLoader scenario;
 
   // no @Test in base class

@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.20</version>
+        <version>1.1.21</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
-    <version>${traccar.version}-${project.parent.version}-poc</version>
+    <version>${traccar.version}-${project.parent.version}</version>
 
     <name>..... traccar-realtime-client</name>
     <description>traccar-realtime-client</description>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>${project.parent.version}-poc</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

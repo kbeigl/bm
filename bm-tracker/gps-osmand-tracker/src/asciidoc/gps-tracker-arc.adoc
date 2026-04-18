@@ -1,4 +1,3 @@
-
 // :toc:
 
 = Component Architecture
@@ -14,12 +13,12 @@ to optimize transparency for (onboarding of business) coders.
 
 == implementation steps
 
-- [ ]  create a Springboot application to simulate a GPS Tracker hardware
-- [ ]  use the osmand protocol with Traccar ID
-- [ ]  use the OpenTools library for GPS coordinates and distance, bearing etc.
+- [x]  create a Springboot application to simulate a GPS Tracker hardware
+- [x]  use the osmand protocol with Traccar ID
+- [x]  use the OpenTools library for GPS coordinates and distance, bearing etc.
 - [ ]  setters for location and fixtime 
-- [ ]  send messages via Camel Route
-- [ ]  store messages in a thread-safe queue, if server is unavailable, send later
+- [x]  send messages via Camel Route
+- [x]  store messages in a thread-safe queue, if server is unavailable, send later
 
 
 == Receiver
@@ -457,3 +456,22 @@ Register a number of Trackers in your application and send messages whenever app
 The sending method returns to the application instantly, 
 while the Sender takes care of sending all messages until accepted by the Tracking Server.
 
+
+= Tracker Development IT
+
+The `gps-osmand-tracker` was developed in the first implementation branch `bm-tracker` 
+as a simple sender to transfer GPS messages to the Traccar Server.
+We have used this Tracker for further development and testing the Traccar Server with real GPS data.
+
+With the `traccar-realtime-client` we have reached a complete cycle 
+to start roundtrip development and integrated testing.
+Therefore you can proceed to  
+xref:../../../../bm-traccar/traccar-realtime-client/src/asciidoc/integrated-dev-cycle.adoc[IT roundtrip development]
+to follow the development of Tracker Features.
+
+=== Traccar Server Events
+
+The Traccar API supports sending GPS tracking data via the http OsmAnd protocol.
+When tracking data is sent to this endpoint the traccar engine triggers
+several handlers to register the data into the system and triggers
+the realtime websocket connection to send out updates.

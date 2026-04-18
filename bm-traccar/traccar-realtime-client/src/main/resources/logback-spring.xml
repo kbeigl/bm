@@ -2,7 +2,7 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
   <!-- Centralized log pattern for the application -->
-  <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm} %-5level %logger{36} - %msg%n"/>
+  <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm:ss.SSS} %-5level %logger{0} - %msg%n"/>
 
   <!-- Console appender using the centralized pattern -->
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">

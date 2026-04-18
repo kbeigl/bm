@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <!-- Test logging configuration: more verbose and outputs to console for test runs 
-  <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"/> -->
-  <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+  <!-- 
+  <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/> -->
+  <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} %-5level %logger{0} - %msg%n"/>
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -12,13 +12,12 @@
     </encoder>
   </appender>
 
-  <!-- Quiet noisy third-party loggers during tests -->
   <logger name="org.springframework" level="WARN"/>
   <logger name="org.apache" level="WARN"/>
   <logger name="org.hibernate" level="WARN"/>
 
-  <!-- Enable DEBUG for application packages during tests -->
   <logger name="bm.traccar" level="INFO"/>
+  <logger name="bm.gps" level="INFO"/>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>

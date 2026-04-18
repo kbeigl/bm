@@ -4,9 +4,11 @@ import bm.traccar.api.ApiConfig;
 import bm.traccar.api.ApiService;
 import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.Position;
+import bm.traccar.rt.RealTimeController;
 import bm.traccar.rt.RealTimeManager;
 import bm.traccar.ws.SessionManager;
 import bm.traccar.ws.WebSocketRoute;
+import bm.traccar.ws.entities.DeviceProcessor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.junit.jupiter.api.Test;
@@ -22,9 +24,11 @@ import org.springframework.test.context.ContextConfiguration;
     classes = {
       ApiConfig.class,
       ApiService.class,
+      RealTimeManager.class,
+      RealTimeController.class,
       WebSocketRoute.class,
       SessionManager.class,
-      RealTimeManager.class
+      DeviceProcessor.class
     })
 // DOES NOT extend BaseReaTimeScenarioTest
 // no server required (IT), only CBR unit test

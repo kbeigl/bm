@@ -19,14 +19,15 @@ to simulate and process real-time location data.
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.20 
-    [INFO] --- blue marble BOM                       --- 1.1.20 
-    [INFO] ---- GPS Trackers                         --- 1.1.20 
-    [INFO] ..... gps-osmand-tracker          1.1.20-poc .......
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20 
-    [INFO] ..... traccar-openapitools-client 6.12.2 ........... 
-    [INFO] ..... traccar-api-client          6.12.2-1.1.20 .... 
-    [INFO] ..... traccar-realtime-client     6.12.2-1.1.20-poc 
+    [INFO] === blue marble simulations               === 1.1.21
+    [INFO] --- blue marble BOM                       --- 1.1.21
+    [INFO] ---- GPS Trackers                         --- 1.1.21
+    [INFO] ..... gps-osmand-tracker                      1.1.21
+    [INFO] ..... gps-player             *NEW*            1.1.21 
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.21
+    [INFO] ..... traccar-openapitools-client 6.12.2 ...........
+    [INFO] ..... traccar-api-client          6.12.2-1.1.21 ....
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.21 .... 
 -----------------
 
 For earlier versions check the 
@@ -348,4 +349,17 @@ Then you can go into details and use a blueprint
 xref:../../../../bm-traccar/src/asciidoc/milestone/bm-traccar-milestone.adoc[here]
 for your own step by step development of GPS tracking applications.
 
+=== roundtrip engineering
 
+Also Note that with the cycle Tracker2GTS2RealTime we start with roundtrip engineering 
+on any of the involved Components with integrated Traccar Server. 
+
+For example we can use the Traccar Server Events as a certified (i.e. Third Party) Tracker Event. 
+Therfore you will find integration tests for 
+xref:../../../../bm-traccar/traccar-realtime-client/src/asciidoc/integrated-dev-cycle.adoc[Tracker development] 
+in the `traccar-realtime-client` project
+using the Tracker's package names `bm.gps.tracker`. This is a common development cycle and 
+the developer should be aware that the projects, like the Tracker and RealTimeClient
+have to be compiled sequentially, before testing a new Tracker feature in the RealTimeClient project.
+
+.

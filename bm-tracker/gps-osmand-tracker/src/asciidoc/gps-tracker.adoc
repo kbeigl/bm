@@ -13,7 +13,12 @@ change of direction etc.
 [NOTE]
 ====
 Note that we are citing original texts from  
-link:https://www.amazon.com/GPS-Tracking-Java-Components-Challenges/dp/1138054941[GPS Tracking with Java EE Components]
+link:https://www.amazon.com/GPS-Tracking-Java-Components-Challenges/dp/1138054941[GPS Tracking with Java EE Components] +
+In _Chapter 8 The JeeTS Tracker_ you can find a more complex implementation +
+with a lot of background info on Server processing. +
+Find an implementation in the 
+https://github.com/kbeigl/jeets/tree/master/jeets-clients/jeets-device[JeeTS repo] +
+This section describes a simplified Tracker. 
 ====
 
 [quote,GPS Tracking with Java EE Components, Chapter 8.1]   

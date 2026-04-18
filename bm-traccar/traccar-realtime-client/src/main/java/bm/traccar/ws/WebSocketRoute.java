@@ -70,21 +70,22 @@ public class WebSocketRoute extends RouteBuilder {
             })
         .choice()
         // ===== JSON parsing
-        .log("process json message: ${body}")
+        .log(LoggingLevel.DEBUG, "process json message: ${body}")
 
         // ===== empty message: use computed header
         .when(header("bm.emptyBody").isEqualTo(true))
+        // can be used as heartbeat !
         .log(LoggingLevel.DEBUG, "Empty message ignored: ${body}")
 
         // ===== devices
         .when(simple("${body[devices]} != null"))
-        .log("devices message received: ${body}")
+        .log(LoggingLevel.DEBUG, "devices message received: ${body}")
         .setBody(simple("${body[devices]}"))
         .bean(DeviceProcessor.class)
 
         // ===== positions
         .when(simple("${body[positions]} != null"))
-        .log("positions message received: ${body}")
+        .log(LoggingLevel.DEBUG, "positions message received: ${body}")
         .setBody(simple("${body[positions]}"))
         .bean(PositionProcessor.class)
 

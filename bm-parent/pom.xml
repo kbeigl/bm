@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.20</version>
+        <version>1.1.21</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -41,11 +41,12 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>false</openapi.skip>
+        <openapi.skip>true</openapi.skip>
         <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
 
         <maven.javadoc.skip>false</maven.javadoc.skip>
+        <test.logback.configuration.file>${maven.multiModuleProjectDirectory}/logback-test.xml</test.logback.configuration.file>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -168,6 +169,7 @@
                     <configuration>
                         <argLine>
                             -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                            -Dlogging.config=${test.logback.configuration.file}
                             <!-- -Dlogging.pattern.console=${logging.pattern.console}
                                  -Dlogging.pattern.file="${logging.pattern.file}" -->
                         </argLine>
@@ -189,6 +191,7 @@
                                     ${project.build.outputDirectory}</classesDirectory>
                                 <argLine>
                                     -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                                    -Dlogging.config=${test.logback.configuration.file}
                                     <!-- -Dlogging.pattern.console="${logging.pattern.console}"
                                          -Dlogging.pattern.file="${logging.pattern.file}" -->
                                 </argLine>

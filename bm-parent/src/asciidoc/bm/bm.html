@@ -467,7 +467,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_traccar_realtime_client_quickstart"><code>traccar-realtime-client</code> <strong>Quickstart</strong></a></li>
 </ul>
 </li>
-<li><a href="#_tracker2gts2realtime_milestone">tracker2gts2realtime <strong>Milestone</strong></a></li>
+<li><a href="#_tracker2gts2realtime_milestone">tracker2gts2realtime <strong>Milestone</strong></a>
+<ul class="sectlevel2">
+<li><a href="#_roundtrip_engineering">roundtrip engineering</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -496,14 +500,15 @@ to simulate and process real-time location data.</p>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.20
-    [INFO] --- blue marble BOM                       --- 1.1.20
-    [INFO] ---- GPS Trackers                         --- 1.1.20
-    [INFO] ..... gps-osmand-tracker          1.1.20-poc .......
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20
+<pre class="highlight"><code class="language-text" data-lang="text">    [INFO] === blue marble simulations               === 1.1.21
+    [INFO] --- blue marble BOM                       --- 1.1.21
+    [INFO] ---- GPS Trackers                         --- 1.1.21
+    [INFO] ..... gps-osmand-tracker                      1.1.21
+    [INFO] ..... gps-player             *NEW*            1.1.21
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.21
     [INFO] ..... traccar-openapitools-client 6.12.2 ...........
-    [INFO] ..... traccar-api-client          6.12.2-1.1.20 ....
-    [INFO] ..... traccar-realtime-client     6.12.2-1.1.20-poc</code></pre>
+    [INFO] ..... traccar-api-client          6.12.2-1.1.21 ....
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.21 ....</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -991,12 +996,31 @@ of the <code>traccar-realtime-client</code> to setup your development environmen
 <a href="../../../../bm-traccar/src/asciidoc/milestone/bm-traccar-milestone.html">here</a>
 for your own step by step development of GPS tracking applications.</p>
 </div>
+<div class="sect2">
+<h3 id="_roundtrip_engineering">roundtrip engineering</h3>
+<div class="paragraph">
+<p>Also Note that with the cycle Tracker2GTS2RealTime we start with roundtrip engineering
+on any of the involved Components with integrated Traccar Server.</p>
+</div>
+<div class="paragraph">
+<p>For example we can use the Traccar Server Events as a certified (i.e. Third Party) Tracker Event.
+Therfore you will find integration tests for
+<a href="../../../../bm-traccar/traccar-realtime-client/src/asciidoc/integrated-dev-cycle.html">Tracker development</a>
+in the <code>traccar-realtime-client</code> project
+using the Tracker&#8217;s package names <code>bm.gps.tracker</code>. This is a common development cycle and
+the developer should be aware that the projects, like the Tracker and RealTimeClient
+have to be compiled sequentially, before testing a new Tracker feature in the RealTimeClient project.</p>
+</div>
+<div class="paragraph">
+<p>.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-04-17 13:30:39 +0200
+Last updated 2026-05-01 12:28:36 +0200
 </div>
 </div>
 </body>

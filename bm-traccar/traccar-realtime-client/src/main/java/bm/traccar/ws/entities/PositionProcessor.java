@@ -1,22 +1,21 @@
 package bm.traccar.ws.entities;
 
-import bm.traccar.rt.RealTimeManager;
+import bm.traccar.generated.model.dto.Position;
+import bm.traccar.rt.RealTimeController;
 import java.util.ArrayList;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PositionProcessor implements Processor {
   private static final Logger logger = LoggerFactory.getLogger(PositionProcessor.class);
-  private final RealTimeManager stateManager;
+  private final RealTimeController controller;
 
-  @Autowired
-  public PositionProcessor(RealTimeManager stateManager) {
-    this.stateManager = stateManager;
+  public PositionProcessor(RealTimeController controller) {
+    this.controller = controller;
   }
 
   @Override
@@ -30,22 +29,25 @@ public class PositionProcessor implements Processor {
     ArrayList<?> positions = (ArrayList<?>) body;
     if (positions.isEmpty()) return;
 
-    logger.info("PositionProcessor: received {} Position message/s.", positions.size());
+    logger.info("received {} position motion message/s.", positions.size());
 
-    //    if (body.containsKey("positions")) {
-    //      List<Map<String, Object>> positions = (List<Map<String, Object>>) body.get("positions");
-    //      for (Map<String, Object> position : positions) {
-    //        Long deviceId = (Long) position.get("deviceId");
-    //        Double latitude = (Double) position.get("latitude");
-    //        Double longitude = (Double) position.get("longitude");
-    //        // ... extract other position data
-    //
-    //        // log.info("Device ID: {}, Lat: {}, Lon: {}", deviceId, latitude, longitude);
-    //        // Your logic here:
-    //        // - Store in database
-    //        // - Send to another service
-    //        // - Update a real-time map
-    //      }
-    //    }
+    // convert and update all positions
+    for (Object item : positions) {
+      try {
+        Position pos = EntityMapper.get().convertValue(item, Position.class);
+        if (pos != null) {
+          controller.addOrUpdatePosition(pos);
+          logger.info("updated position (id={},deviceId={})", pos.getId(), pos.getDeviceId());
+        }
+      } catch (IllegalArgumentException ex) {
+        logger.warn("Failed to convert Position: {}", ex.getMessage());
+      }
+    }
+
+    // log.info("Device ID: {}, Lat: {}, Lon: {}", deviceId, latitude, longitude);
+    // Your logic here:
+    // - Store in database
+    // - Send to another service
+    // - Update a real-time map
   }
 }

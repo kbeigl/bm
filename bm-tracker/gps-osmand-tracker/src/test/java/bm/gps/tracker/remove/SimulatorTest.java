@@ -1,4 +1,4 @@
-package bm.gps.tracker.old;
+package bm.gps.tracker.remove;
 
 import bm.gps.remove.Application;
 import bm.gps.remove.SimulatorService;

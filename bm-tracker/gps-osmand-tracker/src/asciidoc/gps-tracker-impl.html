@@ -461,73 +461,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">File Name</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Main Heading</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"># Headings</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"># Lines</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">gps-tracker-impl.adoc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Implementation Path</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">200</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">upgrade-traccar.adoc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Traccar Server Upgrade</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">13</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">setup-development.adoc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">setup development environment</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">120</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">.asciidoctorconfig.adoc (various)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">(config file, no headings)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~20</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">OsmAndProtocolSpecification.adoc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">OsmAnd Protocol Specification</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">70</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">client-development.adoc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Traccar Client Development</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">60</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">readme.adoc (various)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">project documentation</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-</tbody>
-</table>
 <div class="paragraph">
 <p>In the long run we want to track every <em>Thing</em> (real physical object) acting in a scenario.<br>
 Since every message implies the devices <code>uniqueId</code>, one Message Broker
@@ -578,11 +511,11 @@ and will fix the parameters in a simple <code>record</code> to hold a single GPS
     public record MessageOsmand(
         // must have
         String id,        // traccar device uniqueId
-        double lat,
+        double lat,       // geometry data
         double lon,
         long timestamp,
         // optional objects to allow null values
-        Double speed,
+        Double speed,     // telemety data (from primitives)
         Double bearing,
         Double altitude,
         Double battery,
@@ -881,7 +814,13 @@ and is sufficient to create a concrete implementation without surprises.</p>
 <div class="ulist checklist">
 <ul class="checklist">
 <li>
-<p>&#10063; longterm nice2have: analyze incoming data in millisecond intervals for real time events</p>
+<p>&#10063; longterm nice2have:</p>
+</li>
+<li>
+<p>analyze incoming data in millisecond intervals for real time events</p>
+</li>
+<li>
+<p>constantly calculate latency</p>
 </li>
 </ul>
 </div>
@@ -902,7 +841,7 @@ fire &amp; forget</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-04-06 12:13:57 +0200
+Last updated 2026-04-21 13:29:39 +0200
 </div>
 </div>
 </body>

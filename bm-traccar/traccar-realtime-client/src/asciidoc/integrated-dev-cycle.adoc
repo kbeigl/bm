@@ -1,0 +1,297 @@
+:toc: 
+:toclevels: 4
+
+= Integrated Development Cycle
+
+With the `traccar-realtime-client` we have reached a complete cycle 
+to start roundtrip development and integrated testing.
+The developer should be aware that the development of previous projects
+like the `gps-osmand-tracker` have to be compiled _after implementing_ a new Tracker feature
+and _before testing_ with `traccar-realtime-client`.
+This is easy to achive with `mvn ..` commands in the terminal
+and you should check, if your IDE honors the Maven lifecycle and compiles the projects in the correct order.
+
+Note that `CamelTestSupport` provides cool tools to mock servers and clients for testing, 
+but we have decided to use the real Traccar Server and the real GPS Tracker.
+Why mock when you can use the real thing?
+
+
+== Integrated Tracker Development
+
+The `gps-osmand-tracker` was developed in the first implementation branch `bm-tracker` 
+as a simple sender to transfer GPS messages to the Traccar Server.
+We have used this Tracker for further development and testing the Traccar Server with real GPS data. 
+
+
+=== `BaseGpsTrackerIT`
+
+For integrated testing of the GPS Tracker we have created a base class `BaseGpsTrackerIT` 
+in the `gps-osmand-tracker` project, which extends the `BaseRealTimeClientTest` 
+from the `traccar-realtime-client` project. Test layers are easy to identify 
+and you can grab the code snippets for your development.
+
+[source,java]
+----
+    package bm.gps.tracker;     // exists only during tests 
+    
+    /** Base class for GPS tracker integration tests. */
+    public abstract class BaseGpsTrackerIT extends BaseRealTimeClientTest {
+    
+    public class GpsTrackerIT extends BaseGpsTrackerIT {
+----
+
+With this base class we can easily create new integration tests for the GPS Tracker. +
+Here's the most simple test (-start) to send a message with the Tracker:
+
+[source,java]
+----
+      @Test
+      void sendMessageWithDevice() throws Exception {
+    
+        runnerTracker.sendNow(
+            MessageOsmand.now(runnerTracker.getUniqueId(), 52d, 13d, 10d, 20d, 30d, null, null));
+        
+        // now test realtime client for received message
+----
+
+and the complete scenario will be setup on the Traccar Server +
+as you can see in the log output of the test run:
+
+[source,xml]
+----
+ INFO  bm.gps.tracker.GpsTrackerIT       - Started GpsTrackerIT in 2.462 seconds
+ INFO  b.t.api.scenario.ScenarioLoader   - --- Setup scenario on server ---
+ INFO  b.t.api.scenario.ScenarioLoader   - --- Scenario setup complete ---
+ INFO  bm.traccar.BaseRealTimeClientTest - --- initialize realtime controller ---
+ INFO  bm.traccar.rt.RealTimeController  - --- Loading initial users from server...   ---
+ INFO  bm.traccar.rt.RealTimeController  - --- Loading initial devices from server... ---
+ INFO  bm.traccar.rt.RealTimeController  - User logged in: admin
+ INFO  bm.traccar.BaseRealTimeClientTest - 
+
+ ***** RealTimeController initialized *****
+ INFO  bm.gps.tracker.BaseGpsTrackerIT   - --- Scenario Trackers registered ---
+
+ ********** TrackerRealTimeClientIT - start of tests **********
+ INFO  bm.gps.tracker.GpsTrackerIT  -    
+ ********** sendMessageWithDevice() **********
+ INFO  bm.gps.tracker.TrackerOsmAnd      - tracker-10 sending message
+
+ INFO  process-websocket-message-route   - devices message received: {devices=[{id=2816 ...
+ INFO  b.t.ws.entities.DeviceProcessor   - DeviceProcessor: received 1 device message/s.
+ INFO  bm.traccar.rt.RealTimeManager     - RTM.addOrUpdateDevice: update device with uniqueId=10
+ INFO  b.t.ws.entities.DeviceProcessor   - Updated device with uniqueId=10
+ INFO  process-websocket-message-route   - process json message: [{id=2816, ...
+
+ INFO  process-websocket-message-route   - positions message received: {positions=[{id=1130 ...
+ INFO  b.t.ws.entities.PositionProcessor - PositionProcessor: received 1 Position message/s.
+ INFO  process-websocket-message-route   - process json message: [{id=1130 ...
+
+ ***** TrackerRealTimeClientIT - end of tests *****
+ INFO  b.t.api.scenario.ScenarioLoader   - --- tear down scenario on server ---
+----
+
+==== Timing and Latency
+
+After setting up the test we can look at the timing of the `devices` and `positions` messages +
+sent by the Tracker and received by the RealTimeClient Processors:
+
+[source,xml]
+----
+seconds after sending message
+  0.000 - tracker-10 sending message
+* 0.034 - devices message received: {devices=[{id=2836, ...
+  0.035 - DeviceProcessor: received 1 device message/s.
+  0.043 - RTM.addOrUpdateDevice: update device with id=2836 / uniqueId=10
+  0.044 - Updated device with id=2836 / uniqueId=10
+  0.045 - process json message: [{id=2836, ...
+  
+* 3.105 - positions message received: {positions=[{id=1134, ...
+  3.106 - PositionProcessor: received 1 Position message/s.
+----
+
+So we have a latency of about 34 ms for the `devices` message and about 3 seconds for the `positions` message. +
+This gives us a good indication of the performance of the Traccar Server and the RealTimeClient.
+We conclude that this is not sufficient for Assisted Driver Systems, 
+which operate in the range of 5 GHz and require a latency in milliseconds magnitude.
+
+This behavior is a result of how Traccar handles data processing pipelines and event broadcasting. 
+The Traccar Processing Pipeline is designed to _ensure data integrity and consistency_, 
+which is a trade-off, but provides integrity and reliability for our real time applications.
+The GTS serves as quality gate for the real time application logic.
+
+To understand why you see a gap between the `Device` update and the `Position` update, 
+we have to look at the Traccar Server internal lifecycle of a message.
+This was done in the 
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
+and
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book],
+but we will summarize the key points here:
+
+
+===== The Processing Pipeline Delay
+
+When a device sends data, Traccar doesn't broadcast it to the WebSocket immediately. +
+It must first pass through a "Handler Pipeline":
+
+[source,xml]
+----
+ --> Protocol Decoding 
+     --> ** Device Status Update **
+         --> Handlers (Computed Attributes, Geofencing, etc.)
+             --> Reverse Geocoding 
+                 --> Database Persistence
+                     --> websocket broadcast ** Position Update **
+----
+
+===== Decoupled Entities
+
+In Traccar’s architecture, Devices and Positions are treated as separate data entities.
+The devices message is basically a "Status Update" (changing the device from offline to online). 
+At that exact microsecond, the new position hasn't finished being processed or saved yet, 
+so the lastPositionId in that device message still points to the previous known location.
+
+===== Conclusion
+
+The realtime logic should 
+
+* listen for the positions update as the "source of truth" for movement 
+* use the devices update only for status changes (Online/Offline/Ignition)
+
+And in addition 
+
+* the Device _could_ update itself on the real time client side with the latest position data
+    as it sends the position update, which is a common pattern in real time applications 
+    to reduce latency and improve user experience.
+
+This would highly impact the RealTimeController logic to update the Device's last known position.
+And we would have to temporarily store the new position data until the position message 
+with a new database ID is received.
+
+===== Disclaimer `v1` 
+
+The bm repositories are meant for creating a software for business logistics, 
+fleet management and driver _guidance_ from a business application logic.
+
+We will accept the Traccar Server's internal processing logic as it is
+and draw conclusions rather than adding custom logic to add complexity 
+and potential for bugs. 
+This is a recommended approach for prototyping and testing. +
+keep it simple 
+
+
+=== `GpsTrackerIT`
+
+This integrated test class is used to test various GPS Trackers,
+sending various messages to the Traccar Server to demonstrate the end-to-end flow of data
+and to analyze timing and latency and performance of the system.
+
+
+==== `singleMsg2gts2realtime()`
+
+First we get a Device reference from the RealTimeController +
+and check the status of the device before sending a message:
+
+                                          (uniqueId  id)       status / lastPositionId / lastUpdate
+    21:23:27.321 - Status before sending: Device(10, id=3310): offline /    0 / null
+                                          -------==------====------------------------
+
+Next we prepare a GPS message with fixtime and send it three seconds later:
+
+    21:23:27.321 - GPS fix 2026-04-28T19:23:27Z timestamp: 1777404207  ** gps fix **
+    21:23:30.321 - Sent at 2026-04-28T19:23:30Z timestamp: 1777404210  ** delta 3s ** 
+    ======== local time               ========  UTC time
+    
+and observe sending and receiving the message:
+
+    21:23:30.322 TrackerOsmAnd   - tracker-10 sending message id=10& .. &timestamp=1777404207 ..
+              ** lastUpdate **                                                   ** gps fix **
+    21:23:30.371 DeviceProcessor - received 1 device event message/s.             
+    21:23:30.379 DeviceProcessor - Updated Device (id=3310 / uniqueId=10)
+
+Now the status of the device is updated to `online`, +
+with the `lastUpdate` time between the sending and receiving (compare log above and below) + 
+but the last position is still `0`, 
+
+    21:23:30.824 -  Status after sending: Device(10, id=3310): online  /    0 / 2026-04-28T19:23:30.345Z
+                                          ---------------------======-------------------------------===-
+
+because the position message has not been received yet:
+
+    21:23:33.402 PositionProcessor - received 1 Position motion message/s.
+    21:23:33.411 PositionProcessor - Updated Position (id=1308)
+    
+Now we get the `Position` referenced to the `Device`  with database IDs
+
+    21:23:33.435    class Position {
+                                id: 1308                     - new position id in database
+                          deviceId: 3310                     - relation to device id
+                        deviceTime: 2026-04-28T19:23:27Z     - deviceTime = fixTime
+                           fixTime: 2026-04-28T19:23:27Z
+                        serverTime: 2026-04-28T19:23:30.338Z - set as lastUpdate of device
+                    }                                   ===
+                    
+and the device status is updated again with the new position id and last update time:
+                    
+    21:23:33.436 -  Status after  update: Device(10, id=3310): online  / 1308 / 2026-04-28T19:23:30.338Z
+                                          -------------------------------====-----------------------===-
+
+
+=== GPS Tracker Features
+
+Consider creating a separate (geo) lib for tracker side events,
+to be re/used for future Trackers.
+
+OR create an `abstract GpsTracker` without an concrete
+Tracker Registration, which can be added in extension.
+
+
+=== Traccar Server Events
+
+These are the "alerts" triggered by the server's engine 
+based on the incoming position data.
+
+Common Event Types (gemini):
+
+* deviceOnline / deviceOffline: When a device connects or loses connection.
+* deviceMoving / deviceStopped: Status changes based on movement.
+* geofenceEnter / geofenceExit: Crossing virtual boundaries.
+* alarm: Specific alerts like SOS, Vibration, or Tampering.
+* ignitionOn / ignitionOff: If the vehicle's engine is wired to the tracker.
+* overspeed: If the device exceeds a set limit.
+
+==== 8.1.1 Tracker Events
+
+Better trackers use an internal database to store positions from the GPS unit
+whenever the tracker is disconnected. With this internally stored Track the
+controller logic can derive a number of events or status messages, which can
+be reported to the tracking system.
+
+Here is a short excerpt of basic tracking events:
+
+* time / distance intervals
+* speed threshold (pedestrian or passenger)
+* angular change (course over ground)
+* power on/low/off
+* motion start/stop
+* alarm button pressed - Tracker event
+
+Some more sophisticated trackers provide storage for geofences to trigger
+entry- and exit events on the client side !
+
+==== 8.1.2 Traccar Events
+
+Another important Traccar feature is the additional creation of system-,
+i.e. server events like the MotionEventHandler which is invoked inside Traccar’s
+BasePipelineFactory to analyze the latest position
+
+==== todo
+
+see ROAF GPSinfo
+
+move ( .. ) 
+
+direction
+
+speed
+
+== Integrated Player Development

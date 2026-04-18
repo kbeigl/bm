@@ -20,12 +20,12 @@ import org.springframework.stereotype.Component;
  * the WebSocket to receive and process live updates, feeding everything into the thread-safe state
  * manager, i.e. the RealTimeModel.
  */
-@Component // or @Service  ?
+@Component // or @Service ?
 public class RealTimeController {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeController.class);
 
   private final RealTimeManager stateManager;
-  private final Api api; // or ApiService !?
+  private final Api api; // use more convenient ApiService !?
   private final WebSocketRoute liveConnection;
 
   public RealTimeController(RealTimeManager stateManager, Api api, WebSocketRoute liveConnection) {
@@ -117,6 +117,13 @@ public class RealTimeController {
 
   // read only access methods for stateManager ------------
 
+  /* TODO
+   * use Optional<Entity> in RTManager and return Entity in RTController,
+   * Controller can decide how to handle missing entities.
+   * Less and cleaner code.
+   * Centralize handling of missing entities in the controller.
+   */
+
   public Optional<User> getCurrentUser() {
     return stateManager.getCurrentUser();
   }
@@ -136,14 +143,17 @@ public class RealTimeController {
   }
 
   /**
-   * Returns the Device for a given uniqueId, or Optional.empty() if not found.
+   * Finds the Device for a given uniqueId, or Optional.empty() if not found.
    *
    * @param uniqueId the unique identifier of the device
-   * @return Optional containing the Device if present, otherwise empty
+   * @return Optional containing Device if present, otherwise empty
+   * @see RealTimeManager#lookupDeviceIdByUniqueId(String) for the mapping
    */
-  public Optional<Device> getDeviceIdByUniqueId(String uniqueId) {
+  public Optional<Device> findDeviceByUniqueId(String uniqueId) {
     long deviceId = stateManager.lookupDeviceIdByUniqueId(uniqueId);
-    if (deviceId == -1L) return Optional.empty();
+    if (deviceId == -1L) {
+      return Optional.empty();
+    }
     return stateManager.getDeviceById(deviceId);
   }
 
@@ -160,6 +170,12 @@ public class RealTimeController {
   public List<Device> getAllDevices() {
     return new ArrayList<>(stateManager.getAllDevices());
   }
+
+  /** Returns a copy of the list of all Positions. */
+  //  public List<Position> getAllPositions() {
+  //	use postion API to get all positions for a device or time range,
+  //    instead of keeping all positions in memory
+  //  }
 
   /** Get the latest position for a given device. */
   public Optional<Position> getLatestPositionForDevice(long deviceId) {

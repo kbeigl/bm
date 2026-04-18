@@ -17,6 +17,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Unit tests for EIP content based router (CBR) of expected WebSocket messages from Traccar.
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.TestInstance;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ContentBasedRouterTest {
+  private static final Logger logger = LoggerFactory.getLogger(ContentBasedRouterTest.class);
   private CamelContext camel;
   private ProducerTemplate producer;
   private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -160,12 +163,12 @@ public class ContentBasedRouterTest {
         invalidJson,
         mockUnknown.getExchanges().get(0).getIn().getBody(String.class),
         "Expected original invalid JSON message");
-    System.err.println("Invalid message: " + mockUnknown.getExchanges().get(0).getIn().getBody());
+    logger.warn("Invalid message: {}", mockUnknown.getExchanges().get(0).getIn().getBody());
 
     mockUnknown.expectedMessageCount(2);
     producer.sendBody("direct:start-cbr", unknownJson);
     mockUnknown.assertIsSatisfied();
-    System.err.println("Unknown message: " + mockUnknown.getExchanges().get(1).getIn().getBody());
+    logger.warn("Unknown message: {}", mockUnknown.getExchanges().get(1).getIn().getBody());
   }
 
   String emptyJson = "{}";

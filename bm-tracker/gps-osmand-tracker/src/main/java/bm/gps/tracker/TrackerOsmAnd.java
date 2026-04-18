@@ -194,8 +194,8 @@ public class TrackerOsmAnd {
      * Check time format against traccar/osmand requirements.
      */
     if (fixTime == null) {
-      // MessageOsmand.now requires primitive values for speed/bearing/altitude, use 0.0 when
-      // missing
+      // MessageOsmand.now requires primitive values for speed/bearing/altitude,
+      // use 0.0 when missing
       return MessageOsmand.now(
           uniqueId,
           latitude,
@@ -249,7 +249,7 @@ public class TrackerOsmAnd {
             + (safeId == null
                 ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
                 : safeId);
-    logger.info("tracker-{} sending message", uniqueId); // safeId ?
+    logger.info("tracker-{} sending url message {}", uniqueId, msg); // safeId ?
     tracker.sendBody(endpoint, msg);
     // tracker.asyncSendBody("direct:send-osmand", msg);
   }

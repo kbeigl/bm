@@ -3,14 +3,6 @@
 
 = Implementation Path
 
-|===
-
-| File Name | Main Heading | # Headings | # Lines | 
-
-| gps-tracker-impl.adoc | Implementation Path | 10 | 200 | | upgrade-traccar.adoc | Traccar Server Upgrade | 1 | 13 | | setup-development.adoc | setup development environment | 8 | 120 | | .asciidoctorconfig.adoc (various) | (config file, no headings) | 0 | ~20 | | OsmAndProtocolSpecification.adoc | OsmAnd Protocol Specification | 6 | 70 | | client-development.adoc | Traccar Client Development | 2 | 60 | | readme.adoc (various) | project documentation | 1 | 10 | | 
-
-|===
-
 In the long run we want to track every _Thing_ (real physical object) acting in a scenario. + 
 Since every message implies the devices `uniqueId`, one Message Broker
 could operate as _one single_ Tracker for a _complete_ scenario.
@@ -47,11 +39,11 @@ package bm.gps;
     public record MessageOsmand(
         // must have
         String id,        // traccar device uniqueId
-        double lat,
+        double lat,       // geometry data
         double lon,
         long timestamp,
         // optional objects to allow null values
-        Double speed,
+        Double speed,     // telemety data (from primitives)
         Double bearing,
         Double altitude,
         Double battery,
@@ -240,7 +232,9 @@ and is sufficient to create a concrete implementation without surprises.
 
 === Message Buffer
 
-- [ ] longterm nice2have: analyze incoming data in millisecond intervals for real time events
+- [ ] longterm nice2have: 
+      - analyze incoming data in millisecond intervals for real time events
+      - constantly calculate latency
 
 == Primary Use Case
 

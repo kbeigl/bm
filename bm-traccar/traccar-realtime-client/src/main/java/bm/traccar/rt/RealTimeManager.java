@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -93,6 +94,8 @@ public class RealTimeManager {
   /** Adds or updates a position and - crucially - also updates associated device's state. */
   public void addOrUpdatePosition(Position position) {
     if (position == null) return;
+    logger.info(
+        "addOrUpdate position(id={},deviceId={})", position.getId(), position.getDeviceId());
 
     // Perform mutations under deviceMapLock so position insertion and device maps remain consistent
     synchronized (deviceMapLock) {
@@ -103,7 +106,7 @@ public class RealTimeManager {
       Device device = devices.get(position.getDeviceId());
       if (device != null) {
         device.setPositionId(position.getId());
-        device.setLastUpdate(position.getServerTime()); // .. make sense ?
+        device.setLastUpdate(position.getServerTime()); // .. 'make sense ?
         // update device stati based on position data
         // e.g., if position.getAttributes().get("ignition") is true/false.
         // raise events ...
@@ -115,24 +118,29 @@ public class RealTimeManager {
   /** Adds or updates a device (from a WebSocket message). */
   public void addOrUpdateDevice(Device device) {
     if (device == null) return;
-    logger.info(
-        "RTM.addOrUpdateDevice: update device with id={} / uniqueId={}",
-        device.getId(),
-        device.getUniqueId());
+    logger.info("addOrUpdate device(uniqueId={},id={})", device.getUniqueId(), device.getId());
 
     // synchronize updates so both maps remain consistent
     synchronized (deviceMapLock) {
-      // store/replace device explicitly
       Device previous = devices.get(device.getId());
-      devices.put(device.getId(), device);
 
-      // If uniqueId changed remove old mapping
       if (previous != null) {
         String prevUnique = previous.getUniqueId();
         String newUnique = device.getUniqueId();
+
+        // copy properties to preserve object references for external holders (!?)
+        BeanUtils.copyProperties(device, previous);
+
+        // raise events if uniqueId or status changed, etc. in RealTimeController!
+        // Keep manager focused on state management not event handling.
+
+        // If uniqueId changed remove old mapping
         if (prevUnique != null && !prevUnique.equals(newUnique)) {
           deviceIdByUniqueId.remove(prevUnique);
         }
+      } else {
+        // First time seeing this device
+        devices.put(device.getId(), device);
       }
 
       // ensure mapping from uniqueId -> id
@@ -160,7 +168,7 @@ public class RealTimeManager {
    *
    * <p>If the application consequentially uses uniqueIds - which can be semantic to its context it
    * can easily change the server and database as required by a scenario. This actually happens with
-   * every Integration Test ...
+   * every Integration Test run.
    *
    * @param uniqueId
    * @return database deviceId
