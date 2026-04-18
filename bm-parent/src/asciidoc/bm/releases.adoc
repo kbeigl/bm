@@ -4,11 +4,13 @@
     [INFO] === blue marble simulations               === 1.1.20 
     [INFO] --- blue marble BOM                       --- 1.1.20 
     [INFO] ---- GPS Trackers                         --- 1.1.20 
-    [INFO] ..... gps-osmand-tracker          1.1.20-poc .......
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20 
-    [INFO] ..... traccar-openapitools-client 6.12.2 ........... 
-    [INFO] ..... traccar-api-client          6.12.2-1.1.20 .... 
-    [INFO] ..... traccar-realtime-client     6.12.2-1.1.20-poc 
+    [INFO] ..... gps-osmand-tracker          1.1.20-poc ....... <--+
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20    |
+    [INFO] ..... traccar-openapitools-client 6.12.2 ...........    | poc
+    [INFO] ..... traccar-api-client          6.12.2-1.1.20 ....    |
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.20-poc  <--+
+    
+    
     
     Release Candidate for traccar-realtime-client.jar
 

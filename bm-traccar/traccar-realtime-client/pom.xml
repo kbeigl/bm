@@ -75,7 +75,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.parent.version}-poc</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

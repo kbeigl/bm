@@ -40,7 +40,7 @@
     </description>
 
     <properties>
-        <!-- simplify build on github and user pulls-->
+        <!-- simplify build on github and user clones-->
         <openapi.skip>false</openapi.skip>
         <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
