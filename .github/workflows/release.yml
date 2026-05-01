@@ -32,7 +32,8 @@ jobs:
             -Dintegration.tests.skip=true \
             -Ddocker.skip.tests=true \
             -Dopenapi.skip=false \
-            -Dasciidoc.process.skip=true
+            -Dasciidoc.process.skip=true \
+            | grep "Downloaded from central" || true
 
       - name: Find JAR files
         id: find_jars
