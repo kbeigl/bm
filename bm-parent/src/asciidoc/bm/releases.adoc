@@ -1,4 +1,16 @@
 
+    [INFO] === blue marble simulations               === 1.1.22 
+    [INFO] --- blue marble BOM                       --- 1.1.22 
+    [INFO] ---- GPS Trackers                         --- 1.1.22-alpha 
+    [INFO] ..... gps-osmand-tracker                      1.1.22-alpha 
+    [INFO] ..... gps-osmand-player    *new name*         1.1.22-alpha  
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.22 
+    [INFO] ..... traccar-openapitools-client      6.12.2
+    [INFO] ..... traccar-api-client               6.12.2-1.1.22
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.22
+    
+    player / tracker combination in alpha: not feature complete
+
     [INFO] === blue marble simulations               === 1.1.21
     [INFO] --- blue marble BOM                       --- 1.1.21
     [INFO] ---- GPS Trackers                         --- 1.1.21

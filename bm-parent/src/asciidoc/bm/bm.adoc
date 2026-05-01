@@ -19,15 +19,15 @@ to simulate and process real-time location data.
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.21
-    [INFO] --- blue marble BOM                       --- 1.1.21
-    [INFO] ---- GPS Trackers                         --- 1.1.21
-    [INFO] ..... gps-osmand-tracker                      1.1.21
-    [INFO] ..... gps-player             *NEW*            1.1.21 
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.21
-    [INFO] ..... traccar-openapitools-client 6.12.2 ...........
-    [INFO] ..... traccar-api-client          6.12.2-1.1.21 ....
-    [INFO] ..... traccar-realtime-client     6.12.2-1.1.21 .... 
+    [INFO] === blue marble simulations               === 1.1.22 
+    [INFO] --- blue marble BOM                       --- 1.1.22 
+    [INFO] ---- GPS Trackers                         --- 1.1.22-alpha 
+    [INFO] ..... gps-osmand-tracker                      1.1.22-alpha 
+    [INFO] ..... gps-osmand-player    *new name*         1.1.22-alpha  
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.22 
+    [INFO] ..... traccar-openapitools-client      6.12.2
+    [INFO] ..... traccar-api-client               6.12.2-1.1.22
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.22
 -----------------
 
 For earlier versions check the 

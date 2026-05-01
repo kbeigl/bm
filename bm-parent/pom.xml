@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.21</version>
+        <version>1.1.22</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -41,12 +41,14 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>true</openapi.skip>
+        <openapi.skip>false</openapi.skip>
         <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
 
         <maven.javadoc.skip>false</maven.javadoc.skip>
-        <test.logback.configuration.file>${maven.multiModuleProjectDirectory}/logback-test.xml</test.logback.configuration.file>
+        <!-- analyze how Spring/Test handles this in a single project .. -->
+        <test.logback.configuration.file>
+            ${maven.multiModuleProjectDirectory}/logback-test.xml</test.logback.configuration.file>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -377,7 +379,7 @@
                             <preserveDirectories>true</preserveDirectories>
                             <backend>html5</backend>
                             <doctype>book</doctype>
-                            <enableVerbose>true</enableVerbose>
+                            <enableVerbose>false</enableVerbose>
                             <requires>
                                 <require>asciidoctor-diagram</require>
                             </requires>
@@ -388,12 +390,15 @@
                                 <kroki-fallback-server-url>https://kroki.io</kroki-fallback-server-url>
                                  -->
                                 <kroki-fetch-diagram>true</kroki-fetch-diagram>
+                                <!-- kroki-mermaid on :8002 rejects encoded GET URLs; force POST /mermaid/svg -->
+                                <diagram-max-get-size>0</diagram-max-get-size>
                                 <allow-uri-read />
 
                                 <diagram-server-type>kroki_io</diagram-server-type>
+                                <!-- <diagram-server-url>http://localhost:8002/mermaid/svg</diagram-server-url> -->
                                 <diagram-server-url>http://localhost:8002</diagram-server-url>
-                                <!-- use online Kroki server as fallback or to check latest release --> 
-                                <diagram-server-url>https://kroki.io</diagram-server-url>
+                                <!-- use online Kroki server as fallback or to check latest release
+                                <diagram-server-url>https://kroki.io</diagram-server-url> --> 
                                 <diagram-impl>kroki</diagram-impl>
                                 <imagesdir>diagrams</imagesdir>
                                 <data-uri />

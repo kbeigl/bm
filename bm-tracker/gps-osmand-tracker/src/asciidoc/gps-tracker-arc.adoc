@@ -424,7 +424,7 @@ graph TD
   Sender -->|seda:send-osmand| Message
 ....
 
-Any number of `Trackers` can be created in the main application
+Any number of `Trackers` can be created in the main application 
 (in this case a minimum `@SpringBootApplication`).
 Each one can be looked up in the `Registration` to send `Messages` with the `Tracker( uniqueId )`.
 
