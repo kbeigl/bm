@@ -21,9 +21,29 @@ jobs:
           cache: maven
 
       - name: Build with Maven (excluding integration tests and doc generation)
-        run: ./mvnw install
-          --file pom.xml
-          -Dintegration.tests.skip=true
-          -Ddocker.skip.tests=true
-          -Dopenapi.skip=false
-          -Dasciidoc.process.skip=true
+        run: |
+          ./mvnw install \
+            --file pom.xml \
+            -Dintegration.tests.skip=true \
+            -Ddocker.skip.tests=true \
+            -Dopenapi.skip=false \
+            -Dasciidoc.process.skip=true
+
+  gps-osmand-player-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bm-tracker/gps-osmand-player
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run gps-osmand-player route tests
+        run: ../../mvnw -Dtest=GpxMessageRouteTest test

@@ -71,7 +71,7 @@ public class Gpx2OsmandParser {
       previous = point;
     }
     logger.info(
-        "Parsed {} track points from GPX file {} into {} Osmand messages for device '{}'",
+        "Parsed {} track points from '{}' file into {} Osmand messages for deviceId '{}'",
         trackPoints.size(),
         gpxFile.getName(),
         messages.size(),
