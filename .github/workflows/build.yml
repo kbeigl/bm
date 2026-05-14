@@ -22,7 +22,7 @@ jobs:
 
       - name: Build with Maven (excluding integration tests and doc generation)
         run: |
-          ./mvnw install \
+          ./mvnw -B -ntp install \
             --file pom.xml \
             -Dintegration.tests.skip=true \
             -Ddocker.skip.tests=true \
@@ -46,4 +46,4 @@ jobs:
           cache: maven
 
       - name: Run gps-osmand-player route tests
-        run: ../../mvnw -Dtest=GpxMessageRouteTest test
+        run: ../../mvnw -B -ntp -Dtest=GpxMessageRouteTest test

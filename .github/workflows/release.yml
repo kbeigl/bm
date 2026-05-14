@@ -27,7 +27,7 @@ jobs:
 
       - name: Build with Maven
         run: |
-          ./mvnw install \
+          ./mvnw -B -ntp install \
             --file pom.xml \
             -Dintegration.tests.skip=true \
             -Ddocker.skip.tests=true \
@@ -37,69 +37,30 @@ jobs:
       - name: Find JAR files
         id: find_jars
         run: |
-          OPENAPITOOLS=$(find bm-traccar/traccar-openapitools-client/target -name 'traccar-openapitools-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
-          API_CLIENT=$(find bm-traccar/traccar-api-client/target -name 'traccar-api-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar')
-          REALTIME=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*.jar.original')
-          REALTIME_ORIG=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar.original')
+          OPENAPITOOLS=$(find bm-traccar/traccar-openapitools-client/target -name 'traccar-openapitools-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
+          API_CLIENT=$(find bm-traccar/traccar-api-client/target -name 'traccar-api-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
+          REALTIME=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*.jar.original' | head -n 1)
+          REALTIME_ORIG=$(find bm-traccar/traccar-realtime-client/target -name 'traccar-realtime-client-*.jar.original' | head -n 1)
 
-          echo "openapitools_client=$OPENAPITOOLS" >> $GITHUB_OUTPUT
-          echo "api_client=$API_CLIENT" >> $GITHUB_OUTPUT
-          echo "realtime_client=$REALTIME" >> $GITHUB_OUTPUT
-          echo "realtime_client_original=$REALTIME_ORIG" >> $GITHUB_OUTPUT
+          test -n "$OPENAPITOOLS"
+          test -n "$API_CLIENT"
+          test -n "$REALTIME"
+          test -n "$REALTIME_ORIG"
 
-          # Extract versioned filenames directly from the found paths
-          echo "openapitools_client_name=$(basename $OPENAPITOOLS)" >> $GITHUB_OUTPUT
-          echo "api_client_name=$(basename $API_CLIENT)" >> $GITHUB_OUTPUT
-          echo "realtime_client_name=$(basename $REALTIME)" >> $GITHUB_OUTPUT
-          echo "realtime_client_original_name=$(basename $REALTIME_ORIG)" >> $GITHUB_OUTPUT
+          echo "openapitools_client=$OPENAPITOOLS" >> "$GITHUB_OUTPUT"
+          echo "api_client=$API_CLIENT" >> "$GITHUB_OUTPUT"
+          echo "realtime_client=$REALTIME" >> "$GITHUB_OUTPUT"
+          echo "realtime_client_original=$REALTIME_ORIG" >> "$GITHUB_OUTPUT"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-
-      - name: Upload traccar-openapitools-client.jar
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_jars.outputs.openapitools_client }}
-          asset_name: ${{ steps.find_jars.outputs.openapitools_client_name }}
-          asset_content_type: application/java-archive
-
-      - name: Upload traccar-api-client.jar
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_jars.outputs.api_client }}
-          asset_name: ${{ steps.find_jars.outputs.api_client_name }}
-          asset_content_type: application/java-archive
-
-      - name: Upload traccar-realtime-client.jar
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_jars.outputs.realtime_client }}
-          asset_name: ${{ steps.find_jars.outputs.realtime_client_name }}
-          asset_content_type: application/java-archive
-
-      - name: Upload traccar-realtime-client.jar.original
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_jars.outputs.realtime_client_original }}
-          asset_name: ${{ steps.find_jars.outputs.realtime_client_original_name }}
-          asset_content_type: application/java-archive
+          files: |
+            ${{ steps.find_jars.outputs.openapitools_client }}
+            ${{ steps.find_jars.outputs.api_client }}
+            ${{ steps.find_jars.outputs.realtime_client }}
+            ${{ steps.find_jars.outputs.realtime_client_original }}
