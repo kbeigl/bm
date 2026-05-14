@@ -15,7 +15,7 @@ xref:../../../traccar-openapitools-client/src/asciidoc/openapitools.adoc#_openap
 to be aware of.
 
 
-== `v1.1.17` - Traccar `v6.10.0` to `v6.12.2`
+== Traccar `v6.10.0` to `v6.12.2`
 
 After upgrading the Traccar version
 

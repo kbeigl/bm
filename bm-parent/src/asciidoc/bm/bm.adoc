@@ -19,15 +19,15 @@ to simulate and process real-time location data.
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.22 
-    [INFO] --- blue marble BOM                       --- 1.1.22 
-    [INFO] ---- GPS Trackers                         --- 1.1.22-alpha 
-    [INFO] ..... gps-osmand-tracker                      1.1.22-alpha 
-    [INFO] ..... gps-osmand-player    *new name*         1.1.22-alpha  
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.22 
-    [INFO] ..... traccar-openapitools-client      6.12.2
-    [INFO] ..... traccar-api-client               6.12.2-1.1.22
-    [INFO] ..... traccar-realtime-client          6.12.2-1.1.22
+    [INFO] === blue marble simulations               === 1.1.23 
+    [INFO] --- blue marble BOM                       --- 1.1.23 
+    [INFO] ---- GPS Trackers                         --- 1.1.23 
+    [INFO] ..... gps-osmand-tracker                      1.1.23 
+    [INFO] ..... gps-osmand-player                       1.1.23-beta 
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.23 
+    [INFO] ..... traccar-openapitools-client 6.12.2 
+    [INFO] ..... traccar-api-client          6.12.2-1.1.23 
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.23 
 -----------------
 
 For earlier versions check the 
@@ -201,9 +201,23 @@ link:https://www.traccar.org/osmand/[here],
 xref:OsmAndProtocolSpecification.adoc[here] and elsewhere.
 
 The implemetation is using a SEDA queue as an async ingress with retry/backoff,
-being a solid Camel pattern for resilient message delivery.
+as a solid pattern for resilient message delivery.
 
 xref:../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc[goto gps-osmand-tracker project]
+
+
+=== `gps-osmand-player`
+
+After prototyping the `gps-tracker` we want to create a helper for further development,
+which has proven to be very helpful during 
+https://github.com/kbeigl/jeets/tree/master/jeets-clients/jeets-player[JeeTS]
+development.
+With a player software you can chose of thousands of available tracks and replay them. 
+Beyond that a number of simulations can be used to replay complex traffic situations. 
+Besides supporting tracker development the player component can be 
+the base of a Navigation Device which can support a Driver Assistence System.
+
+xref:../../../../bm-tracker/gps-osmand-player/src/asciidoc/gps-osmand-player.adoc[goto gps-osmand-player project]
 
 
 == `/bm-traccar` - Remote Access to Traccar GTS
@@ -218,11 +232,11 @@ link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Bo
 
 xref:../../../../bm-traccar/src/asciidoc/bm-traccar.adoc[read more to setup and adopt your development environment]
 
-As of `v1.1.8` we are developing the following three cascaded and yet independent artifacts as a _layered architecture_.
+As of `v1.1.x` we are developing the following three cascaded and yet independent artifacts as a _layered architecture_. +
 The separation between 
 
 - `traccar-openapitools-client` (generated)
-- `traccar-api-client` (wrapper) 
+- `traccar-api-client` (Java wrapper) 
 - `traccar-realtime-client` (orchestration) 
 
 is deliberate. 
@@ -287,13 +301,15 @@ xref:../../../../bm-traccar/traccar-openapitools-client/src/asciidoc/openapitool
 
 === `traccar-openapitools-client` *Download*
 
-link to releases etc.
+This project is fully automated and always reflects the Traccar version. +
+You can pick up your download in the 
+https://github.com/kbeigl/bm/releases[Releases] section.
 
 
 === `traccar-api-client`
 
 The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
-And it can be used to integrate your Tracking with your company systems, 
+And it can be used to integrate your Tracking System with your company systems, 
 like Human Resources-, Sales- and Fleet Management Software.
 Synchronize your employees with their cars and driver information without utilizing the traccar UI.
 Pull driving reports for your sales team ... and much more ;) 
@@ -334,7 +350,7 @@ receive real-time data from it.
 
 == tracker2gts2realtime *Milestone*
 
-The prototyping of the two branches `/bm-tracker` and `/bm-traccar` is concluded with the `traccar-realtime-client`.
+The `v1.1.x` prototyping of the two branches `/bm-tracker` and `/bm-traccar` is concluded with the `traccar-realtime-client`.
 As a proof of concept we have implemented the full flow of data from the trackers to the server to the Real Time Client,
 including the setup of a scenario on the server.
 

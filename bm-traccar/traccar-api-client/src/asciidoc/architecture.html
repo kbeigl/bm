@@ -600,6 +600,15 @@ The new User (DTO) is returned with a unique ID from the server.</p>
 <div class="sect2">
 <h3 id="_mimic_url_syntax">mimic URL syntax</h3>
 <div class="paragraph">
+<p>You can always check your authentication by calling a REST endpoint in your browser</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>http://localhost/api/users/257          works in service account
+http://localhost/api/users?userId=256   doesnt</pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Note how the Java invokation mimics a REST call</p>
 </div>
 <div class="literalblock">
@@ -770,7 +779,7 @@ and focus the implementation on User Management, for example.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-04-17 13:51:04 +0200
+Last updated 2026-05-16 12:57:28 +0200
 </div>
 </div>
 </body>

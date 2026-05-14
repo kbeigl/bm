@@ -83,21 +83,21 @@ which could be sneeked into a scenario, if needed.
 
 The above model is a minimal starting example.
 A GPS Tracking Platform has to deal with _a lot more_ attributes. +
-We will use the Traccar GTS, which is build on the following related Entities:
+We will use the Traccar GTS, which is build on the following Entities with fixed Relations:
 
 |===
 
 |Attribute |Calendar |Command |CommandType
 
-|Device |DeviceAccumulators |Driver |Event
+|*Device* |DeviceAccumulators |Driver |Event
 
-|Geofence |Group |Maintenance |Notification
+|Geofence |*Group* |Maintenance |Notification
 
-|NotificationType |Permission |Position |ReportStops
+|NotificationType |Permission |*Position* |ReportStops
 
-|ReportSummary |ReportTrips |Server |Statistics
+|ReportSummary |ReportTrips |*Server* |Statistics
 
-|User | | | 
+|*User* | | | 
 |===
 
 These are not the actual Entities of the Traccar ERM. +
@@ -106,34 +106,47 @@ These are DTO classes generated from the Traccar REST API openapi.yml file.
 You can find the classes in the `bm.traccar.generated.model.dto` package + 
 and they are available in every `traccar-client-` implementation.   
 
-Let's compare the `Device` class 
-and a `json devices` message sent via websocket:
+Let's compare the generate `Device` class,
+a `json devices` message sent via websocket +
+and the attributes in the database model:
 
 [source,java]
 ----
-      class Device {             {devices=[
-        id: 638                     {id=638,
-        name: runner                 name=runner,
-        uniqueId: 10                 uniqueId=10,
-        status: offline              status=online,
-        disabled: false              disabled=false,
-        lastUpdate: null             lastUpdate=2026-02-20T16:15:30.791+00:00,
-        positionId: 0                positionId=0,
-        groupId: 0                   groupId=0,
-        phone: null                  phone=null,
-        model: ro                    model=ro,
-        contact: null                contact=null,
-        category: null               category=null,
-        attributes: {}               attributes={},
-                                     calendarId=0,
-                                     expirationTime=null
+      class Device {             {devices=[        database table: TC_DEVICES
+        id: 638                     {id=638,                       ID
+        name: runner                 name=runner,                  NAME
+        uniqueId: 10                 uniqueId=10,                  UNIQUEID
+        status: offline              status=online,                STATUS
+        disabled: false              disabled=false,               DISABLED
+        lastUpdate: null             lastUpdate=2026-02-20...,     LASTUPDATE
+        positionId: 0                positionId=0,                 POSITIONID
+        groupId: 0                   groupId=0,                    GROUPID
+        phone: null                  phone=null,                   PHONE
+        model: ro                    model=ro,                     MODEL
+        contact: null                contact=null,                 CONTACT
+        category: null               category=null,                CATEGORY
+        attributes: {}               attributes={},                ATTRIBUTES
+                                     -------------                 ----------
+                        relation:    calendarId=0,                 CALENDARID
+                                     expirationTime=null           EXPIRATIONTIME
                                     }
-                                 ]}
+                                 ]}             server attributes  MOTIONSTATE
+                                                                   MOTIONTIME
+                                                                   MOTIONDISTANCE
+                                                                   OVERSPEEDSTATE
+                                                                   OVERSPEEDTIME
+                                                                   OVERSPEEDGEOFENCEID
+                                                                   MOTIONSTREAK
+                                                                   MOTIONPOSITIONID
 ----
 
-Both messages have the devices `uniqueId` in common to refer to the same device. +
-Yet the two models deviate by the two attributes `calendarId` and `expirationTime`. +
+All messages have the devices `uniqueId` in common to refer to the same device. +
+Yet the models deviate by the two attributes `calendarId` and `expirationTime`. +
 Important information for ETL stuff like mapping.
+
+The Traccar Specification is defined by the Traccar Data Entities (Device, Position, Event, etc.)
+is the Java source code. +
+The websocket API simply takes these internal Java objects and converts them to JSON.
 
 We are using the `com.fasterxml.jackson.databind.ObjectMapper` for JSON handling in a WebSocket Route.
 Have a look at the `bm.traccar.ws.entities.EntityMapper` class for the pre-configured ObjectMapper.

@@ -57,6 +57,14 @@ public class TrackerSender extends RouteBuilder {
         .handled(true)
         .log("Failed to reach server after retries. Giving up on ${body}");
 
+    // Consume messages from the SEDA queue and forward them to the OsmAnd HTTP endpoint.
+    // Startup order guarantees queue availability before direct producers send into it.
+    from(sedaEndpoint)
+        .routeId(routeId)
+        .process(this::buildUrlHeader)
+        .toD(osmandHost + "?bridgeEndpoint=true&throwExceptionOnFailure=true")
+        .log(LoggingLevel.DEBUG, "Sender: sent message to " + osmandHost + " via " + routeId);
+
     // forward to SEDA queue for asynchronous processing, returns *instantly*!
     from(directEndpoint)
         .routeId(directRouteId)
@@ -66,13 +74,6 @@ public class TrackerSender extends RouteBuilder {
             directEndpoint,
             sedaEndpoint)
         .to(sedaEndpoint);
-
-    // Consume messages from the SEDA queue and forward them to the OsmAnd HTTP endpoint
-    from(sedaEndpoint)
-        .routeId(routeId)
-        .process(this::buildUrlHeader)
-        .toD(osmandHost + "?bridgeEndpoint=true&throwExceptionOnFailure=true")
-        .log(LoggingLevel.DEBUG, "Sender: sent message to " + osmandHost + " via " + routeId);
   }
 
   /** Build headers required by the OsmAnd HTTP GET endpoint. Mirrors Transmitter.buildUrlHeader. */

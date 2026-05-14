@@ -75,6 +75,7 @@ or switch users with different access to different user, devices etc.
 directly in your code. +
 see `package bm.traccar.invoke.auth`
 
+
 === usage example
 
 Here's a simple example code to demo how to add the Traccar API Service 
@@ -127,6 +128,11 @@ and can change it any time in the program flow.
 The new User (DTO) is returned with a unique ID from the server.  
 
 === mimic URL syntax
+
+You can always check your authentication by calling a REST endpoint in your browser
+
+  http://localhost/api/users/257          works in service account
+  http://localhost/api/users?userId=256   doesnt
 
 Note how the Java invokation mimics a REST call
 

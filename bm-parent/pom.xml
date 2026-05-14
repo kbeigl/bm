@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.22</version>
+        <version>1.1.23</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -42,6 +42,7 @@
     <properties>
         <!-- simplify build on github and user clones-->
         <openapi.skip>false</openapi.skip>
+        <!-- dev mode: mvn docker:run with JUnit for ITs -->
         <integration.tests.skip>true</integration.tests.skip>
         <asciidoc.process.skip>true</asciidoc.process.skip>
 
@@ -69,9 +70,9 @@
         <maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
 
         <!-- prefer LTS versions -->
-        <camel-version>4.18.0</camel-version>
-        <spring-boot-version>4.0.4</spring-boot-version>
-        <spring-boot-maven-plugin-version>4.1.0-M3</spring-boot-maven-plugin-version>
+        <camel-version>4.20.0</camel-version>
+        <spring-boot-version>4.0.5</spring-boot-version>
+        <spring-boot-maven-plugin-version>${spring-boot-version}</spring-boot-maven-plugin-version>
 
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
@@ -120,6 +121,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-test-spring-junit5</artifactId>
+                <version>${camel-version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -166,10 +173,23 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>${spring-boot-version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin-version}</version>
                     <configuration>
                         <argLine>
+                            -Xshare:off
                             -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
                             -Dlogging.config=${test.logback.configuration.file}
                             <!-- -Dlogging.pattern.console=${logging.pattern.console}
@@ -192,6 +212,7 @@
                                 <classesDirectory>
                                     ${project.build.outputDirectory}</classesDirectory>
                                 <argLine>
+                                    -Xshare:off
                                     -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
                                     -Dlogging.config=${test.logback.configuration.file}
                                     <!-- -Dlogging.pattern.console="${logging.pattern.console}"

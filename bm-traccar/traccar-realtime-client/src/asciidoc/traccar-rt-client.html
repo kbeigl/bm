@@ -685,16 +685,47 @@ The line</p>
 <p>'simulates' a <code>Position</code> that could come in via WebSocket or any other ETL
 to a controller that invokes methods to change the real time state.</p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_add_or_update">add or update</h4>
 <div class="paragraph">
-<p>Now that we can safely read from the <code>RealTimeManager</code><br>
-we will create a <code>RealTimeController</code> for synchronization.</p>
+<p>The <code>addOrUpdatePosition</code> method shows how the <code>RealTimeManager</code> works.
+It is called when a new position update is received, either from the WebSocket or any other
+source.
+The method checks if the position already exists in the <code>positions</code> map.
+If it does, it updates the existing position; if not, it adds a new entry.</p>
+</div>
+<div class="paragraph">
+<p>This approach ensures that we maintain a consistent state in the <code>RealTimeManager</code>
+while allowing for efficient updates without needing to replace entire objects in the map.</p>
+</div>
+<div class="paragraph">
+<p>Another vital aspect of programming are object references!</p>
+</div>
+<div class="paragraph">
+<p>When receiving a new Device update, we could simply replace the whole Device object in the <code>devices</code> map.
+However, this would break the reference to the <code>Device</code> by the users of the <code>RealTimeManager</code>.
+Copy-on-write (create a new merged Device and atomically replace it in the map) ensures
+that all references remain valid and consistent across the application.
+Updating fields in-place preserves references, but requires explicit
+synchronization or thread-safe fields to avoid races and visibility problems.</p>
+</div>
+<div class="paragraph">
+<p>We are using Spring&#8217;s <code>BeanUtils</code> to copy the properties from the new Device to the existing one in the map.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">        // copy properties to preserve object references for external holders
+        BeanUtils.copyProperties(device, previous);</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_realtimecontroller">RealTimeController</h3>
 <div class="paragraph">
-<p>The <code>RealTimeManagerIT</code> test is holding the <code>private RealTimeManager</code> in order to test it&#8217;s methods.</p>
+<p>Now that we can safely read from the <code>RealTimeManager</code> we will create a <code>RealTimeController</code> for synchronization.<br>
+The <code>RealTimeManagerIT</code> test is holding the <code>private RealTimeManager</code> in order to test it&#8217;s methods.</p>
 </div>
 <div class="paragraph">
 <p>The <code>RealTimeController</code> is the subsequent implementation keeping the <code>RealTimeManager</code> private
@@ -898,7 +929,7 @@ The rest of your application can then safely read from the <code>TraccarStateMan
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-04-17 13:51:04 +0200
+Last updated 2026-05-24 14:51:35 +0200
 </div>
 </div>
 </body>

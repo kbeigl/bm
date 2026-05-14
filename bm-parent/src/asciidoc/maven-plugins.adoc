@@ -34,7 +34,7 @@ Asciidoctor is a fast text processor for parsing AsciiDoc into a document model,
 ____
 
 Goto projects 
-xref:ascii-doctor.adoc [AsciiDoctor implementation and usage]
+xref:./ascii-doctor.adoc [AsciiDoctor implementation and usage]
 
 
 == Mermaid Chart 

@@ -567,6 +567,23 @@ and most important - the list of submodules.</p>
 <div class="sect1">
 <h2 id="_bm_parent_project"><code>bm-parent</code> project</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_os_detection">OS detection</h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In the course of updating from Maven 3 to Maven 4 (<code>v1.1.23</code>) the <code>os-maven-plugin</code><br>
+was removed and may be replaced by a different plugin in the future.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>The parent project is the first module called in the build process.<br>
 It starts by running the <code>os-maven-plugin</code> (actually a Maven <code>&lt;extension&gt;</code>)</p>
@@ -618,11 +635,12 @@ you can locate differences in the <code>build-and-release</code> workflow</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>These subtle differences can raise subtle problems!</p>
+<p>Subtle differences can raise subtle problems!</p>
 </div>
 </td>
 </tr>
 </table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_project_setup">project setup</h3>
@@ -705,14 +723,79 @@ named after the "." prefix that hides them.</p>
 <div class="paragraph">
 <p><code><a href="https://github.com/kbeigl/bm/actions" class="bare">https://github.com/kbeigl/bm/actions</a></code></p>
 </div>
-<div class="paragraph">
-<p>TODO: <code>java-version: '21'</code> is currently hardcoded in both files</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<code>java-version: '21'</code> is currently hardcoded in both files
+</td>
+</tr>
+</table>
 </div>
 <div class="sect3">
 <h4 id="_build_yml"><code>build.yml</code></h4>
 <div class="paragraph">
 <p>This workflow is triggered on every push or pull request to the main branches.<br>
 Its primary role is to build the project and run tests to ensure code quality and integration.</p>
+</div>
+<div class="paragraph">
+<p>The GitHub Build is intentionally kept simple with as little tools as possible.
+While doing a full fledged development against a Docker Container with Integration Testing,
+the cloning and compiling of the jar files should be kept simple.</p>
+</div>
+<div class="paragraph">
+<p>Therefore we are using the commandline</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">      - name: Build with Maven (excluding integration tests and doc generation)
+        run: |
+          ./mvnw -B -ntp install \
+            --file pom.xml \
+            -Dintegration.tests.skip=true \
+            -Ddocker.skip.tests=true \
+            -Dopenapi.skip=false \
+            -Dasciidoc.process.skip=true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to apply the <code>skip</code> switches</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>to turn off Docker and Integrationtests</p>
+</li>
+<li>
+<p>to turn off the generation of documentation and diagrams</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that the generation of the openapi client is turned ON,
+since it is <em>absolutely required</em> for compilation and testing.
+Anyhow developers should set the switch to TRUE after generating the client <em>once</em>.
+This guarantees that the client is accessible in the local Maven repo.</p>
+</div>
+<div class="paragraph">
+<p>As the output on GitHub is extremly long due to the logging of downloads
+we apply</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>-ntp (--no-transfer-progress)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to suppress Downloading, Downloaded, and Progress transfer lines.<br>
+And <code>-B</code> for CI-friendly non-interactive output</p>
+</div>
+<div class="paragraph">
+<p>Also note that we are explicitly calling the wrapper <code>./mvnw</code> of the project<br>
+and not the <code>mvn</code> command with unforeseeable version.</p>
 </div>
 </div>
 <div class="sect3">
@@ -726,12 +809,11 @@ and attaches the generated JAR files as release assets.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mvnwrapper"><code>.mvn/wrapper/</code></h3>
-<div class="sect3">
-<h4 id="_maven_wrapper_properties"><code>maven-wrapper.properties</code></h4>
+<h3 id="_mvnwrappermaven_wrapper_properties"><code>.mvn/wrapper/maven-wrapper.properties</code></h3>
 <div class="paragraph">
-<p>todo (locate existing descriptions)</p>
-</div>
+<p>The Maven Wrapper is a script that allows you to run a specific version of Maven
+without requiring users to install it manually.
+The <code>maven-wrapper.properties</code> file specifies the version of Maven to use and the distribution URL to download it from.<br></p>
 </div>
 </div>
 <div class="sect2">
@@ -745,7 +827,7 @@ and attaches the generated JAR files as release assets.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-24 13:01:37 +0100
+Last updated 2026-05-16 22:10:00 +0200
 </div>
 </div>
 </body>

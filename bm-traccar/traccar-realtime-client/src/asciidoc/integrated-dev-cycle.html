@@ -457,6 +457,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_gpstrackerit"><code>GpsTrackerIT</code></a>
 <ul class="sectlevel3">
 <li><a href="#_singlemsg2gts2realtime"><code>singleMsg2gts2realtime()</code></a></li>
+<li><a href="#_tracker_server_log"><code>tracker-server.log</code></a></li>
 </ul>
 </li>
 <li><a href="#_gps_tracker_features">GPS Tracker Features</a></li>
@@ -469,7 +470,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_integrated_player_development">Integrated Player Development</a></li>
 </ul>
 </div>
 </div>
@@ -599,7 +599,7 @@ which operate in the range of 5 GHz and require a latency in milliseconds magnit
 <div class="paragraph">
 <p>This behavior is a result of how Traccar handles data processing pipelines and event broadcasting.
 The Traccar Processing Pipeline is designed to <em>ensure data integrity and consistency</em>,
-which is a trade-off, but provides integrity and reliability for our real time applications.
+which is a trade-off to gain integrity and reliability for our real time applications.
 The GTS serves as quality gate for the real time application logic.</p>
 </div>
 <div class="paragraph">
@@ -620,11 +620,11 @@ It must first pass through a "Handler Pipeline":</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-xml" data-lang="xml"> --&gt; Protocol Decoding
-     --&gt; ** Device Status Update **
-         --&gt; Handlers (Computed Attributes, Geofencing, etc.)
-             --&gt; Reverse Geocoding
-                 --&gt; Database Persistence
-                     --&gt; websocket broadcast ** Position Update **</code></pre>
+    +--&gt; ** Device Status Update **
+    |    --&gt; Handlers (Computed Attributes, Geofencing, etc.)
+    |        --&gt; Reverse Geocoding
+    |            --&gt; Database Persistence
+    + 3 seconds      --&gt; websocket broadcast ** Position Update **</code></pre>
 </div>
 </div>
 </div>
@@ -677,7 +677,7 @@ with a new database ID is received.</p>
 fleet management and driver <em>guidance</em> from a business application logic.</p>
 </div>
 <div class="paragraph">
-<p>We will accept the Traccar Server&#8217;s internal processing logic as it is
+<p>We will accept the Traccar Server&#8217;s internal processing logic as is
 and draw conclusions rather than adding custom logic to add complexity
 and potential for bugs.
 This is a recommended approach for prototyping and testing.<br>
@@ -771,6 +771,44 @@ but the last position is still <code>0</code>,</p>
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_tracker_server_log"><code>tracker-server.log</code></h4>
+<div class="paragraph">
+<p>To understand the internal processing of the Traccar Server, we can look at the log output of the server itself.<br>
+The default location for unix systems is <code>/opt/traccar/logs/tracker-server.log</code><br>
+It&#8217;s a good practice to <code>tail</code> the log file while running the tests to see the real time processing of the server:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>tail -f /opt/traccar/logs/tracker-server.log</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When running the above test, we can see the following log entries in the server log:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>2026-05-17 11:19:14  INFO: [Tf83fd7c8] connected
+2026-05-17 11:19:14  INFO: [Tf83fd7c8: osmand &lt; 172.17.0.1]
+           GET /?id=10&amp;lat=52.02&amp;lon=13.02&amp;timestamp=1779016751&amp;speed=0.0&amp;bearing=0.0&amp;altitude=0.0
+           HTTP/1.1\r\nAccept-Encoding: gzip, x-gzip, deflate\r\nHost: localhost:5055\r\n
+           Connection: keep-alive\r\nUser-Agent: Apache-HttpClient/5.5.2 (Java/21.0.10)\r\n\r\n
+2026-05-17 11:19:15  INFO: [Tf83fd7c8: osmand &gt; 172.17.0.1] HTTP/1.1 200 OK\r\ncontent-length: 0\r\n\r\n
+2026-05-17 11:19:15  INFO:
+           Event id: 10, time: 2026-05-17 11:19:15, type: deviceOnline, notifications: 0
+2026-05-17 11:19:18  INFO: [Tf83fd7c8]
+                 id: 10, time: 2026-05-17 11:19:11, lat: 52.02000, lon: 13.02000, course: 0.0
+2026-05-17 11:19:19  INFO: [Tf83fd7c8] disconnected</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can see the connection of the device and protocol <code>osmand &lt; 172.17.0.1</code>,
+the HTTP request with the GPS data, the server response  <code>osmand &gt; 172.17.0.1</code>,
+and the triggered event <code>deviceOnline</code>.
+And as we are running everything on one machine, we can be sure
+that client and server (clocks) are in sync and the timestamps are comparable.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_gps_tracker_features">GPS Tracker Features</h3>
@@ -787,30 +825,28 @@ Tracker Registration, which can be added in extension.</p>
 <h3 id="_traccar_server_events">Traccar Server Events</h3>
 <div class="paragraph">
 <p>These are the "alerts" triggered by the server&#8217;s engine
-based on the incoming position data.</p>
+based on the incoming position data.<br>
+Common Event Types (gemini):</p>
 </div>
-<div class="paragraph">
-<p>Common Event Types (gemini):</p>
-</div>
-<div class="ulist">
-<ul>
+<div class="ulist checklist">
+<ul class="checklist">
 <li>
-<p>deviceOnline / deviceOffline: When a device connects or loses connection.</p>
+<p>&#10063; deviceOnline / deviceOffline: When a device connects or loses connection.</p>
 </li>
 <li>
-<p>deviceMoving / deviceStopped: Status changes based on movement.</p>
+<p>&#10063; deviceMoving / deviceStopped: Status changes based on movement.</p>
 </li>
 <li>
-<p>geofenceEnter / geofenceExit: Crossing virtual boundaries.</p>
+<p>&#10063; geofenceEnter / geofenceExit: Crossing virtual boundaries.</p>
 </li>
 <li>
-<p>alarm: Specific alerts like SOS, Vibration, or Tampering.</p>
+<p>&#10063; alarm: Specific alerts like SOS, Vibration, or Tampering.</p>
 </li>
 <li>
-<p>ignitionOn / ignitionOff: If the vehicle&#8217;s engine is wired to the tracker.</p>
+<p>&#10063; ignitionOn / ignitionOff: If the vehicle&#8217;s engine is wired to the tracker.</p>
 </li>
 <li>
-<p>overspeed: If the device exceeds a set limit.</p>
+<p>&#10063; overspeed: If the device exceeds a set limit.</p>
 </li>
 </ul>
 </div>
@@ -825,27 +861,56 @@ be reported to the tracking system.</p>
 <div class="paragraph">
 <p>Here is a short excerpt of basic tracking events:</p>
 </div>
-<div class="ulist">
-<ul>
+<div class="ulist checklist">
+<ul class="checklist">
 <li>
-<p>time / distance intervals</p>
+<p>&#10063; time / distance intervals</p>
 </li>
 <li>
-<p>speed threshold (pedestrian or passenger)</p>
+<p>&#10063; speed threshold (pedestrian or passenger)</p>
 </li>
 <li>
-<p>angular change (course over ground)</p>
+<p>&#10063; angular change (course over ground)</p>
 </li>
 <li>
-<p>power on/low/off</p>
+<p>&#10063; power on/low/off</p>
 </li>
 <li>
-<p>motion start/stop</p>
+<p>&#10063; motion start/stop</p>
 </li>
 <li>
-<p>alarm button pressed - Tracker event</p>
+<p>&#10063; alarm button pressed - Tracker event</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>see Traccar Models<br>
+for
+<a href="https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/model/Position.java">Position</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public static final String KEY_EVENT = "event";
+    public static final String KEY_ALARM = "alarm";
+    public static final String KEY_STATUS = "status";
+
+    public static final String ALARM_SOS = "sos";
+    public static final String ALARM_VIBRATION = "vibration";
+    public static final String ALARM_MOVEMENT = "movement";</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and <a href="https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/model/Event.java">Event</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">    public static final String TYPE_DEVICE_MOVING = "deviceMoving";
+    public static final String TYPE_DEVICE_STOPPED = "deviceStopped";
+
+    public static final String TYPE_DEVICE_OVERSPEED = "deviceOverspeed";
+
+    public static final String TYPE_GEOFENCE_ENTER = "geofenceEnter";</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Some more sophisticated trackers provide storage for geofences to trigger
@@ -863,31 +928,16 @@ BasePipelineFactory to analyze the latest position</p>
 <div class="sect3">
 <h4 id="_todo">todo</h4>
 <div class="paragraph">
-<p>see ROAF GPSinfo</p>
-</div>
-<div class="paragraph">
-<p>move ( .. )</p>
-</div>
-<div class="paragraph">
-<p>direction</p>
-</div>
-<div class="paragraph">
-<p>speed</p>
+<p>move ( .. ) in direction with speed (later accelaration)</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_integrated_player_development">Integrated Player Development</h2>
-<div class="sectionbody">
-
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-01 12:43:13 +0200
+Last updated 2026-05-23 13:16:30 +0200
 </div>
 </div>
 </body>

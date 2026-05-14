@@ -49,7 +49,7 @@ public class TrackerQueueDisruptionTest {
     TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);
 
     // send first message while server is up -> should be delivered, not enqueued
-    tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0, 13.0));
+    tracker.sendMessage(createOsmandMessageNow(uniqueId, 52.0, 13.0));
     // sleepMillis(500); - timing problems on github actions
     waitForRequests(1, 2000);
     // assertEquals(0, queue.size(), "Queue should be empty when server is up");
@@ -60,8 +60,8 @@ public class TrackerQueueDisruptionTest {
 
     // send two messages while server is "down"
     // -> should be enqueued by onException
-    tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0001, 13.0001));
-    tracker.sendNow(createOsmandMessageNow(uniqueId, 52.0002, 13.0002));
+    tracker.sendMessage(createOsmandMessageNow(uniqueId, 52.0001, 13.0001));
+    tracker.sendMessage(createOsmandMessageNow(uniqueId, 52.0002, 13.0002));
 
     // assertTrue(queue.size() >= 2,
     // "Messages should be enqueued while server is down (500 responses)");

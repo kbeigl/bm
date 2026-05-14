@@ -91,10 +91,10 @@ public class RealTimeManager {
   // a scenario will have a start time (genesis) and end (doomsday, -time)
   // and we only want positions after that time
 
-  /** Adds or updates a position and - crucially - also updates associated device's state. */
+  /** Adds or updates a position and updates associated device's state! */
   public void addOrUpdatePosition(Position position) {
     if (position == null) return;
-    logger.info(
+    logger.debug(
         "addOrUpdate position(id={},deviceId={})", position.getId(), position.getDeviceId());
 
     // Perform mutations under deviceMapLock so position insertion and device maps remain consistent
@@ -118,7 +118,7 @@ public class RealTimeManager {
   /** Adds or updates a device (from a WebSocket message). */
   public void addOrUpdateDevice(Device device) {
     if (device == null) return;
-    logger.info("addOrUpdate device(uniqueId={},id={})", device.getUniqueId(), device.getId());
+    logger.debug("addOrUpdate device(uniqueId={},id={})", device.getUniqueId(), device.getId());
 
     // synchronize updates so both maps remain consistent
     synchronized (deviceMapLock) {
@@ -128,7 +128,7 @@ public class RealTimeManager {
         String prevUnique = previous.getUniqueId();
         String newUnique = device.getUniqueId();
 
-        // copy properties to preserve object references for external holders (!?)
+        // copy properties to preserve object references for external holders
         BeanUtils.copyProperties(device, previous);
 
         // raise events if uniqueId or status changed, etc. in RealTimeController!
@@ -173,7 +173,7 @@ public class RealTimeManager {
    * @param uniqueId
    * @return database deviceId
    */
-  public long lookupDeviceIdByUniqueId(String uniqueId) {
+  public long getDeviceByUniqueId(String uniqueId) {
     if (uniqueId == null) return -1L;
     return deviceIdByUniqueId.getOrDefault(uniqueId, -1L);
   }
@@ -210,7 +210,7 @@ public class RealTimeManager {
     return new ArrayList<>(devices.values());
   }
 
-  /* demo resolving relationships */
+  /* demo: resolving relationships */
   public Optional<Position> getLatestPositionForDevice(long deviceId) {
     return getDeviceById(deviceId)
         // Get the positionId from device

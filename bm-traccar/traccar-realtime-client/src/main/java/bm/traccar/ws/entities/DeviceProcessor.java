@@ -54,7 +54,7 @@ public class DeviceProcessor implements Processor {
     ArrayList<?> devices = (ArrayList<?>) body;
     if (devices.isEmpty()) return;
 
-    logger.info("received {} device event message/s.", devices.size());
+    logger.debug("received {} device event message/s.", devices.size());
 
     // convert and update all devices
     for (Object item : devices) {

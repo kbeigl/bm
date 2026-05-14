@@ -1,0 +1,341 @@
+:toc: left
+:toclevels: 5
+:doctype: book
+
+= The gps Timer
+
+We have created the `Gpx2OsmandParser` as a sample ETL for other GPS sources. +
+With the `List<MessageOsmand>` we have defined the Target Format for the `PlayerOsmAnd`. +
+Now we need to take care to actually _play_ this list of messages forming the track.
+Besides sending the messages in the correct, i.e. chronological order,
+we need to create a solid Timer Component to send messages at precise times.
+
+
+== Implementation
+
+The `PlayerOsmAnd` is designed analogously, _not hierarchical_ to the  `TrackerOsmAnd` 
+
+- with a Camel Route to deal with external technologies via their endpoints 
+- and a Spring Bean as the entry to the Spring Framework 
+    and our evolving `bm` framework
+
+This simplicity becomes helpful while the framework is still being built. +
+The intended interaction of the tracker and player becomes apparent in the following code snippet:
+
+[source,java]
+----
+    TrackerOsmAnd tracker = new TrackerOsmAnd();
+     PlayerOsmAnd player  = new  PlayerOsmAnd();
+
+    player.loadTrack(gpxSource);
+    player.setTracker(tracker);
+
+    player.playOsmAndTrack(track);
+      -->  tracker.sendMessage(message);
+----
+
+Idealy we want to analyze a _past scenario_ (`fromTime`-`toTime`) with a number of trackers. +
+Then we can create a single interface to *playback the scenario* +
+and *control the playback* (pause, resume, speed factor) for all trackers at once. 
+
+Think of a complex traffic scenario with multiple vehicles, +
+where we want to find out who caused a traffic jam and how it evolved over time. +
+Provided we can access crowd sourced GPS data 
+of many vehicles, in a certain area and time frame.
+
+
+== Requirements
+
+To implement the scheduling of messages based on their timestamps, we need to:
+
+- [ ] Iterate through the `List<MessageOsmand>` in chronological order.
+- [ ] For each message, calculate the *time difference* to the previous message.
+- [ ] Use the calculated *time difference to schedule* the next message to be sent after that delay.
+
+Ensure that the scheduling is done in a way that allows for pausing and resuming +
+the playback of the track, as well as adjusting the speed of playback if needed.
+
+Technically, we do not want a blocking (`while`)  loop (in every tracker ! ), but rather +
+a non-blocking way to schedule _only_ the next message after the previous one has been sent.
+
+
+=== Camel Timer vs Quartz
+
+As we are working with Camel and Spring, 
+https://camel.apache.org/components/4.18.x/timer-component.html[Camel's Timer]
+ would be a preconfigured choice. +
+But the Camel Timer with periodic events at fixed intervals is not made to fire at specific, 
+predetermined timestamps from a list. 
+This could be achieved by calculating the delay for each message and using a `timer` endpoint with a  
+https://camel.apache.org/components/4.18.x/eips/delay-eip.html[Delay EIP]. +
+We'll keep it in mind as a (pure Camel EIP) fallback solution.
+
+For a large realtime scenario we want to be able to level up on demand +
+and rely on a more robust and feature-rich scheduling library. +
+The 
+https://www.quartz-scheduler.org/[_Quartz Enterprise Job Scheduling Library_] is fit for any scenario
+
+[quote, see https://www.quartz-scheduler.org/]
+____
+Quartz is a richly featured, open source job scheduling library that can be integrated within virtually any Java application ...
+Quartz can be used to create simple or complex schedules for executing tens, hundreds, or even tens-of-thousands of jobs ... 
+The Quartz Scheduler includes many enterprise-class features ... +
+Quartz is licensed under the Apache 2.0 license.
+____
+
+We'll go with Quartz that might better suit specific time-based triggers +
+and add the 
+https://camel.apache.org/components/4.18.x/quartz-component.html[`camel-quartz://`]
+component to the project.
+
+
+=== ad hoc Scheduling
+
+To keep the player design flexible for enhancements, we want to *only schedule one message at a time* and one after another - *for each tracker*.
+This way we can easily upgrade by adding features like pausing, resuming, 
+or even introduce a time factor to speed up or slow down (or play backwards!) the playback of the track.
+
+With Camel's Quartz component, you can create a route that schedules messages to be sent at specific times. +
+Quartz triggers are typically defined at startup, but *not* in our use case! +
+We need to schedule messages dynamically based on the consecutive timestamp in our message list.
+
+
+=== Camel Quartz: consumer only
+
+If we look at the 
+https://camel.apache.org/components/4.18.x/quartz-component.html[`camel-quartz://`]
+documentation, we see that it is designed as a consumer component only, 
+meaning it can trigger routes based on a schedule, 
+but it does not provide a way to dynamically schedule messages at runtime. +
+We can create a Quartz trigger with a specific start time for each message
+ 
+    from("quartz://osmandTrackGroup/dynamicTrackJob?trigger.startAt=" + ...
+
+but _we cannot reuse the same trigger key for multiple starttimes_ (`trigger.startAt=`)
+
+    TRIGGER_KEY = quartzGroup + "." + quartzJob
+
+or we get:
+
+    Failed to resolve endpoint: quartz://osmandTrackGroup/dynamicTrackJob
+                                        ?trigger.startAt=Fri+May+29+16%3A23%3A58+CEST+2026
+    due to:
+                            Trigger key osmandTrackGroup.dynamicTrackJob
+          is already in use by quartz://osmandTrackGroup/dynamicTrackJob
+                                                        =
+
+(note the difference of `.` vs `/` in the trigger key) +
+and we cannot easily update or remove triggers once they are created.
+ 
+
+The error occurs because Quartz tries to register a trigger with the same name 
+while the old trigger from the previous run is still registered in the scheduler.
+Quartz does not allow duplicate trigger IDs within the same group by default.
+
+It would be possible to create a new trigger for each message with a unique name,
+but this could lead to _a really large number_ of triggers being created and managed by Quartz,
+which is not efficient and can lead to performance issues.
+And it requires additional logic to clean up old dangling triggers after they have fired, 
+which adds complexity for a clean/ing implementation.
+
+To resolve this, Quartz must be told to _update_ or _replace_ the existing trigger instead of creating a new one. +
+Let's see how we can achieve this with Camel.
+
+
+=== Camel QuartzComponent
+
+To work around this limitation, Camel  
+allows us to access the underlying _Quartz Scheduler API_ directly. +
+We can access it after start and pass it to the bean +
+as you can see in `PlayerOsmAnd.ensurePlaybackRoutes()` method:
+    
+[source,java]
+----
+  quartzScheduler = new QuartzSchedulerBean(this, new TriggerKey(quartzJob, quartzGroup));
+        :
+  // Create/get Quartz component early so the scheduler is available before routes can fire.
+  QuartzComponent quartzComponent = (QuartzComponent) camel.getComponent("quartz");
+  quartzScheduler.setQuartzScheduler(quartzComponent.getScheduler());
+
+  camel.addRoutes(new PlayerTimerRoute(quartzGroup, quartzJob, idSuffix));
+  camel.start();
+----
+
+We are getting the Scheduler from the QuartzEndpoint, which is always reachable via the registered endpoint.
+The QuartzComponent (and therefore _the native Scheduler_) is fetched before `camel.start()`. 
+This prevents the `Quartz scheduler not set` warning that would otherwise appear 
+in a narrow race condition between context start and the first explicit `playOsmAndTrack()` call.
+
+Note that the route construction
+
+[source,java]
+----
+  camel.addRoutes(new PlayerTimerRoute(quartzGroup, quartzJob, idSuffix));
+----
+    
+is setting up the route with the same trigger key for all messages for each tracker,
+by using the `uniqueId` as `idSuffix` to distinguish between different trackers 
+and their quartz schedulers. 
+Anyhow the quartz group and job allow scaling in a desired granularity.
+
+Note that the route is setup with a trigger time in far future,
+which will be overridden with the first message sent.
+
+Each player has its own Quartz Scheduler and PlayerTimerRoute as default implementation!
+
+
+
+== `GpsPlayerIT`
+
+Just like the `TrackerOsmAnd` has the `GpsTrackerIT` to test the tracker in action, +
+the `PlayerOsmAnd` has the `GpsPlayerIT` to develop and test the player in action. +
+As described earlier, we have two main test methods to cover the basic use cases of the player:
+
+[source,java]
+----
+  @Test     // single track, single tracker
+  void loadSingleGpxAndSendWithSingleTracker() throws Exception {
+
+  @Test     // multiple tracks, multiple trackers
+  void loadFourGpxAndSendWithFourTrackers() throws Exception {
+----
+
+Let's look at the player test as a step by step implementation 
+for your real world application.
+
+=== create a Player
+
+If you already have a tracker instance you can use it with the player to play the track. 
+
+[source,java]
+----
+    PlayerOsmAnd player = new PlayerOsmAnd();
+    player.setTracker(tracker);
+    player.load(gpxFile);
+----
+
+=== play the track
+
+To play the track, we simply call 
+
+[source,java]
+----
+    player.playOsmAndTrack()).isTrue();
+----
+
+to start the scheduling of messages based on their timestamps. +
+The method validates the tracker, the message list and the index in the list.
+Due to different starting conditions of various players the startup procedure
+can run into race conditions. 
+The method
+
+[source,java]
+----
+    player.ensurePlaybackRoutes();
+----
+
+is setting up the scheduler and the scheduler bean in a safe manner
+and adds the actual trigger route as described above.
+After the camel context has started the first message is triggered immediately, 
+and delegates scheduling of all subsequent messages to the `QuartzSchedulerBean`.
+
+
+=== `QuartzSchedulerBean`
+
+When starting the playback the first message is triggered 
+
+[source,java]
+----
+    quartzScheduler.sendCurrentAndScheduleNext();
+----
+
+and the scheduler does his work by sending a message +
+and instantly scheduling the delay to the next message - again - and again.
+
+[source,java]
+----
+    player.tracker.sendMessage(current);
+     :
+    scheduleFireIn(delayMs);
+----
+
+The actual rescheduling is done directly on the `Scheduler` using the native Quartz API 
+— no Camel producer endpoint involved here.
+
+[source,java]
+----
+    quartzScheduler.rescheduleJob(triggerKey, newTrigger);
+----
+
+=== loading time
+
+If we have a look at the loading process of the files
+
+[source,xml]
+----
+22:20:45.616 INFO  GpsPlayerIT -    ********** loadFourGpxAndSendWithFourTrackers() **********
+22:20:46.375 INFO  Gpx2OsmandParser - Parsed 161 track points from 'RGB-BUELL-SE-080607.gpx' 
+22:20:46.477 INFO  Gpx2OsmandParser - Parsed 490 track points from 'RGB-BUELL-NE-070813.gpx' 
+22:20:46.573 INFO  Gpx2OsmandParser - Parsed 652 track points from 'RGB-BUELL-NE-070902.gpx' 
+22:20:46.626 INFO  Gpx2OsmandParser - Parsed 988 track points from 'RGB-BUELL-NE-080524.gpx' 
+----
+
+the parsing of the four GPX files into Osmand messages takes about 1 second for 2291 messages. 
+This okay, if you consider that the external file system is involved 
+and that the parsing is not optimized for performance.
+For a large number of playbacks it makes sense to _first_ 'load' all players 
+and _then_ start the playback of all players at once to guarantee synchronization of the tracks.
+
+
+=== startup
+
+Now we can see that each player is starting up his own Quartz Scheduler. +
+In this case `DefaultQuartzScheduler-camel-2`
+
+[source,xml]
+----
+12:58:39.289 INFO  QuartzScheduler - Quartz Scheduler v2.5.2 created.
+12:58:39.390 INFO  QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.5.2) 
+                       'DefaultQuartzScheduler-camel-2' with instanceId 'NON_CLUSTERED'
+12:58:39.391 INFO  StdSchedulerFactory - Quartz scheduler version: 2.5.2
+12:58:39.413 INFO  QuartzScheduler - Scheduler DefaultQuartzScheduler-camel-2_$_NON_CLUSTERED started.
+----
+
+The first message is sent immediately after startup and the next message is scheduled for 92 seconds later, 
+which is the time difference between the first two messages in the track.
+
+[source,xml]
+----
+12:58:39.413 INFO  QuartzScheduler - Scheduler DefaultQuartzScheduler-camel-2_$_NON_CLUSTERED started.
+12:58:39.413 INFO  TrackerOsmAnd - tracker-10 sending url message 
+             id=10&lat=49.0310032&lon=12.1030925&timestamp=1212829735&altitude=319.7756348
+12:58:39.417 INFO  QuartzSchedulerBean - 
+             next trigger planed in 92s at Tue Jun 02 13:00:11 CEST 2026.
+                                                      == == ==
+----
+
+and while our software is doing something else, 
+the scheduler is waiting for the next trigger time to send the next message.
+And there it is
+
+[source,xml]
+----
+13:00:11.424 INFO  osmand-track-playback-10 - Track-Event ausgelöst um: 13:00:11
+== == ==                                                                == == ==
+13:00:11.425 INFO  TrackerOsmAnd - tracker-10 sending url message 
+             id=10&lat=49.0309343&lon=12.1030384&timestamp=1212829827
+             &speed=0.09373277580824096&bearing=207.30759905778746&
+              =====                     =======
+             altitude=319.2950439
+13:00:11.426 INFO  QuartzSchedulerBean - next trigger planed in 11s at Tue Jun 02 13:00:22 CEST 2026.
+----
+
+`osmand-track-playback-10` refers to the Camel route 
+that is responsible to trigger the trackpoints for tracker 10. 
+
+Note that the second message has filled in the `speed` and `bearing` fields, +
+which are calculated based on the previous message. 
+
+
+
+

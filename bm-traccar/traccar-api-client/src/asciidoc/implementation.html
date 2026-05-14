@@ -549,7 +549,7 @@ to connect your program logic!</p>
 <div class="sect2">
 <h3 id="_data_transfer_objects_dtos">Data Transfer Objects - DTOs &#8230;&#8203;</h3>
 <div class="paragraph">
-<p>In addition the <code>traccar-api-client-6.7</code> provides <strong>21 Data Transfer Objects</strong>
+<p>In addition the <code>traccar-api-client-6.7</code> provides <strong>21 Data Transfer Objects</strong><br>
 and <code>v6.12.2</code> already has 26 (package <code>bm.traccar.generated.model.dto</code>).</p>
 </div>
 <div class="paragraph">
@@ -587,7 +587,8 @@ is provided as Java method by the Api interface:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Note that <code>userIN</code> and <code>userOUT</code> are different instances.
+<p>Note that <code>userIN</code> and <code>userOUT</code> are different instances,
+i.e. <code>userIN</code> on client and <code>userOUT</code> is returned from server.
 The latter provides the <code>userId</code> provided by the Traccar Model
 and is vital to use in the client server communication.
 The ID is usually hidden for external users (i.e. in the UI),
@@ -733,7 +734,7 @@ and to ensure that you have a binding communication.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-03-21 12:40:26 +0100
+Last updated 2026-05-16 13:01:39 +0200
 </div>
 </div>
 </body>

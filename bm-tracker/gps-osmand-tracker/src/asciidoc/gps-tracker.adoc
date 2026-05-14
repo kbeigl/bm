@@ -1,3 +1,4 @@
+:imagesdir: diagrams
 
 = The OsmAnd Tracker
 
@@ -41,7 +42,7 @@ The fourth component, the Energy Source is vital for the hardware Tracker.
 And similar to a mobile phone the battery is the most space consuming component,
 but luckily is not needed for the software simulation.
 
-image::./diagrams/jeets-gps-tracker.png[JeeTS Tracker]
+image::jeets-gps-tracker.png[JeeTS Tracker]
 
 [quote,GPS Tracking with Java EE Components, Figure 8.1]   
 A tracking hardware combines a GPS- and GSM unit on a Controller Board. 

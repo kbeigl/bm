@@ -1,6 +1,6 @@
 package bm.traccar;
 
-import bm.gps.tracker.GpsOsmandTrackerConfig;
+import bm.gps.tracker.TrackerOsmandConfig;
 import bm.traccar.api.ApiException;
 import bm.traccar.api.scenario.ScenarioLoader;
 import bm.traccar.rt.RealTimeController;
@@ -22,8 +22,10 @@ import org.springframework.test.context.ActiveProfiles;
  * <p>This class runs the actual RealTimeClient application with full context for testing. Only the
  * RealTimeClient.run method is skipped in tests, i.e. @ActiveProfiles("test").
  */
-@SpringBootTest(classes = RealTimeClient.class)
-@Import(GpsOsmandTrackerConfig.class)
+@SpringBootTest(
+    classes = RealTimeClient.class,
+    properties = "logging.config=classpath:logback-test.xml")
+@Import(TrackerOsmandConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
@@ -43,7 +45,7 @@ public abstract class BaseRealTimeClientTest {
     scenario.setupScenario();
     logger.info("--- initialize realtime controller ---");
     if (controller.loginAndInitialize(scenario.admin)) {
-      logger.info("\n\t\t***** RealTimeController initialized *****");
+      logger.info("\t***** RealTimeController initialized *****");
     } else {
       throw new Exception("RealTimeController loginAndInitialize failed in test setup.");
     }

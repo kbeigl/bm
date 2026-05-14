@@ -29,7 +29,7 @@ public class PositionProcessor implements Processor {
     ArrayList<?> positions = (ArrayList<?>) body;
     if (positions.isEmpty()) return;
 
-    logger.info("received {} position motion message/s.", positions.size());
+    logger.debug("received {} position motion message/s.", positions.size());
 
     // convert and update all positions
     for (Object item : positions) {

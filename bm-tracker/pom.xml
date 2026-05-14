@@ -24,12 +24,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.22</version>
+        <version>1.1.23</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-tracker</artifactId>
-    <version>1.1.22-alpha</version>
     <packaging>pom</packaging>
 
     <name>---- GPS Trackers                         ---</name>

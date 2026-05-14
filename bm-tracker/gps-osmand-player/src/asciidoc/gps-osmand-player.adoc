@@ -1,3 +1,4 @@
+:imagesdir: diagrams
 :toc: left
 :toclevels: 5
 :doctype: book
@@ -29,11 +30,104 @@ https://github.com/kbeigl/jeets/tree/master/jeets-clients/jeets-player[JeeTS rep
 ====
 
 
+== GPS Playback limitations
+
+
+We are using the GPS tracks recorded with a Buell motorcycle around Regensburg in Germany. 
+The tracks were recorded with a Garmin GPS device and transformed into GPX format without losing any information.
+They are real and therefore realistic!
+
+
+=== Track Visualization
+
+You can analyze the tracks with any GIS software, for example with 
+https://qgis.org/[QGIS], and visualize them on a map. +
+Let's have a look at the track `RGB-BUELL-NE-070922a.gpx` and its visualization in QGIS:
+
+[cols="a,a,a"]
+|===
+|image::RGB-BUELL-NE-070922a.png[RGB-BUELL-NE-070922a Track]
+|image::RGB-BUELL-NE-070922a-arrows.png[RGB-BUELL-NE-070922a Track with Arrows]
+|image::OSM-RGB-BUELL-NE.png[OSM Road Track points]
+|===
+
+// image::OSM-road.png[OSM Road Track points]
+
+In the left image you can see the trackpoints of the track, which are (artifically!) connected by straight lines. 
+The motorcycle is driving from top to bottom, i.e. from south to north.
+In this special case the GPS signals are also distorted by hills and dense forests. +
+It is obvious that the track cannot serve as a realistic track for a Driver Assistence System. +
+For a Navigation System it is not a problem, since it does not actually steer the vehicle, but only provides navigation instructions. 
+We do need the road network with a certain precision to snap the track points to the road network.
+In the middle image you can see the track with arrows and a small "rounding" algorithm applied to the track points.
+
+Another way to visualize the track is using OpenStreetMap Tools - the image on the right.
+If we have a look at the curves of the track shown above, 
+we can see a high precision of track points, which are actually in the middle of the road.
+This is not only a result of numerous track points, but the roads are actually modeled
+against various real world data sources. 
+
+Note that the Map projection is different in the right image, which is helpful for editing.
+
+In the following image you can see four tracks with trackpoints in different colors +
+recorded on the same route in different directions:
+
+image::RGB-BUELL-NE.png[RGB-BUELL-NE Track]
+// image::RGB-BUELL-NE-arrows.png[RGB-BUELL-NE Track with Arrows]
+
+Obviously the playback of all four tracks would be a nightmare for a Driver Assistence System. 
+Programmed collisions and wrong speed and acceleration values would be the result of the distorted GPS signals.
+Nevertheless all trackpoints together roughly outline the real road and 
+we can tell the different driving sides of the road in different directions.
+
+Since the ROAF is all about realistic simulations we could use the road data for guidance.
+Be aware that road data only describes the geometry of the road, but does not contain any information about the traffic, weather, grip.
+And it does not contain vehicle information to actually drive the vehicle.
+And another challenging aspect is the GPS traffic to transfer many track points in real time.
+
+For the time being we can agree that no one can drive this road segment at speed of 100 km/h. +
+Strictly due to the physical laws of motion, inertia and mass!
+
+- [ ] This would be a rough, but fast plausibility check for the `RealTimeController` (server) +
+      *to validate the real-time behavior of the vehicle against the environment.*
+
+- [ ] We'll get through all these aspects in the next branch +
+      *to create a `RealObject` (client) with methods to move.*
+
+
+=== Track Recording
+
+As described in the
+xref:../../../../bm-traccar/traccar-realtime-client/src/asciidoc/integrated-dev-cycle.adoc#_integrated_tracker_development[Integrated Tracker Development]
+we still need to create features for the `gps-tracker`:
+
+- [ ] time / distance intervals
+- [ ] angular change (course over ground)
+- [ ] motion start/stop
+
+These features are actually related to the recording of the track, which is a crucial aspect for the realism of the track.
+Trackers can be configured to record tracks with different settings, which can lead to very different tracks. 
+Trackers for different purposes and with different hardware and software components can produce very different tracks. 
+The highest precision of track recording is achieved with a high recording frequency and additional sources like a
+Differential GPS (DGPS) or a Real Time Kinematic (RTK) GPS, which can provide centimeter-level accuracy. 
+
+_We will *not* implement these features in the GPS Playback development environment_  `GpsTrackerIT` ! 
+
+The reason becomes apparent when we look at the track points in the images above.
+Just imagine we would apply time / distance intervals and / or angular changes.
+There would be a massive regression in the track quality and the track would be even more unrealistic than it already is.
+
+Vice versa, if you record a track with your vehicle you should apply small angular changes 
+to trigger the recording exactly at the turning points. 
+This way the recorded track polyline becomes more realistic 
+and the route length comes closer to the real curvy route length.
+
+
 == Player Components
 
 The `gps-osmand-tracker` component is designed to be fed with position updates. +
-The `gps-osmand-player` is a software that can read position updates from 'sources' + 
-and feed them into one or more `gps-osmand-tracker`. 
+The `gps-osmand-player` is a software that can read position updates from 'sources', + 
+tranform them into the format `MessageOsmand` and feed them into one or more `gps-osmand-tracker`.
 
 - [ ] mermaid LR flowchart:
 
@@ -45,7 +139,7 @@ and feed them into one or more `gps-osmand-tracker`.
 - [ ] hawt.io diagram here to show the components and their relations?
 
 
-== gpx file parser
+== gpx Parser
 
 We have prototyped the `gps-osmand-tracker` with a simple protocol to transfer *space & time information*. +
 For development we are using tracks recorded with a 
@@ -56,351 +150,111 @@ A sample track in the `resources` folder of this project
 will be used for development and testing: +
 link:../test/resources/gpx/RGB-BUELL-SE-080607.gpx[RGB-BUELL-SE-080607.gpx]
 
-
-[NOTE]
-====
-The parsing of the gpx file is not the main topic of this project. 
-Therefor the `Gpx*.java` components are added to the `bm.gps` package
-in the `bm.gps.gpx` sub package as a general helper to parse `*.gpx` files 
-and create `MessageOsmand` messages with the help of the GeoTools library.
-====
-
-=== The Model
-
-The `gps-osmand-player` is designed to feed position updates into the `gps-osmand-tracker` component.
-Therefore the Model is based on the `MessageOsmand` message 
-which is the standard message format for position updates in the `gps-osmand-tracker`.
-
-On a longer term we can think about a more generic model for position updates: +
-An (abstract) `gps-player` to support any `gps-\*-tracker` +
-acting as `gps-*-player` component with the `*` protocol.
+xref:./gpx-parser.adoc[goto to implementation details]
 
 
-=== `*.gpx` Format
+=== `GpsPlayerIT`
 
-The `*.gpx` format is a common (well formed) `xml` format for GPS tracks and is supported by many GPS devices and software.
-The file contains a list of `trkpt` elements with `lat`, `lon`, `ele` (elevation or altitude to sealevel) and (preferrably UTC) `time` stamps.
-
-[source,xml]
-----
-        :
-    <trkseg>
-        :
-      <trkpt lat="49.0310032" lon="12.1030925"> ---+ calculate course, distance ..
-        <ele>319.7756348</ele>                     |        .. (slope) 
-        <time>2008-06-07T09:08:55Z</time> ---------+---+    .. and speed
-      </trkpt>                                     |   |
-      <trkpt lat="49.0309343" lon="12.1030384"> ---+   |
-        <ele>319.2950439</ele>                         |
-        <time>2008-06-07T09:10:27Z</time> -------------+
-      </trkpt>
-        :
-----
-
-which is exactly what we need to satisfy the minimum GPS requirements for the osmand protocol. +
-As described earlier we can add calculated speed and course as we create the position updates.
-
-[IMPORTANT]
-====
-By using the gpx format for development we are using a globally accepted xml format for gps tracks.
-During prototyping with a small number of attributes we can do the reading and parsing ourselves.
-In order to level up we can replace our code with the 
-https://mvnrepository.com/artifact/org.geotools/gt-gpx/2.5.5[GeoTools gt-gpx module]
-====
-
-
-=== gpx Route
-
-As our first source for position updates we will use a `*.gpx` file as described above. +
-Since we are using Spring and Camel we can easily apply the Camel `file://` component + 
-to wire the file and create a Camel route to parse it to `MessageOsmand` messages.
-
-Creating the initial Camel `"file: .."` route is straight forward:
+TODO: add a diagram to show the components and their relations in the test environment
 
 [source,java]
 ----
-  @Component
-  public class GpxMessageRoute extends RouteBuilder {
-        
-    @Override
-    public void configure() throws Exception {
-        
-      fromF("file:%s?include=%s", sendDirectory, include)
-        .routeId("gpx-file-player")
-        .process(
-            exchange -> {
-              File gpxFile = exchange.getIn().getBody(File.class);
-              if (gpxFile == null) {
-                throw new IllegalArgumentException(
-                    "Unable to resolve GPX file from Camel file exchange");
-              }
-              exchange.getIn().setBody(gpxFile);
-            })
+               Traccar Server
             
-        // java.io.File allocated for parsing ... 
+        GPS Tracker    RealTimeController
+        
+        GpsTrackerIT      GpsPlayerIT    
 ----
 
-This is the implementation of a Camel-based Route using the File Component. +
-It polls from `${gps.player.send-directory}` folder for new `*.gpx` files.
-
-From development and testing the `jeets-player` software we have learned that 
-it is very helpful to run the player without further ado - to keep focus.
-Therefor we have defined a `sendDirectory` and an `include` pattern `.*\\.gpx` to read gpx file/s from 
-- as part of the project. 
-
-Do not confuse this with source directories where _you_ store _your_ gpx files on _your_ system! +
-This directory should not be modified, files left untouched.
-
-
-==== `sendDirectory`
-
-When talking about a directory we are always aware that a directory has an absolute path and a relative path. 
-By using the Camel `RouteBuilder` we can create a folder if it does not exist. 
-The `sendDirectory` is created at startup 
-
-- In tests we can always use the `target` folder to create the `sendDirectory` +
-  which will be cleaned up by maven on each build. 
-
-- When running the application from command line we can use the `./` folder of the `jar` file +
-  and create a  `sendDirectory` subfolder there.
-
-- In production, when the player.jar is part of a larger application the  `sendDirectory` +
-  should be defined in the app.props. 
-  
-- For a fixed scenario with fixed tracks (like a showcase) +
-  we can also use the `resources` folder and define the `sendDirectory` there.
-
-An existing directory satifiies the requirement of the Camel `file://` component + 
-to observe, poll, read `from` 
-
-[source,java]
-----
-      fromF("file:%s? ...", sendDirectory)
-----
+As described in 
+xref:./../../../../bm-traccar/traccar-realtime-client/src/asciidoc/integrated-dev-cycle.adoc[Integrated Development Cycle]
+we can actually only create integration tests with access to the realtime client.
+These tests also serve as the development environment for GPS Tracker and Player in action. +
+The 
     
-The idea is to launch the player once and then simply drop `*.gpx` files into the `sendDirectory` to start the simulation.
-The Camel route serves as an ingestion point for the file/s (and player) and
-will pick them up for processing. 
-
-==== `file://` tuning
-
-As you can see in the documentation of the  
-https://camel.apache.org/components/4.18.x/file-component.html[Camel file: component] +
-there are a number of options to tune the behavior of the file consumer.
-
-For `jeets` development we have used a 
-https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/src/main/java/org/jeets/device/LineParser.java[LineParser]
-to feed the player with single position updates. +
-This way we could easily interrupt the player by deleting the file.
-
-This time we want to parse the `gpx` file as a whole to avoid longer lasting file allocations. +
-Anyhow we want to receive feedback, if the file could not be parsed or if there was an error. +
-This is achieved by using the `move` and `moveFailed` options:
-
-    &move=parsed/${file:name}
-    &moveFailed=error/${file:name}
+    class GpsPlayerIT extends BaseGpsTrackerIT {
     
-When the file is parsed successfully it will be moved to a `parsed/` subfolder. +
-When there is an error during parsing it will be moved to an `error/` subfolder. +
-Note that the files are _moved_ and not _copied_ to avoid file allocations. +
-The developer can easily check the `parsed` and `error` folders. 
+uses the BaseIT for Trackers to work with the existing infrastructure and to have access to the `gps-tracker` component. 
 
-Note that these actions are performed after parsing - we have not sent anything yet. +
-Files can be gracefully released to relieve system resources. + 
-The next route is technically separated and can make use of the tracker and send - maybe for hours.
-
-==== output
-
-The rest of the route is straight forward: 
-
-- we direct the file body to a `parser` bean to parse the file +
-  and create a `List<MessageOsmand> messages`
-- we use the EIP `splitter` to split the list of messages +
-  and send them one by one to the configurable `outputUri`
+The two test methods
 
 [source,java]
 ----
-        // java.io.File allocated for parsing ... 
-        .bean(parser, "parse")  // gpx File
-        .split(body())          // List<MessageOsmand>
-        .to(outputUri);         // MessageOsmand
-    }
-  }
+  @Test     // single track, single tracker
+  void loadSingleGpxAndSendWithSingleTracker() throws Exception {
+
+  @Test     // multiple tracks, multiple trackers
+  void loadFourGpxAndSendWithFourTrackers() throws Exception {
 ----
 
-The route automatically processes files into Osmand messages via `Gpx2OsmandParser`
-and sends parsed messages to the configured `gps.player.output-uri` (seda queue in tests).)
+are testing the gps parser as the first component of the player.
+The actual sending of messages to the `gps-tracker` initially is part of the test
+and will be moved to the player implementation to become part of the architecture.
+The tests left behind help to find regressions, while putting the components together.
 
-=== device id
+You will not find all tests in this documentation, 
+but you should always check for dedicated tests for the components and their functionality.
 
-Note that Traccar requires a device id for each device update.
-Traccar (default) defines a fixed protocol for a fixed port and 
-the `gps-osmand-tracker` implementation is based on the osmand protocol. 
-And the device with a fixed device id 
-must be registered in the Traccar server to receive the updates.
-It is the vital reference ID to the Traccar Model and System.
-
-On client side we have many options to define the device id.
-In the context of gpx files we _can not_ simply add a new attribute,
-as this de-standardizes the well defined file expected in standard geo software. 
-
-We _can_ use (1) the track name, if it is present 
-
-  <trk>
-    <name>RGB-BUELL-SE-080607</name>
-
-or (2) the file name as device id. +
-It can be helpful to 'play' different files as different devices, vehicles
-for observations on the Map. +
-For more flexibility we will add (3) a property in the `app.props` +
-and (4) a header constant as the fallback device id. 
-
-Technically we could use one player with one tracker 
-and transfer individual device ids with each position update.
-
-==== `GpxPlayerHeaders`
-
-The `GpxPlayerHeaders` class to provide an individual header for the device id
-to be used as fallback in the route.
-
-For name `GpxPlayerHeaders` should indicate that it can be used 
-to inject more options for the player,
-
-The `GpxToMessageOsmandParser`uses:
-
-        •  track <name> as device id by default
-        •  file name as fallback id
-
-
-=== `Gpx2OsmandParser`
-
-The Java `@Component Gpx2OsmandParser` is a main processor of the route. +
-With
-
-[source,java]
-----
-        .bean(parser, "parse")
-----
-
-the `Gpx2OsmandParser.java` component's `parse` method is called +
-and the return value passed to the next step in the route. +
-The `parse` method basically does the following:
-
-[source,java]
-----
-  public List<MessageOsmand> parse( File gpxFile, .. ) {
-    Document document = parseDocument(gpxFile);
-    List<GeoTools.TrackPoint> trackPoints = extractTrackPoints(document, gpxFile);    
-----
-
-with the help of the `GeoTools`, `org.w3c.dom` and `org.xml.sax` libraries.
-
-===== `GeoTools.TrackPoint`
-
-On the fly we have added a `GeoTools.TrackPoint` class to the `bm.gps.gpx` package + 
-to represent the track points with timestamps. 
-
-    record TrackPoint(double latitude, double longitude, long timestamp, Double altitude)
-    
-This Trackpoint is an important part of our GPS library for time & space evaluation. +
-It can be used to calculate the course, distance, slope and speed 
-between _two consecutive track points_.
-
-Most importantly can be used by the `RealTimeController` (and other components) 
-to validate the real-time behavior of the system 
-- _independant of the source, format or protocol of the position updates_!
-It serves as an abstraction layer for the real-time validation of the system.
-
-====  `List<MessageOsmand>` 
-
-The rest of the parse method creates a `MessageOsmand` for each track point
-and returns the full list. 
-
-[IMPORTANT]
+[TIP]
 ====
-The `Gpx2OsmandParser` returns the complete list of trackpoints of the complete `gpx` file. +
-The breakdown to send single trackpoints to the output happens via splitter EIP in the route.
+The two tests mentioned above are restricted to send only `sampleSize` number of messages
+in order to keep the test runtime short. 
+During development you can increase this number significantly 
+to observe and explore the scenario in the Traccar Web UI - while playing the tracks. 
 ====
 
 
-====  `GpxParseErrorHandler` 
+== gps Timer
 
-The `GpxParseErrorHandler` was added to catch all the xml and sax stuff going on
-and provide a usefull warning about the parsing problem with the file.
-The SAX error handler was attached to the parser to catch malformed GPX XML 
-and log it through SLF4J as a warning with file/line/column details
-instead of the anonymous [Fatal Error] ... message.
+After we have the messages in the right format, we need to take care 
+of the timing of the sending from a `gps-tracker`.
+We are using the  `GpsPlayerIT` as out dev environment similar to the `GpsTrackerIT` .
 
-[source,xml]
-----
-WARN  Gpx2OsmandParser - Malformed GPX XML
-        in /home/kbeigl/git/bm/bm-tracker/gps-osmand-player/target/send/
-        RGB-BUELL-SE-80608-INVALID.gpx at line 665, column 5:
-            The end-tag for element type "trkpt" must end with a '>' delimiter.
-----
-
-Camel then logs the propagated exception as a route-processing failure,
-which is why you still see the later DefaultErrorHandler stacktrace.
-The remaining ERROR DefaultErrorHandler block is Camel logging the failed exchange, 
-not the XML parser itself.
-Also Camel’s noisy expected-error logging is reduced
-while preserving the error/ move behavior.
-
-[source,xml]
-----
-WARN  GenericFileOnCompletion - Rollback file strategy: 
-      org.apache.camel.component.file.strategy.GenericFileRenameProcessStrategy@3b8366c8
-      for file: GenericFile[/home/kbeigl/git/bm/bm-tracker/gps-osmand-player
-                                        /target/send/RGB-BUELL-SE-80608-INVALID.gpx]
-----
-
-The `Gpx2OsmandParserTest` contains explicit unit tests for the `Gpx2OsmandParser`,
-but you can also see the new warnings in other tests, with invalid files, for example. 
-
-
-=== `GpxMessageRouteTest`
-
-This filesystem-based test verifies the functionality of the `GpxMessageRoute` end-to-end. +
-After the route has started the method
+As a starting point we define the Player API with the following method:
 
 [source,java]
 ----
-  private void copyGpxFromSourceToInputAndAwait(String fileName) throws Exception {
-    CopyFileRoute copyFileRoute = new CopyFileRoute(fileName, sourceDirectory, sendDirectory);
-    copyFileRoute.copyAndAwait(camel, producer); // block until file is copied
-  }
+      public synchronized boolean playOsmAndTrack() {
 ----
 
-can be used to copy a `.gpx` file from any configurable sources folder 
-to the `sendDirectory`. +
-For copying ( _not moving !_ ) we have created a small helper route 
-`bm.gps.gpx.file.CopyFileRoute` to drop a `*.gpx` file into the `sendDirectory` 
-and await the parsed messages to arrive in the next line of the test. 
+Note that the method is synchronized to ensure thread safety when multiple trackers are involved. 
+And be aware that the player is already loaded with the track messages from the parser.
+We can define the method signature and call it from the test, 
+while the implementation of the timer will be added step by step. 
+The method will be responsible for scheduling the sending of messages based on their timestamps.
 
-If the parsing was successful the file will be moved to a subfolder. +
-And the route output, being single `MessageOsmand` messages, 
-will be consumed from the `seda:output` queue. +
-Each test can then collect a list of messages `List<MessageOsmand> messages` for validations:
+The actual player implementation is similar to the parser design with Camel +
+with *(1)* a route invoking *(2)* a bean method:
 
-    •  copy `RGB-BUELL-SE-080607.gpx` into the watched input directory
-    •  verify 161 `MessageOsmand` messages are emitted
-    •  check first/second/last message contents
-    •  verify the file has been moved to the `parsed` subfolder
+*(1)* We are using a  `PlayerTimerRoute` to send messages to the timer component
+
+[source,java]
+----
+public class PlayerTimerRoute extends RouteBuilder {
+
+  @Override
+  public void configure() {
+    from("quartz://" + ...
+            :
+            // room for additional parameters (trigger, job store, misfire handling, .. ) 
+            :
+            .bean("quartzSchedulerBean", "sendCurrentAndScheduleNext");
+----
+
+with the Consumer Endpoint URI `"quartz://" + . . .` for the Camel Quartz component +
+which eventually will trigger the sending of messages to the Producer Endpoint 
+
+*(2)* the bean method `sendCurrentAndScheduleNext` in the `QuartzSchedulerBean` class.
+
+This player design is the separation of concerns between the timer route and +
+the scheduling logic in the bean, which will finally schedule and send the messages:
+
+        player.tracker.sendMessage(MessageOsmand message);
+
+xref:./gps-timer.adoc[goto to implementation details]
 
 
 
-== Sender
-
-- [x] gpx Route
-- [x] gpx Parser
-
-sending to `gps-tracker`
-
-- [ ] timing component to send messages at the right time
-
-quartz scheduler component to schedule the sending of messages according to their timestamps. +
-
-- [ ] sending to `gps-tracker`
 
 == Geo Helpers
 
@@ -473,7 +327,7 @@ A navigation system is able to extract a path from current location to a destina
 Yet this path or route does not provide timestamps and is purely spatial.
 
 
-=== Player to Navigator to Driver
+=== Player > Navigator > Driver
 
 We can extract routes from a digital map and then tell our Device, or rather the vehicle carying it 
 to follow this route with adopted speed. 

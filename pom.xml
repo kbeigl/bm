@@ -30,7 +30,7 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.22</version>
+    <version>1.1.23</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations               ===</name>
@@ -56,12 +56,17 @@
     </licenses>
 
     <properties>
-        <os-maven-plugin-version>1.6.0</os-maven-plugin-version>
-        <!-- always generate new maven wrapper version!
-        <maven-minimum-version>3.9.14</maven-minimum-version> -->
+        <!-- os-maven-plugin-version>1.6.0</os-maven-plugin-version -->
+        <!-- always generate new maven wrapper version! -->
         <!-- lower version for github and eclipes m2e -->
-        <maven-minimum-version>3.9.12</maven-minimum-version>
+        <maven-minimum-version>4.0.0-rc-5</maven-minimum-version>
         <maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
+        <maven-clean-plugin-version>3.5.0</maven-clean-plugin-version>
+        <maven-install-plugin-version>3.1.4</maven-install-plugin-version>
+        <maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
+        <maven-resources-plugin-version>3.5.0</maven-resources-plugin-version>
+        <maven-compiler-default-plugin-version>3.15.0</maven-compiler-default-plugin-version>
+        <maven-jar-plugin-version>3.5.0</maven-jar-plugin-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
     </properties>
@@ -73,6 +78,42 @@
     </modules>
 
     <build>
+      <pluginManagement>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-clean-plugin</artifactId>
+                  <version>${maven-clean-plugin-version}</version>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-install-plugin</artifactId>
+                  <version>${maven-install-plugin-version}</version>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-deploy-plugin</artifactId>
+                  <version>${maven-deploy-plugin-version}</version>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-resources-plugin</artifactId>
+                  <version>${maven-resources-plugin-version}</version>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <version>${maven-compiler-default-plugin-version}</version>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-jar-plugin</artifactId>
+                  <version>${maven-jar-plugin-version}</version>
+              </plugin>
+          </plugins>
+      </pluginManagement>
+
+    	<!-- 
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -80,7 +121,7 @@
                 <version>${os-maven-plugin-version}</version>
             </extension>
         </extensions>
-
+        -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

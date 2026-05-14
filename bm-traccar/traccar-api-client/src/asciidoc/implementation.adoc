@@ -57,7 +57,7 @@ to connect your program logic!
 
 === Data Transfer Objects - DTOs ...
 
-In addition the `traccar-api-client-6.7` provides *21 Data Transfer Objects*
+In addition the `traccar-api-client-6.7` provides *21 Data Transfer Objects* +
 and `v6.12.2` already has 26 (package `bm.traccar.generated.model.dto`).
 
 These DTO _represent_ the different System Entities 
@@ -91,7 +91,8 @@ and  then create it on server side and receive a copy:
     User userOUT =  api.users.createUser(userIN);
 ----
 
-Note that `userIN` and `userOUT` are different instances.
+Note that `userIN` and `userOUT` are different instances,
+i.e. `userIN` on client and `userOUT` is returned from server.
 The latter provides the `userId` provided by the Traccar Model
 and is vital to use in the client server communication.
 The ID is usually hidden for external users (i.e. in the UI),

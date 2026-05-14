@@ -115,13 +115,7 @@ goto
 xref:../../../bm-traccar/traccar-api-client/src/asciidoc/traccar-api-client.adoc[`traccar-api-client`] 
 
 
-
-
-==== todo
-
-
-
-Version number bumps
+==== version number bumps
 
 The bulk of the OpenAPI additions landed around early 2026 (leading into v6.12 series), 
 including the geofence report, health check, and orders support.

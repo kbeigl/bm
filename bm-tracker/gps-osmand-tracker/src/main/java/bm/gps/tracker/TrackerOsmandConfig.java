@@ -11,4 +11,4 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan(basePackages = "bm.gps.tracker")
-public class GpsOsmandTrackerConfig {}
+public class TrackerOsmandConfig {}

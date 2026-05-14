@@ -78,6 +78,15 @@ link:https://github.com/kbeigl/jeets/blob/master/pom.xml[JeeTS repository]
 
 == `bm-parent` project
 
+=== OS detection
+
+[IMPORTANT]
+====
+In the course of updating from Maven 3 to Maven 4 (`v1.1.23`) the `os-maven-plugin` +
+was removed and may be replaced by a different plugin in the future.
+====
+
+
 The parent project is the first module called in the build process. +
 It starts by running the `os-maven-plugin` (actually a Maven `<extension>`)
 
@@ -120,13 +129,8 @@ you can locate differences in the `build-and-release` workflow
 
 [CAUTION]
 ====
-These subtle differences can raise subtle problems!
+Subtle differences can raise subtle problems!
 ====
-
-
-
-
-
 
 
 === project setup
@@ -183,13 +187,52 @@ This directory contains the YAML files for GitHub Actions, which automate workfl
 
 `https://github.com/kbeigl/bm/actions`
 
-TODO: `java-version: '21'` is currently hardcoded in both files
+NOTE: `java-version: '21'` is currently hardcoded in both files
 
 
 ==== `build.yml`
 
 This workflow is triggered on every push or pull request to the main branches. +
 Its primary role is to build the project and run tests to ensure code quality and integration.
+
+The GitHub Build is intentionally kept simple with as little tools as possible.
+While doing a full fledged development against a Docker Container with Integration Testing,
+the cloning and compiling of the jar files should be kept simple.
+
+Therefore we are using the commandline
+
+[source,xml]
+----
+      - name: Build with Maven (excluding integration tests and doc generation)
+        run: |
+          ./mvnw -B -ntp install \
+            --file pom.xml \
+            -Dintegration.tests.skip=true \
+            -Ddocker.skip.tests=true \
+            -Dopenapi.skip=false \
+            -Dasciidoc.process.skip=true
+----
+
+to apply the `skip` switches 
+
+- to turn off Docker and Integrationtests 
+- to turn off the generation of documentation and diagrams
+
+Note that the generation of the openapi client is turned ON,
+since it is _absolutely required_ for compilation and testing.
+Anyhow developers should set the switch to TRUE after generating the client _once_.
+This guarantees that the client is accessible in the local Maven repo.
+
+As the output on GitHub is extremly long due to the logging of downloads
+we apply 
+
+    -ntp (--no-transfer-progress) 
+    
+to suppress Downloading, Downloaded, and Progress transfer lines. +
+And `-B` for CI-friendly non-interactive output
+
+Also note that we are explicitly calling the wrapper `./mvnw` of the project +
+and not the `mvn` command with unforeseeable version.
 
 
 ==== `release.yml`
@@ -200,12 +243,11 @@ The workflow builds the project, creates a new GitHub release,
 and attaches the generated JAR files as release assets.
 
 
-=== `.mvn/wrapper/`
+=== `.mvn/wrapper/maven-wrapper.properties`
 
-==== `maven-wrapper.properties`
-
-todo (locate existing descriptions)
-
+The Maven Wrapper is a script that allows you to run a specific version of Maven 
+without requiring users to install it manually. 
+The `maven-wrapper.properties` file specifies the version of Maven to use and the distribution URL to download it from. +
 
 === `.gitignore` 
 

@@ -28,7 +28,7 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
 
   @Test
   void sendMessagesWithDevices() throws Exception {
-    logger.info("\n\t\t********** sendMessagesWithDevices() **********");
+    logger.info("\t********** sendMessagesWithDevices() **********");
     // list of trackers to be processed
     List<TrackerOsmAnd> trackers =
         List.of(runnerTracker, mobileTracker, chaser1Tracker, chaser2Tracker);
@@ -37,20 +37,20 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
     // if (!trackers.isEmpty()) {
     for (TrackerOsmAnd tracker : trackers) {
       controller
-          .findDeviceByUniqueId(tracker.getUniqueId())
+          .getDeviceByUniqueId(tracker.getUniqueId())
           .ifPresent(device -> devices.put(device, device.getPositionId()));
     }
     // send a single message from subsequent trackers
-    runnerTracker.sendNow(
+    runnerTracker.sendMessage(
         MessageOsmand.now(runnerTracker.getUniqueId(), 52d, 13d, 10d, 20d, 30d, null, null));
-    chaser1Tracker.sendNow(
+    chaser1Tracker.sendMessage(
         MessageOsmand.now(chaser1Tracker.getUniqueId(), 52.01, 13.01, 10d, 20d, 30d, null, null));
     // wait a second
     sleep(1000);
     MessageOsmand msg =
         MessageOsmand.now(chaser2Tracker.getUniqueId(), 52.02, 13.02, 10.0, 20.0, 30.0, null, null);
-    chaser2Tracker.sendNow(msg);
-    mobileTracker.sendNow(
+    chaser2Tracker.sendMessage(msg);
+    mobileTracker.sendMessage(
         MessageOsmand.now(mobileTracker.getUniqueId(), 52.03, 13.03, 10.0, 20.0, 30.0, null, null));
 
     awaitPositions(devices);
@@ -108,7 +108,7 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
     String uniqueId = runnerTracker.getUniqueId();
 
     // references can be fetched anytime, even before sending -> app init
-    Optional<Device> sendingDeviceOpt = controller.findDeviceByUniqueId(uniqueId);
+    Optional<Device> sendingDeviceOpt = controller.getDeviceByUniqueId(uniqueId);
     Device sendingDevice = sendingDeviceOpt.orElse(null);
     assertNotNull(sendingDevice, "Device should be created in controller on app init");
     logger.debug("Fetched RTM Device reference with uniqueId {} before sending.", uniqueId);
@@ -136,7 +136,7 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
         OffsetDateTime.ofInstant(Instant.ofEpochSecond(devSentTime), ZoneOffset.UTC);
     logger.info("Sent at {} ts: {}", devSentTimeFormat, devSentTime);
 
-    runnerTracker.sendNow(msg);
+    runnerTracker.sendMessage(msg);
 
     // === receive Device =================================
     // device status and lastUpdate update *almost* immediately
@@ -229,7 +229,7 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
 
   @Test
   void reRegisterOrLookupExistingDevices() throws Exception {
-    logger.info("\n\t\t********** registerOrLookupExistingDevices() **********");
+    logger.info("\t********** registerOrLookupExistingDevices() **********");
 
     String runnerId = scenario.runnerDevice.getUniqueId(),
         chaser1Id = scenario.chaser1Device.getUniqueId(),

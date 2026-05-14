@@ -1,4 +1,4 @@
-package bm.gps.player;
+package bm.gps.gpx;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bm.gps.MessageOsmand;
 import bm.gps.gpx.file.CopyFileRoute;
+import bm.gps.player.PlayerApplication;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;

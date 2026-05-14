@@ -32,6 +32,12 @@ public class Gpx2OsmandParser {
   public List<MessageOsmand> parse(
       File gpxFile, @Header(GpxPlayerHeaders.DEVICE_ID) String configuredDeviceId) {
 
+    // does file exist and is readable?
+    if (gpxFile == null || !gpxFile.exists() || !gpxFile.isFile() || !gpxFile.canRead()) {
+      throw new IllegalArgumentException(
+          "GPX file is not accessible: " + (gpxFile != null ? gpxFile.getAbsolutePath() : "null"));
+    }
+
     Document document = parseDocument(gpxFile);
     String deviceId = resolveDeviceId(document, gpxFile, configuredDeviceId);
     List<GeoTools.TrackPoint> trackPoints = extractTrackPoints(document, gpxFile);
@@ -50,6 +56,7 @@ public class Gpx2OsmandParser {
     List<MessageOsmand> messages = new ArrayList<>(trackPoints.size());
     GeoTools.TrackPoint previous = null;
     for (GeoTools.TrackPoint point : trackPoints) {
+      // add flag for these
       Double speed = null;
       Double bearing = null;
       if (previous != null) {

@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.22</version>
+        <version>1.1.23</version>
     </parent>
 
     <artifactId>traccar-realtime-client</artifactId>
@@ -75,7 +75,13 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
-            <version>${project.parent.version}-alpha</version>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>bm</groupId>
+            <artifactId>gps-osmand-player</artifactId>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

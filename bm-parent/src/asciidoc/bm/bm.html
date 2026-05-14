@@ -455,6 +455,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_traccar_trackers">Traccar Trackers</a></li>
 <li><a href="#_the_jeets_tracker">The JeeTS Tracker</a></li>
 <li><a href="#_gps_osmand_tracker"><code>gps-osmand-tracker</code></a></li>
+<li><a href="#_gps_osmand_player"><code>gps-osmand-player</code></a></li>
 </ul>
 </li>
 <li><a href="#_bm_traccar_remote_access_to_traccar_gts"><code>/bm-traccar</code> - Remote Access to Traccar GTS</a>
@@ -799,10 +800,26 @@ You can find the protocol specs
 </div>
 <div class="paragraph">
 <p>The implemetation is using a SEDA queue as an async ingress with retry/backoff,
-being a solid Camel pattern for resilient message delivery.</p>
+as a solid pattern for resilient message delivery.</p>
 </div>
 <div class="paragraph">
 <p><a href="../../../../bm-tracker/gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.html">goto gps-osmand-tracker project</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gps_osmand_player"><code>gps-osmand-player</code></h3>
+<div class="paragraph">
+<p>After prototyping the <code>gps-tracker</code> we want to create a helper for further development,
+which has proven to be very helpful during
+<a href="https://github.com/kbeigl/jeets/tree/master/jeets-clients/jeets-player">JeeTS</a>
+development.
+With a player software you can chose of thousands of available tracks and replay them.
+Beyond that a number of simulations can be used to replay complex traffic situations.
+Besides supporting tracker development the player component can be
+the base of a Navigation Device which can support a Driver Assistence System.</p>
+</div>
+<div class="paragraph">
+<p><a href="../../../../bm-tracker/gps-osmand-player/src/asciidoc/gps-osmand-player.html">goto gps-osmand-player project</a></p>
 </div>
 </div>
 </div>
@@ -823,7 +840,7 @@ and
 <p><a href="../../../../bm-traccar/src/asciidoc/bm-traccar.html">read more to setup and adopt your development environment</a></p>
 </div>
 <div class="paragraph">
-<p>As of <code>v1.1.8</code> we are developing the following three cascaded and yet independent artifacts as a <em>layered architecture</em>.
+<p>As of <code>v1.1.x</code> we are developing the following three cascaded and yet independent artifacts as a <em>layered architecture</em>.<br>
 The separation between</p>
 </div>
 <div class="ulist">
@@ -832,7 +849,7 @@ The separation between</p>
 <p><code>traccar-openapitools-client</code> (generated)</p>
 </li>
 <li>
-<p><code>traccar-api-client</code> (wrapper)</p>
+<p><code>traccar-api-client</code> (Java wrapper)</p>
 </li>
 <li>
 <p><code>traccar-realtime-client</code> (orchestration)</p>
@@ -918,14 +935,16 @@ See next section <strong>Download</strong>.</p>
 <div class="sect2">
 <h3 id="_traccar_openapitools_client_download"><code>traccar-openapitools-client</code> <strong>Download</strong></h3>
 <div class="paragraph">
-<p>link to releases etc.</p>
+<p>This project is fully automated and always reflects the Traccar version.<br>
+You can pick up your download in the
+<a href="https://github.com/kbeigl/bm/releases">Releases</a> section.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_traccar_api_client"><code>traccar-api-client</code></h3>
 <div class="paragraph">
 <p>The <code>traccar-api-client</code> is a Java Client Software to provide full (remote) control over your Traccar server.
-And it can be used to integrate your Tracking with your company systems,
+And it can be used to integrate your Tracking System with your company systems,
 like Human Resources-, Sales- and Fleet Management Software.
 Synchronize your employees with their cars and driver information without utilizing the traccar UI.
 Pull driving reports for your sales team &#8230;&#8203; and much more ;)</p>
@@ -978,7 +997,7 @@ receive real-time data from it.</p>
 <h2 id="_tracker2gts2realtime_milestone">tracker2gts2realtime <strong>Milestone</strong></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The prototyping of the two branches <code>/bm-tracker</code> and <code>/bm-traccar</code> is concluded with the <code>traccar-realtime-client</code>.
+<p>The <code>v1.1.x</code> prototyping of the two branches <code>/bm-tracker</code> and <code>/bm-traccar</code> is concluded with the <code>traccar-realtime-client</code>.
 As a proof of concept we have implemented the full flow of data from the trackers to the server to the Real Time Client,
 including the setup of a scenario on the server.</p>
 </div>
@@ -1020,7 +1039,7 @@ have to be compiled sequentially, before testing a new Tracker feature in the Re
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-13 22:08:40 +0200
+Last updated 2026-05-21 13:38:07 +0200
 </div>
 </div>
 </body>

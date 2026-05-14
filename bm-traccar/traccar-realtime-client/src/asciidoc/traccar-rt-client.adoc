@@ -179,12 +179,38 @@ The line
 'simulates' a `Position` that could come in via WebSocket or any other ETL 
 to a controller that invokes methods to change the real time state.
 
-Now that we can safely read from the `RealTimeManager` + 
-we will create a `RealTimeController` for synchronization.
 
+==== add or update
+
+The `addOrUpdatePosition` method shows how the `RealTimeManager` works.
+It is called when a new position update is received, either from the WebSocket or any other
+source. 
+The method checks if the position already exists in the `positions` map. 
+If it does, it updates the existing position; if not, it adds a new entry.
+                    
+This approach ensures that we maintain a consistent state in the `RealTimeManager`
+while allowing for efficient updates without needing to replace entire objects in the map.
+                    
+Another vital aspect of programming are object references!
+
+When receiving a new Device update, we could simply replace the whole Device object in the `devices` map.
+However, this would break the reference to the `Device` by the users of the `RealTimeManager`. 
+Copy-on-write (create a new merged Device and atomically replace it in the map) ensures 
+that all references remain valid and consistent across the application.
+Updating fields in-place preserves references, but requires explicit 
+synchronization or thread-safe fields to avoid races and visibility problems.
+
+We are using Spring's `BeanUtils` to copy the properties from the new Device to the existing one in the map.
+
+[source,java]
+----
+        // copy properties to preserve object references for external holders
+        BeanUtils.copyProperties(device, previous);
+----
 
 === RealTimeController
 
+Now that we can safely read from the `RealTimeManager` we will create a `RealTimeController` for synchronization. +
 The `RealTimeManagerIT` test is holding the `private RealTimeManager` in order to test it's methods.
 
 The `RealTimeController` is the subsequent implementation keeping the `RealTimeManager` private

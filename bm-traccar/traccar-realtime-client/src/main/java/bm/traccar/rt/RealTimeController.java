@@ -138,19 +138,20 @@ public class RealTimeController {
     return stateManager.getUserById(id);
   }
 
-  public Optional<Device> getDeviceById(long id) {
-    return stateManager.getDeviceById(id);
-  }
+  // should not be used in app context, use uniqueid
+  //  public Optional<Device> getDeviceById(long id) {
+  //    return stateManager.getDeviceById(id);
+  //  }
 
   /**
    * Finds the Device for a given uniqueId, or Optional.empty() if not found.
    *
    * @param uniqueId the unique identifier of the device
    * @return Optional containing Device if present, otherwise empty
-   * @see RealTimeManager#lookupDeviceIdByUniqueId(String) for the mapping
+   * @see RealTimeManager#getDeviceByUniqueId(String) for the mapping
    */
-  public Optional<Device> findDeviceByUniqueId(String uniqueId) {
-    long deviceId = stateManager.lookupDeviceIdByUniqueId(uniqueId);
+  public Optional<Device> getDeviceByUniqueId(String uniqueId) {
+    long deviceId = stateManager.getDeviceByUniqueId(uniqueId);
     if (deviceId == -1L) {
       return Optional.empty();
     }
