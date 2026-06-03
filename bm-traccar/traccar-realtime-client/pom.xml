@@ -81,7 +81,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-player</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.parent.version}-beta</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
