@@ -25,11 +25,11 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.23</version>
+        <version>1.1.24</version>
     </parent>
 
     <artifactId>traccar-openapitools-client</artifactId>
-    <version>6.12.2</version>
+    <version>${traccar.version}</version>
 
     <name>..... traccar-openapitools-client</name>
     <description>remote control on your traccar server</description>
@@ -51,6 +51,18 @@
     </properties>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/asciidoc</directory>
+                <targetPath>asciidoc</targetPath>
+                <includes>
+                    <include>**/*.adoc</include>
+                </includes>
+                <excludes>
+                    <exclude>**/.asciidoctor/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <!-- fetch and normalize remote openapi.yaml before generation
             <plugin>

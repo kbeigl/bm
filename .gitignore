@@ -1,14 +1,11 @@
 # Ignore Eclipse project metadata everywhere
 .project
 .settings/
-.asciidoctorconfig.adoc
 .classpath
 .factorypath
 target/
 
-gps-book.adoc
-gps-book.html
+.asciidoctorconfig.adoc
 
-./src/asciidoc/.asciidoctor/diagram
-# Ignore generated SVG cache files
-*.svg.cache
+# review some time
+gps-book.adoc

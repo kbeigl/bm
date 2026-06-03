@@ -1,0 +1,142 @@
+// :toc:
+
+= use Tracker in Spring
+
+Now how to use the Tracker in Spring Applications?
+
+If a developer creates an actor of a scenario, some Java Object,
+and wants to track it he should be enabled to create a Tracker on the fly.
+There is no static configuration and it should happen at runtime.
+
+
+== lifecycle
+
+With Spring and Camel the registration lifecycle register, unregister, reregister 
+can be fully managed at runtime.
+
+We register the tracker as a `GenericBeanDefinition`
+so Spring automatically wires lifecycle and destruction callbacks.
+`TrackerRegistration` registers a GenericBeanDefinition (constructor arguments `uniqueId, osmandHost`)
+with `DefaultListableBeanFactory` and then pulls the fully-initialized bean from the context.
+
+This makes Spring handle `@PostConstruct` and `@PreDestroy` automatically.
+(Calling `destroySingleton(beanName)` removes the instance but the bean definition remains.) 
+On subsequent register attempts the code will see the existing bean definition and try to return/get the bean.
+Removing the bean definition after destroying the singleton fully clears Spring’s state
+for that bean name so registerTracker can create/register the bean again without conflicts.
+
+With our components being Spring beans, we want to create and 
+register a new bean instance at runtime and then start its associated Camel route. 
+This is achieved using the `ApplicationContextAware interface` to handle the dynamic creation 
+and registration of a fully managed component. 
+With `AutowireCapableBeanFactory` the bean is created manually,
+allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).
+
+And here is how to use the `gps-osmand-tracker-1.1.x.jar` in your code:
+
+
+== send GPS messages to Traccar
+
+The tracker is designed to be used in a simple way, just create the Tracker and send messages.
+With the `tracker.send()` method the message is sent to Traccar and then the application can forget about it.
+
+[source,java]
+----
+
+  @Autowired TrackerRegistration registrationService;                       <1>
+
+  void sendMessage() throws Exception {
+  
+    // get uniqueId from application context
+    TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);  <2>
+
+    MessageOsmand msg = 
+    MessageOsmand.now(uniqueId, 52.0, 13.0, 10.0, 20.0, 30.0, null, null);  <3>
+
+    tracker.send(msg);                                                      <4>
+
+    registrationService.unregisterTracker(uniqueId);                        <5>
+
+    ...
+----
+
+<1> provide tracker registration service
+<2> create and register tracker for uniqueId
+<3> create the immutable record
+<4> send, forget and continue application context
+<5> unregister tracker bean to clean up (and re-register)
+
+Note that each Tracker bean is named with its Traccar identity
+
+    "tracker-" + uniqueId
+
+This is a simple constraint to avoid multiple Trackers with the same id. +
+Actually the 
+https://de.wikipedia.org/wiki/International_Mobile_Equipment_Identity[IMEI] 
+should be used for any hardware Tracker,
+since it marks the unique hardware piece.
+
+If you don't want to use `MessageOsmand.now`, 
+you can create your own message class 
+and still use the `Tracker.send(Object message)` method.
+
+Then you should be aware that Traccer will show the location on the map,
+but the message time will not be 'now' and you are responsible 
+for setting plausible `fixtimes`.
+
+
+== tracking with Traccar
+
+Tracking is more than just sending isolated messages.
+It means updating one `TrackerStatus` instance over time and sending the current state
+whenever the motion is ongoing.
+
+The tracker exposes the status object directly via `getTrackerStatus()`.
+You can either modify that object in place or create your own `TrackerStatus`
+and copy it into the tracker with `setTrackerStatus(...)`.
+
+[source,java]
+----
+
+  @Autowired TrackerRegistration registrationService;                       <1>
+
+  void trackMotion(String uniqueId) throws Exception {
+
+    TrackerOsmAnd tracker = registrationService.registerTracker(uniqueId);  <2>
+
+    TrackerStatus status = tracker.getTrackerStatus();                      <3>
+    status.setLatitude(52.0);
+    status.setLongitude(13.0);
+    // set real speed and bearing, if available
+    status.setAltitude(34.5);
+    status.setFixTime(OffsetDateTime.now());
+
+    // send location
+    tracker.sendTrackerStatus();                                            <4>
+
+    status.setLatitude(52.0005);
+    status.setLongitude(13.0008);
+    status.setSpeed(tracker.calculateSpeedFromLastMessage());               <5>
+    status.setBearing(tracker.calculateBearingFromLastMessage());           <5>
+    status.setFixTime(OffsetDateTime.now());
+
+    // tracker has moved, send location with speed and bearing
+    tracker.sendTrackerStatus();                                            <6>
+
+    registrationService.unregisterTracker(uniqueId);                        <7>
+  }
+----
+
+<1> provide tracker registration service
+<2> create and register tracker for `uniqueId`
+<3> get the mutable status object and update its fields
+<4> send the current tracker status to Traccar
+<5> optionally derive speed and bearing from the last sent message
+<6> send the updated status again for the next point in the motion
+<7> unregister tracker bean to clean up (and re-register later if needed)
+
+Note that `sendTrackerStatus()` creates the outgoing message from the current
+status values. If no explicit `fixTime` is set, the message will use "now" as
+the timestamp. With consecutive updates you can use the geo helpers to derive
+(artificial) speed and bearing between the previous and the current track point.
+

@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientResponseException;
 
 /** Simple AttributesApi test with explicit HttpStatusCodeException handling. */
 @SpringBootTest
@@ -31,6 +32,23 @@ public class GeneratedAttributesApiIT {
 
   @Autowired private ApiService api;
 
+  /**
+   * Fetch a list of Attributes Without params, it returns a list of Attributes the user has access
+   * to
+   *
+   * <p><b>200</b> - OK
+   *
+   * @param all Can only be used by admins or managers to fetch all entities
+   * @param userId Standard users can use this only with their own _userId_
+   * @param deviceId Standard users can use this only with _deviceId_s, they have access to
+   * @param groupId Standard users can use this only with _groupId_s, they have access to
+   * @param refresh The refresh parameter
+   * @param limit Limit the number of returned results
+   * @param offset Offset for pagination
+   * @param keyword Search keyword filter
+   * @return List&lt;Attribute&gt;
+   * @throws RestClientResponseException if an error occurs while attempting to invoke the API
+   */
   @Test
   public void attributesComputedGet() {
 
@@ -48,7 +66,9 @@ public class GeneratedAttributesApiIT {
 
     List<Attribute> result = null;
     try {
-      result = attributesApi.attributesComputedGet(all, userId, deviceId, groupId, refresh);
+      result =
+          attributesApi.attributesComputedGet(
+              all, userId, deviceId, groupId, refresh, null, null, null);
       System.out.println("result: " + result);
     } catch (HttpStatusCodeException e) {
       System.err.println("Exception when calling AttributesApi#attributesComputedGet");

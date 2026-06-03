@@ -15,12 +15,13 @@ import org.springframework.test.context.TestPropertySource;
 
 /**
  * Base class for integration tests using Spring Boot. This class provides a common setup and
- * teardown for all integration tests.
+ * teardown for all integration tests. It includes app properties for the virtualAdmin user, an
+ * admin and a regular user.
  *
- * <p>It includes properties for the virtualAdmin user, an admin and a regular user. The admin and
- * regular user are created in the Traccar database in @BeforeAll method, so they can be used in all
- * ITests. The @AfterAll method is used to clean the Traccar database after all tests in the class
- * have been executed for the next ITest.
+ * <p>The virtualAdmin should only be used on a fresh Traccar instance to create actors. Once
+ * created, the virtualAdmin should not be used anymore in the tests. An admin and regular user are
+ * created in the Traccar database in @BeforeAll method. Consequently, the admin and regular user
+ * should be logged in the tests to perform API calls.
  */
 @SpringBootTest // implies @EnableAutoConfiguration
 // move/add ApiAspect.class from AspectIT and GeneratedSessionApiIT here
@@ -62,6 +63,7 @@ public abstract class BaseIntegrationTest {
 
   @BeforeAll
   public void setup() throws ApiException {
+    logger.info("--- create Admin and User ---");
     api.setBearerToken(virtualAdmin);
     // dont use these User objects > get it from the database via API and *Id
     // User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
@@ -75,6 +77,7 @@ public abstract class BaseIntegrationTest {
 
   @AfterAll
   public void teardown() throws ApiException {
+    logger.info("--- delete Admin and User ---");
     // api.setBearerToken(virtualAdmin);
     api.setBasicAuth(adminMail, adminPassword);
     // catch Execption in case user or admin have been deleted in a test

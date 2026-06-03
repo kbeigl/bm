@@ -1,0 +1,238 @@
+
+    [INFO] === blue marble simulations               === 1.1.24 
+    [INFO] --- blue marble BOM                       --- 1.1.24 
+    [INFO] ---- GPS Trackers                         --- 1.1.24 
+    [INFO] ..... gps-osmand-tracker                      1.1.24 
+    [INFO] ..... gps-osmand-player                       1.1.24 
+    [INFO] ---- Traccar 6.14.2 Clients   *UPGRADE*   --- 1.1.24 
+    [INFO] ..... traccar-openapitools-client      6.14.2 
+    [INFO] ..... traccar-api-client               6.14.2-1.1.24 
+    [INFO] ..... traccar-realtime-client          6.14.2-1.1.24 
+    [INFO] --- blue marble docs aggregator *NEW*     --- 1.1.24
+    
+    moved adocs to new bm-docs project for site generation
+
+    [INFO] === blue marble simulations               === 1.1.23 
+    [INFO] --- blue marble BOM                       --- 1.1.23 
+    [INFO] ---- GPS Trackers                         --- 1.1.23 
+    [INFO] ..... gps-osmand-tracker                      1.1.23 
+    [INFO] ..... gps-osmand-player                       1.1.23-beta 
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.23 
+    [INFO] ..... traccar-openapitools-client 6.12.2 
+    [INFO] ..... traccar-api-client          6.12.2-1.1.23 
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.23 
+
+    player beta: design in place
+
+    [INFO] === blue marble simulations               === 1.1.22 
+    [INFO] --- blue marble BOM                       --- 1.1.22 
+    [INFO] ---- GPS Trackers                         --- 1.1.22-alpha 
+    [INFO] ..... gps-osmand-tracker                      1.1.22-alpha 
+    [INFO] ..... gps-osmand-player    *new name*         1.1.22-alpha  
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.22 
+    [INFO] ..... traccar-openapitools-client      6.12.2
+    [INFO] ..... traccar-api-client               6.12.2-1.1.22
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.22
+    
+    player / tracker combination in alpha: not feature complete
+
+    [INFO] === blue marble simulations               === 1.1.21
+    [INFO] --- blue marble BOM                       --- 1.1.21
+    [INFO] ---- GPS Trackers                         --- 1.1.21
+    [INFO] ..... gps-osmand-tracker                      1.1.21
+    [INFO] ..... gps-player             *NEW*            1.1.21 
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.21
+    [INFO] ..... traccar-openapitools-client 6.12.2 ...........
+    [INFO] ..... traccar-api-client          6.12.2-1.1.21 ....
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.21 .... 
+
+    tracker2gts2realtime milestone (poc)
+
+    [INFO] === blue marble simulations               === 1.1.20 
+    [INFO] --- blue marble BOM                       --- 1.1.20 
+    [INFO] ---- GPS Trackers                         --- 1.1.20 
+    [INFO] ..... gps-osmand-tracker          1.1.20-poc ....... <--+
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20    |
+    [INFO] ..... traccar-openapitools-client 6.12.2 ...........    | poc
+    [INFO] ..... traccar-api-client          6.12.2-1.1.20 ....    |
+    [INFO] ..... traccar-realtime-client     6.12.2-1.1.20-poc  <--+
+    
+    
+    
+    Release Candidate for traccar-realtime-client.jar
+
+    [INFO] === blue marble simulations               === 1.1.19
+    [INFO] --- blue marble parameters                --- 1.1.19
+    [INFO] ---- GPS Trackers                         --- 1.1.19
+    [INFO] ..... gps-osmand-tracker 1.1.19 ....................
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.19
+    [INFO] ..... traccar-openapitools-client      6.12.2 ......
+    [INFO] ..... traccar-api-client               6.12.2-1.1.19
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.19
+    [INFO] ----------------------------------------------------
+    [INFO] Total time:  02:25 min on local machine incl. ITs
+    [INFO] ----------------------------------------------------
+    [INFO] Total time:  01:46 min github action incl. downloads
+    [INFO] ----------------------------------------------------
+
+    action: Build with Maven (excluding integration tests and doc generation)
+
+    [INFO] === blue marble simulations               === 1.1.18
+    [INFO] --- blue marble parameters                --- 1.1.18
+    [INFO] ---- GPS Trackers                         --- 1.1.18
+    [INFO] ..... gps-osmand-tracker                      1.1.18
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.18
+    [INFO] ..... traccar-openapitools-client      6.12.2 ......
+    [INFO] ..... traccar-api-client               6.12.2-1.1.18
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.18
+
+    [NOTE] upgrade to Spring 4, Maven 4 pending
+
+    [INFO] === blue marble simulations               === 1.1.17
+    [INFO] --- blue marble parameters                --- 1.1.17
+    [INFO] ---- GPS Trackers                         --- 1.1.17
+    [INFO] ..... gps-osmand-tracker                      1.1.17
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.17 new versioning!
+    [INFO] ..... traccar-openapitools-client      6.12.2 
+    [INFO] ..... traccar-api-client               6.12.2-1.1.17 new versioning!
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.17 new versioning!
+
+    [NOTE] documentation was not checked in for v1.1.16
+    
+    [INFO] === blue marble simulations               === 1.1.16 
+    [INFO] --- blue marble parameters                --- 1.1.16 
+    [INFO] ---- GPS Trackers                         --- 1.1.16 
+    [INFO] ..... gps-osmand-tracker          1.1.16 ........... 
+    [INFO] ---- Traccar Clients                      --- 1.1.16 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0 ........... 
+    [INFO] ..... traccar-realtime-client     6.10.0 ........... 
+
+    [NOTE] swapped tracker and traccar modules for natural order
+           after API architecture is in place
+           
+    [INFO] === blue marble simulations         === 1.1.15-alpha
+    [INFO] --- blue marble parameters          --- 1.1.15-alpha
+    [INFO] ---- traccar client implementations --- 1.1.15-alpha
+    [INFO] ..... traccar-openapitools-client 6.10.0 ...........
+    [INFO] ..... traccar-api-client          6.10.0-RC ........
+    [INFO] ..... traccar-realtime-client     6.10.0-RC ........
+    [INFO] ---- GPS Unit and Tracker           --- 1.1.15-alpha
+    [INFO] ..... gps-osmand-tracker          1.1.15-POC .......
+    
+    [INFO] === blue marble simulations               === 1.1.14 
+    [INFO] --- blue marble parameters                --- 1.1.14 
+    [INFO] ---- traccar client implementations       --- 1.1.14 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0-RC ........ 
+    [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
+    [INFO] ---- GPS Unit and Tracker                 --- 1.1.14 
+    [INFO] ..... gps-osmand-tracker          1.1.14-POC  ......
+
+    [INFO] === blue marble simulations               === 1.1.13 
+    [INFO] --- blue marble parameters                --- 1.1.13 
+    [INFO] ---- traccar client implementations       --- 1.1.13 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0-RC ........ 
+    [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
+    [INFO] ---- GPS Unit and Tracker            --- 1.1.13-beta 
+    [INFO] ..... gps-osmand-tracker          1.1.13-beta ......
+
+    [INFO] === blue marble simulations               === 1.1.12 
+    [INFO] --- blue marble parameters                --- 1.1.12 
+    [INFO] ---- traccar client implementations       --- 1.1.12 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0-RC ........ 
+    [INFO] ..... traccar-realtime-client     6.10.0-RC ........ 
+    [INFO] ---- GPS Unit and Tracker            --- 1.1.12-beta 
+    [INFO] ..... gps-osmand-tracker          1.1.12-beta ......
+
+    [INFO] === blue marble simulations            === 1.1.11-RC 
+    [INFO] --- blue marble parameters             --- 1.1.11-RC 
+    [INFO] ---- traccar client implementations    --- 1.1.11-RC 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0-RC ........ 
+    [INFO] ..... traccar-rt-client           6.10.0-RC ........ 
+    [INFO] ---- GPS Unit and Tracker              --- 1.1.11 .. 
+    [INFO] ..... gps-osmand-tracker          1.1.11-beta ...... 
+
+    [INFO] === blue marble simulations            === 1.1.10-RC 
+    [INFO] --- blue marble parameters             --- 1.1.10-RC 
+    [INFO] ---- traccar client implementations    --- 1.1.10-RC 
+    [INFO] ..... traccar-openapitools-client 6.10.0 ........... 
+    [INFO] ..... traccar-api-client          6.10.0-RC ........
+    [INFO] ..... traccar-rt-client           6.10.0-RC ........ 
+    
+    [INFO] === blue marble simulations       === 1.1.9-SNAPSHOT
+    [INFO] --- blue marble parameters        --- 1.1.9-SNAPSHOT
+    [INFO] ---- traccar client implementations - 1.1.9-SNAPSHOT
+    [INFO] ..... traccar-openapitools-client    6.8.0 ......... 
+    [INFO] ..... traccar-api-client             6.8.0 ......... 
+    [INFO] ..... traccar-rt-client              6.8.0 ......... 
+
+    [INFO] === blue marble simulations                === 1.1.8 
+    [INFO] --- blue marble parameters                 --- 1.1.8 
+    [INFO] ---- traccar client implementations        --- 1.1.8 
+    [INFO] ..... traccar-openapitools-client    6.8.0 ......... 
+    [INFO] ..... traccar-api-client             6.8.0 ......... 
+    [INFO] ..... traccar-rt-client              6.8.0 ......... 
+
+    [INFO] === blue marble simulations                === 1.1.7 
+    [INFO] --- blue marble parameters                 --- 1.1.7 
+    [INFO] ---- traccar client implementations        --- 1.1.7 
+    [INFO] ..... traccar-openapitools-client    6.8.0 ......... 
+    [INFO] ..... traccar-api-client             6.8.0 ......... 
+    [INFO] ..... traccar-rt-client              6.8.0 ......... 
+    
+    [INFO] === blue marble simulations                === 1.1.6 
+    [INFO] --- blue marble parameters                 --- 1.1.6 
+    [INFO] ---- traccar client implementations        --- 1.1.6 new versioning!
+    [INFO] ..... traccar-openapitools-client    6.8.0 ......... 
+    [INFO] ..... traccar-api-client             6.8.0 ......... 
+    [INFO] ..... traccar-api-camel              6.6-POC ....... POC 
+    
+    [INFO] === blue marble simulations                === 1.1.5 
+    [INFO] --- blue marble parameters                 --- 1.1.5 
+    [INFO] ---- traccar client implementations  6.8.0 
+    [INFO] ..... traccar-openapitools-client    6.8.0 ......... 
+    [INFO] ..... traccar-api-client             6.8.0 ......... 
+    [INFO] ..... traccar-api-camel              6.6 ........... 
+    
+    [INFO] === blue marble simulations                === 1.1.4 
+    [INFO] --- blue marble parameters                 --- 1.1.4 
+    [INFO] ---- traccar client implementations  6.8.0 
+    [INFO] ..... traccar-openapitools-client    6.8.0 ......... 
+    [INFO] ..... traccar-api-client             6.8.0 ......... 
+    [INFO] ..... traccar-api-camel              6.6 ........... 
+    
+    XX do not use release 1.1.3 XX
+    
+    [INFO] === blue marble simulations                === 1.1.2
+    [INFO] --- blue marble parameters                 --- 1.1.2
+    [INFO] ---- traccar client implementations  6.7.1
+    [INFO] ..... traccar-api-camel              6.6 ...........
+    [INFO] ..... traccar-openapitools-client    6.7.1 .........
+    [INFO] ..... traccar-api-client             6.7.1-RC ...... RC
+    
+    [INFO] === blue marble simulations                === 1.1.1-SNAPSHOT
+    [INFO] --- blue marble parameters                 --- 1.1.1-SNAPSHOT
+    [INFO] ---- traccar client implementations  6.7.1-RC
+    [INFO] ..... traccar-api-camel              6.6 ...........
+    [INFO] ..... traccar-openapitools-client    6.7.1 .........
+    [INFO] ..... traccar-api-client             6.7.1-RC ...... RC
+    [INFO] ..... traccar-ws-client              6.7.1-POC ..... POC
+        
+    [INFO] === blue marble simulations                  === 1.1-SNAPSHOT
+    [INFO] --- blue marble parameters                   --- 1.1-SNAPSHOT
+    [INFO] ---- traccar client implementations  6.7.1-RC
+    [INFO] ..... traccar-api-camel              6.6 ...........
+    [INFO] ..... traccar-openapitools-client    6.7.1 .........
+    [INFO] ..... traccar-api-client             6.7.1-RC ...... RC
+    
+    v1.0 initial setup
+        /bm-parent
+        /bm-traccar             v.6.7.1
+            /traccar-api-camel
+            /traccar-api-client
+            /traccar-openapitools-client
+    

@@ -1,6 +1,7 @@
 package bm.gps.player;
 
 import bm.gps.MessageOsmand;
+import bm.gps.tracker.TrackerOsmAnd.TrackerStatus;
 import java.util.Date;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -42,6 +43,9 @@ public class QuartzSchedulerBean {
 
   /** Reschedules the Quartz trigger to fire {@code delayMs} milliseconds from now. */
   public void scheduleFireIn(long delayMs) {
+    if (player.isStopRequested()) {
+      return;
+    }
     if (quartzScheduler == null) {
       quartzScheduler = player.resolveQuartzScheduler();
     }
@@ -63,7 +67,8 @@ public class QuartzSchedulerBean {
   /** Called by the Quartz consumer route on each trigger fire. */
   public void sendCurrentAndScheduleNext() {
     synchronized (player) {
-      if (player.tracker == null
+      if (player.isStopRequested()
+          || player.tracker == null
           || player.osmandTrack == null
           || player.osmandTrack.isEmpty()
           || player.nextIndex >= player.osmandTrack.size()) {
@@ -72,7 +77,16 @@ public class QuartzSchedulerBean {
 
       MessageOsmand current = player.osmandTrack.get(player.nextIndex);
       try {
-        player.tracker.sendMessage(current);
+        // do not send original timestamp from GPX track:
+        // player.tracker.sendMessage(current);
+        messageToTrackerStatus(current);
+        player.tracker.sendTrackerStatus();
+        logger.info(
+            "Sent TrackPoint( {} ) for tracker {}, timestamp: {}",
+            player.nextIndex,
+            player.tracker.getUniqueId(),
+            current.timestamp());
+
       } catch (RuntimeException e) {
         // Tracker routes can still be spinning up right after playback start; retry shortly.
         logger.warn("Track send failed, retrying in {} ms.", RETRY_DELAY_MS, e);
@@ -89,5 +103,23 @@ public class QuartzSchedulerBean {
 
       scheduleFireIn(delayMs);
     }
+  }
+
+  private void messageToTrackerStatus(MessageOsmand current) {
+    // get status only once per instance and reuse it for all messages ?
+    TrackerStatus status = player.tracker.getTrackerStatus();
+
+    status.setLatitude(current.lat());
+    status.setLongitude(current.lon());
+    status.setAltitude(current.altitude());
+    status.setFixTime(null);
+    status.setSpeed(
+        current.speed() != null ? current.speed() : player.tracker.calculateSpeedFromLastMessage());
+    status.setBearing(
+        current.bearing() != null
+            ? current.bearing()
+            : player.tracker.calculateBearingFromLastMessage());
+    // timestamp 'now' will be added when sending ...
+    player.tracker.setTrackerStatus(status);
   }
 }

@@ -46,6 +46,8 @@ public class PlayerOsmAnd {
 
   private DefaultCamelContext camel;
   private QuartzSchedulerBean quartzScheduler;
+  // A stop is final (terminate) versus a pause/resume which is more complicated
+  private boolean stopRequested = false;
 
   /**
    * Starts playback for the loaded track.
@@ -65,6 +67,8 @@ public class PlayerOsmAnd {
       return true;
     }
 
+    stopRequested = false;
+
     if (!ensurePlaybackRoutes()) {
       return false;
     }
@@ -72,6 +76,27 @@ public class PlayerOsmAnd {
     // Send first message immediately and let the bean schedule follow-up messages.
     quartzScheduler.sendCurrentAndScheduleNext();
     return true;
+  }
+
+  /**
+   * Stops playback gracefully by preventing further scheduling/sending and shutting down the
+   * per-player Camel context.
+   */
+  public synchronized void stopOsmAndTrack() {
+    stopRequested = true;
+
+    if (camel == null) {
+      return;
+    }
+
+    try {
+      camel.stop();
+    } catch (Exception e) {
+      logger.warn("Failed to stop playback Camel context cleanly.", e);
+    } finally {
+      camel = null;
+      quartzScheduler = null;
+    }
   }
 
   /**
@@ -131,6 +156,10 @@ public class PlayerOsmAnd {
       logger.debug("Could not resolve Quartz scheduler from Camel context.", e);
       return null;
     }
+  }
+
+  synchronized boolean isStopRequested() {
+    return stopRequested;
   }
 
   private static String sanitizeQuartzId(String id) {

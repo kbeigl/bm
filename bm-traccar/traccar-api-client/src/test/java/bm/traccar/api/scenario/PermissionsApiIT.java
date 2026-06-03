@@ -67,7 +67,7 @@ public class PermissionsApiIT extends BaseScenarioTest {
 
   //  @Test
   void permissionTests() {
-    // now we can run permission tests - TOBE integrated in ScenarioLoader
+    // now we can run permission tests - TO BE integrated in ScenarioLoader
     Permission permission = new Permission();
     logger.info("Create Permission: {}", permission);
     //    permission.setUserId(Long.valueOf(adminId));

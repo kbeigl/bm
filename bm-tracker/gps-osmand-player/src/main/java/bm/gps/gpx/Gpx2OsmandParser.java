@@ -56,7 +56,7 @@ public class Gpx2OsmandParser {
     List<MessageOsmand> messages = new ArrayList<>(trackPoints.size());
     GeoTools.TrackPoint previous = null;
     for (GeoTools.TrackPoint point : trackPoints) {
-      // add flag for these
+      // add flag for these ?
       Double speed = null;
       Double bearing = null;
       if (previous != null) {

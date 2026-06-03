@@ -2,7 +2,10 @@ package bm.gps.tracker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bm.gps.GeoTools;
 import bm.gps.tracker.TrackerOsmAnd.TrackerStatus;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Test;
@@ -112,5 +115,88 @@ class TrackerStatusUsageTest {
     assertEquals(270.0, status.getBearing(), 0.01);
     assertEquals(90.0, status.getBattery(), 0.01);
     assertNotNull(status.getFixTime());
+  }
+
+  @Test
+  void testCalculateSpeedFromLastMessage() {
+    TrackerOsmAnd tracker = new TrackerOsmAnd("test-device-speed", "http://localhost:5055");
+
+    TrackerStatus status = tracker.getTrackerStatus();
+    OffsetDateTime firstFixTime = OffsetDateTime.parse("2026-01-01T00:00:00Z");
+    status.setLatitude(48.2082);
+    status.setLongitude(16.3738);
+    status.setAltitude(171.0);
+    status.setFixTime(firstFixTime);
+    tracker.sendTrackerStatus();
+
+    status.setLatitude(48.2091);
+    status.setLongitude(16.3738);
+    status.setAltitude(171.0);
+    status.setFixTime(firstFixTime.plusSeconds(10));
+
+    Double calculatedSpeed = tracker.calculateSpeedFromLastMessage();
+    Double expectedSpeed =
+        GeoTools.speedMetersPerSecond(
+            new GeoTools.TrackPoint(48.2082, 16.3738, firstFixTime.toEpochSecond(), 171.0),
+            new GeoTools.TrackPoint(
+                48.2091, 16.3738, firstFixTime.plusSeconds(10).toEpochSecond(), 171.0));
+
+    assertNotNull(calculatedSpeed);
+    assertNotNull(expectedSpeed);
+    assertEquals(expectedSpeed.doubleValue(), calculatedSpeed.doubleValue(), 0.0001d);
+  }
+
+  @Test
+  void testCalculateSpeedFromLastMessageWithoutPreviousMessage() {
+    TrackerOsmAnd tracker = new TrackerOsmAnd("test-device-no-previous", "http://localhost:5055");
+
+    TrackerStatus status = tracker.getTrackerStatus();
+    status.setLatitude(48.2082);
+    status.setLongitude(16.3738);
+
+    assertNull(tracker.calculateSpeedFromLastMessage());
+    assertTrue(status.getSpeed() == null);
+  }
+
+  @Test
+  void testCalculateBearingFromLastMessage() {
+    TrackerOsmAnd tracker = new TrackerOsmAnd("test-device-bearing", "http://localhost:5055");
+
+    TrackerStatus status = tracker.getTrackerStatus();
+    OffsetDateTime firstFixTime = OffsetDateTime.parse("2026-01-01T00:00:00Z");
+    status.setLatitude(48.2082);
+    status.setLongitude(16.3738);
+    status.setAltitude(171.0);
+    status.setFixTime(firstFixTime);
+    tracker.sendTrackerStatus();
+
+    status.setLatitude(48.2091);
+    status.setLongitude(16.3748);
+    status.setAltitude(171.0);
+    status.setFixTime(firstFixTime.plusSeconds(10));
+
+    Double calculatedBearing = tracker.calculateBearingFromLastMessage();
+    Double expectedBearing =
+        GeoTools.normalizedBearingDegrees(
+            new GeoTools.TrackPoint(48.2082, 16.3738, firstFixTime.toEpochSecond(), 171.0),
+            new GeoTools.TrackPoint(
+                48.2091, 16.3748, firstFixTime.plusSeconds(10).toEpochSecond(), 171.0));
+
+    assertNotNull(calculatedBearing);
+    assertNotNull(expectedBearing);
+    assertEquals(expectedBearing.doubleValue(), calculatedBearing.doubleValue(), 0.0001d);
+  }
+
+  @Test
+  void testCalculateBearingFromLastMessageWithoutPreviousMessage() {
+    TrackerOsmAnd tracker =
+        new TrackerOsmAnd("test-device-no-previous-bearing", "http://localhost:5055");
+
+    TrackerStatus status = tracker.getTrackerStatus();
+    status.setLatitude(48.2082);
+    status.setLongitude(16.3738);
+
+    assertNull(tracker.calculateBearingFromLastMessage());
+    assertTrue(status.getBearing() == null);
   }
 }

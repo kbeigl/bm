@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-@SpringBootTest // (classes = ScenarioProperties.class)
+@SpringBootTest(properties = "logging.config=classpath:logback-test.xml")
 @ContextConfiguration(classes = {ScenarioConfig.class})
 public class ScenarioPropertiesTest {
 

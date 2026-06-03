@@ -25,11 +25,10 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-tracker</artifactId>
-        <version>1.1.23</version>
+        <version>1.1.24</version>
     </parent>
 
     <artifactId>gps-osmand-player</artifactId>
-        <version>1.1.23-beta</version>
 
     <name>..... gps-osmand-player</name>
     <description>gps-osmand-player</description>
@@ -60,7 +59,7 @@
         </dependency>
 
         <!-- ========== Testing dependencies ========== -->
-        <!-- counter check top dependencies! -->
+        <!--  counter check top dependencies! -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -72,5 +71,22 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>asciidoc</directory>
+                <targetPath>asciidoc</targetPath>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.html</exclude>
+                    <exclude>**/*.svg.cache</exclude>
+                    <exclude>**/.asciidoctor/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
+    </build>
 
 </project>

@@ -1,5 +1,6 @@
 package bm.gps.tracker;
 
+import bm.gps.GeoTools;
 import bm.gps.MessageOsmand;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -164,7 +165,9 @@ public class TrackerOsmAnd {
   }
 
   public void setTrackerStatus(TrackerStatus status) {
-    // Copy all fields from provided status to maintain encapsulation
+    // Copy fields from status instance to maintain encapsulation
+    // consider using a copy constructor or builder pattern
+    // for better encapsulation and immutability
     this.status.setLatitude(status.getLatitude());
     this.status.setLongitude(status.getLongitude());
     this.status.setAltitude(status.getAltitude());
@@ -196,8 +199,20 @@ public class TrackerOsmAnd {
     lastMessageSent = msg;
   }
 
-  /** Public API to send a message immediately via the Camel route. */
-  // visibilty will be narrowed to package-private
+  /**
+   * Public API to send a message immediately via the Camel route.
+   *
+   * <p>Note that the message is not validated against the current TrackerStatus attributes, so it
+   * is the caller's responsibility to ensure that the message has a matching uniqueId and valid
+   * latitude/longitude values. Also the timestamp of the message is not validated. If you send a
+   * message with a timestamp in the past, like from a GPX track, it will be sent immediately and
+   * not at the original timestamp. This method is intended for sending messages that are already
+   * created, for example from a GPX track, and not for sending the current status of the tracker.
+   * For sending the current status, use sendTrackerStatus() instead.
+   *
+   * <p>Visibility will most likely be narrowed to package-private, as this method is intended for
+   * internal use.
+   */
   // return true/false for success/failure ?
   public void sendMessage(MessageOsmand msg) {
 
@@ -208,10 +223,11 @@ public class TrackerOsmAnd {
       return;
     }
 
-    // create final endpoint string with safeId for route registration and message sending
-    // this is redundant with the route registration in @PostConstruct
-    // but ensures that messages are sent to the correct endpoint
-    // even if the no-arg constructor was used and autowired later
+    /* create final endpoint string with safeId for route registration and message sending
+     * this is redundant with the route registration in @PostConstruct
+     * but ensures that messages are sent to the correct endpoint
+     * even if the no-arg constructor was used and autowired later
+     */
 
     // Synchronous at dev time - send to direct endpoint per-tracker
     String endpoint =
@@ -219,13 +235,57 @@ public class TrackerOsmAnd {
             + (safeId == null
                 ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
                 : safeId);
-    logger.info("tracker-{} sending url message {}", uniqueId, msg); // safeId ?
+    logger.info("tracker sending url message {}", msg); // safeId ?
     tracker.sendBody(endpoint, msg);
     // tracker.asyncSendBody("direct:send-osmand", msg);
   }
 
-  // maybe add flag: insertSpeedAndBearing to calculate speed and bearing from previous message if
-  // not set in status, see GeoTools.speedMetersPerSecond and GeoTools.normalizedBearingDegrees
+  public Double calculateSpeedFromLastMessage() {
+    GeoTools.TrackPoint previousPoint = getLastSentTrackPoint();
+    GeoTools.TrackPoint currentPoint = getCurrentTrackPoint();
+    if (previousPoint == null || currentPoint == null) {
+      return null;
+    }
+
+    return GeoTools.speedMetersPerSecond(previousPoint, currentPoint);
+  }
+
+  public Double calculateBearingFromLastMessage() {
+    GeoTools.TrackPoint previousPoint = getLastSentTrackPoint();
+    GeoTools.TrackPoint currentPoint = getCurrentTrackPoint();
+    if (previousPoint == null || currentPoint == null) {
+      return null;
+    }
+
+    return GeoTools.normalizedBearingDegrees(previousPoint, currentPoint);
+  }
+
+  private GeoTools.TrackPoint getLastSentTrackPoint() {
+    MessageOsmand previousMessage = lastMessageSent;
+    if (previousMessage == null) {
+      return null;
+    }
+
+    return new GeoTools.TrackPoint(
+        previousMessage.lat(),
+        previousMessage.lon(),
+        previousMessage.timestamp(),
+        previousMessage.altitude());
+  }
+
+  private GeoTools.TrackPoint getCurrentTrackPoint() {
+    if (Double.isNaN(status.getLatitude()) || Double.isNaN(status.getLongitude())) {
+      return null;
+    }
+
+    long currentTimestamp =
+        status.getFixTime() == null
+            ? System.currentTimeMillis() / 1000L
+            : status.getFixTime().toEpochSecond();
+
+    return new GeoTools.TrackPoint(
+        status.getLatitude(), status.getLongitude(), currentTimestamp, status.getAltitude());
+  }
 
   private MessageOsmand createMessage() {
 
@@ -266,9 +326,7 @@ public class TrackerOsmAnd {
     }
   }
 
-  /*
-   * Actual route registration must happen after dependency injection, so we use @PostConstruct.
-   */
+  // route registration must happen after dependency injection, so we use @PostConstruct.
   // consider CamelContextAware to avoid jakarta annotation ?
   // or use ApplicationContextAware and get CamelContext from there
   // or use @PostConstruct from Camel CDI or Spring

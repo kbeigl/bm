@@ -1,0 +1,474 @@
+:doctype: book
+:toc: left
+:toclevels: 3
+
+= Asciidoctor 
+
+We are using Asciidoctor to create technical documentation for the entire project, i.e. repo.
+The idea is to have a _single_ source of truth for the documentation and to generate different output formats from it.
+It is available for static site generators, IDEs, git tools and services, CI/CD systems, and other software.
+
+== update as of `v1.1.24`
+
+Up to `v1.1.23` we have documentet the software development process in local `*.adoc` files 
+and have used the `asciidoctor-maven-plugin` to generate each project's documentation.
+Now the number of projects has grown and we want to create a single documentation project 
+that collects all the documentation from the subprojects and generates a single output.
+
+The previous documentation setup, as of version `v1.1.23`, can be found 
+link:https://github.com/kbeigl/bm/blob/v1.1.23/bm-parent/src/asciidoc/ascii-doctor.adoc[here]. 
+
+
+== `bm-docs/` project
+
+The main goal is to have a simple folder structure with cross links 
+between the documentation files and to generate a single output for the whole project.
+We have created a new project `bm-docs` that will be the aggregator for all the documentation.
+For a clearer structure we have moved the `asciidoctor-maven-plugin` configuration 
+to the `bm-docs` project and removed it from the parent.
+
+
+=== website structure
+
+Creating links between different project's documentation can be annoying.
+Anyhow we want to reflect the structue and naming of the complete `bm` repository.
+
+The targeted structue and pattern `root/module/project/adoc` looks like this
+
+[source,asciidoc]
+----
+    bm.adoc                     root
+    releases.adoc
+    /bm-docs                    project
+        ascii-doctor.adoc
+    /bm-traccar                 module
+       bm-traccar.adoc
+       bm-traccar-arc.adoc
+            :
+       /traccar-api-client      module/project
+          architecture.adoc
+          implementation.adoc
+               :
+----
+
+
+=== `combined-asciidoc`
+
+You noted that the above structure is listing `.adoc` as documentation files.
+The first step is to gather all `.adoc` files in the new structure.
+In this (intermediate) site you can already browse through the documentation
+with the AsciiDoc extension installed. It also helps finding dead links
+and other problems _before_ generating a final documentation format.
+
+The `bm-docs/pom.xml` orchestrates the aggregation and generation of the entire project's documentation. 
+The following three Maven Plugins gather all documentation files, put them in the new hierarchy and clean up:
+
+*   `maven-resources-plugin` + 
+    This plugin is configured to copy all AsciiDoc source files (`.adoc`) 
+    from the various modules and projects  
+    into the staging directory: `bm-docs/target/combined-asciidoc/`. 
+    It preserves the module- and project-based directory structure of the repository.
+
+    [INFO] --- resources:3.5.0:copy-resources (copy-reactor-asciidoc-sources) @ bm-docs ---
+    [INFO] Copying 2 resources from ../asciidoc to target/combined-asciidoc
+    [INFO] Copying 5 resources from ../bm-parent/asciidoc to target/combined-asciidoc/bm-parent
+    [INFO] Copying 1 resource  from ../bm-tracker/asciidoc to target/combined-asciidoc/bm-tracker
+
+*   `maven-dependency-plugin` + 
+     While the resources plugin handles source files from the current reactor build, 
+     the dependency plugin unpacks documentation that has been 
+     packaged inside the project's artifact jars from previous builds. 
+     It extracts the `asciidoc` directories from these dependencies and 
+     places them into the same `combined-asciidoc` staging area.
+
+    [INFO] --- dependency:3.7.1:unpack (unpack-traccar-openapitools-client) @ bm-docs ---
+    [INFO] Configured Artifact: bm:traccar-openapitools-client:6.14.2:jar
+
+*   `maven-antrun-plugin` + 
+    After all source files are copied and unpacked, this plugin performs file system cleanup. 
+    It moves files out of nested directories into a flatter, more consistent structure 
+    within each module's folder in `combined-asciidoc`. 
+    It also copies static assets like `*.png` images into the correct location for the final render.
+
+    [INFO] --- antrun:3.2.0:run (flatten-unpacked-asciidoc-folders) @ bm-docs ---
+    [INFO] Executing tasks
+    [INFO]      [copy] Copying 1 file  to /bm/bm-docs/target/combined-asciidoc/bm-tracker/gps-osmand-tracker/diagrams
+    [INFO]      [move] Moving 7 files  to /bm/bm-docs/target/combined-asciidoc/bm-traccar/traccar-api-client
+    [INFO]    [delete] Deleting directory /bm/bm-docs/target/combined-asciidoc/bm-traccar/traccar-api-client/asciidoc
+
+It was a major effort of `v1.1.24` to create the targeted structure with the three plugins above. 
+Even AI was configuring back and forth to get the correct output. 
+The `maven-antrun-plugin` is used to move files from nested directories into a flatter structure, but it has some limitations.
+It has been observed that the `maven-antrun-plugin` is not always able to move files from nested directories.
+
+- [ ] review and simplify process and reduce verbose configuration of the three (or less) plugins above
+
+
+===  `xref` cross-links
+
+Cross-document linking is achieved using AsciiDoc's `xref` (cross-reference) macro. 
+The Asciidoctor processor should handle the conversion from .adoc to .html automatically during the build process.
+This is the preferred approach because:
+
+    1. You only have to think about your source files.
+    2. IDE and browser support: Many IDE previews and tools can follow xref links to other .adoc files, + 
+       which helps during writing.
+    3. Flexibility: If you ever decide to generate a different output format (like PDF), + 
+       Asciidoctor can handle the linking correctly without you needing to change all your links.
+
+The reason it works in multi-module.adoc is that the build process in bm-docs copies all .adoc files into a single directory structure before processing them. 
+This allows Asciidoctor to find all the files and resolve the references correctly.
+
+The path must be relative to the location of the final generated files inside the `bm-docs/target/generated-docs/` directory. 
+For example, from a file in `bm-parent`, a link to a file in `bm-traccar` would look like this:
+
+[source,asciidoc]
+----
+xref:../bm-traccar/traccar-openapitools-client/openapitools.html[`traccar-openapitools-client`] 
+         <module>            <project>            <html file>             <link text>
+----
+
+This works because the `maven-resources-plugin` and `maven-antrun-plugin` 
+have created a predictable and flat directory structure inside the `combined-asciidoc` 
+and, subsequently, the `generated-docs` directories.
+
+- [ ] Use AsciiDoc anchors and ID-based cross-references + 
+      instead of implicit xref targets so references are semantic and stable.
+
+
+== writing documentation
+
+Usually developers do a lot of research, trial and error or even switch the strategy when realizing a wrong approach.
+This important information - mostly for developer him/herself - and usually scribbled in some (paper) notebook.
+We also want to add graphs for a faster perception of the software.
+Also, we want to provide a browsing experience for people interested.
+Therefor we picked a modern word processor to gather documents for different output formats.
+The develpment process should remain as straight forward as possible.
+That is why we want each projects documentation (sources) in the project 
+for the developer to scribble his approaches, progress 
+and finally the cleaned result.
+
+One advantage of a multi module project is that you can open each project separaretly in the IDE
+and we want to enable developers to type whenever they feel like it, or want to get it out of their heads.
+
+Then again you can never be sure _how_ you are looking at the files 
+and _where_ they actually reside in the build process.
+An asciidoc viewer can be installed in a browser or the IDE etc.
+Or the website, like github, already provides the conversion.
+
+This ambiguation is described in the main 
+link:https://github.com/kbeigl/bm/blob/main/readme.adoc[`readme.adoc`] 
+file, where the reader can make a choice between raw/rendered `adoc`,
+and between raw/hosted `html` files.
+ 
+
+=== doc generation
+
+At this point we have gathered all adoc files and assets 
+into the folder structure that mirrors the original project layout
+
+    bm-docs/target/combined-asciidoc/
+
+The final step is to run the Asciidoctor processor on this combined directory
+into the target folder 
+
+    bm-docs/target/generated-docs/
+
+Since we want to create output formats directly from 
+and into our repository we can use the 
+link:https://docs.asciidoctor.org/maven-tools/latest[Asciidoctor Maven Tools].
+
+We will apply the 
+https://docs.asciidoctor.org/maven-tools/latest/plugin/introduction/[asciidoctor-maven-plugin]
+
+[quote, see https://docs.asciidoctor.org/maven-tools/latest/plugin/introduction/]
+____
+The Asciidoctor Maven Plugin is used to convert AsciiDoc documents using Asciidoctor. 
+The plugin offers a comprehensive way to configure a conversion process using AsciidoctorJ in a declarative way.
+____
+
+This is the final and most important step. 
+It runs the Asciidoctor processor on the entire `combined-asciidoc` directory. 
+Because all source files have been gathered and organized in one place, 
+Asciidoctor can correctly resolve cross-references (`xref`) between documents from different modules. 
+The final, unified HTML documentation is generated into the `bm-docs/target/generated-docs/` directory.
+
+
+
+=== configuration
+
+The `asciidoctor-maven-plugin` is configured in the `bm-docs/pom.xml` file 
+with several key settings that enable proper documentation generation for the multi-module project structure.
+
+==== Key Configuration Points
+
+**Directory Processing** +
+Two critical settings preserve the directory structure and enable proper file resolution:
+
+* `<preserveDirectories>true</preserveDirectories>` +
+  Maintains the directory structure from `combined-asciidoc/` to `generated-docs/`. +
+  This ensures that the hierarchy of modules and projects is reflected in the output.
+
+* `<relativeBaseDir>true</relativeBaseDir>` +
+  Resolves `include::` directives relative to each file's directory, not from the root. +
+  This is essential for files like `bm-parent/bm-parent.adoc` that include sibling files +
+  such as `include::multi-module.adoc[]` or `include::maven-maintenance.adoc[]`.
+
+**Source and Output** +
+The plugin processes files from the aggregated staging area:
+
+* `<sourceDirectory>${project.build.directory}/combined-asciidoc</sourceDirectory>` +
+  All AsciiDoc sources are gathered here by the previous Maven plugins.
+
+* `<outputDirectory>${project.build.directory}/generated-docs</outputDirectory>` +
+  The final HTML documentation is generated into this directory with the same structure.
+
+**Output Format** +
+Currently configured for HTML5 output:
+
+* `<backend>html5</backend>` +
+  Generates standalone HTML5 pages with embedded styles and diagrams.
+
+* `<doctype>book</doctype>` +
+  Treats documents as book-style documentation with appropriate formatting.
+
+This can be extended to generate PDF or other formats by adding additional execution blocks.
+
+**Diagram Generation with Kroki** +
+The plugin integrates with a Kroki server for rendering diagrams:
+
+* `<kroki-server-url>http://localhost:8002</kroki-server-url>` +
+  Points to a local Kroki Docker container for development builds.
+
+* `<diagram-impl>kroki</diagram-impl>` +
+  Uses Kroki as the diagram rendering engine.
+
+* `<diagram-format>svg</diagram-format>` +
+  Generates diagrams in SVG format for scalability and quality.
+
+* `<data-uri />` +
+  Embeds diagrams and images directly in the HTML as base64, +
+  making the documentation portable without external file dependencies.
+
+**Cross-Reference Resolution** +
+The combination of `preserveDirectories` and `relativeBaseDir` enables proper cross-reference handling:
+
+* AsciiDoc `xref:` directives are automatically converted to HTML `<a href="...">` links
+* File extensions are converted from `.adoc` to `.html`
+* Relative paths work correctly across all directory levels
+* Anchor links (`#section_id`) are preserved
+
+==== Running Documentation Generation
+
+**From the root of the repository:**
+[source,bash]
+----
+./mvnw clean process-resources -pl bm-docs
+----
+
+**From the bm-docs project:**
+[source,bash]
+----
+cd bm-docs
+../mvnw clean process-resources
+----
+
+**To skip documentation generation during regular builds:**
+[source,bash]
+----
+./mvnw install -Dasciidoc.process.skip=true
+----
+
+The generated documentation will be available at:
+
+    bm-docs/target/generated-docs/bm.html
+
+All 39 AsciiDoc files are converted to HTML with working navigation between pages.
+    
+
+
+
+=== `<attributes>`
+
+For the time being _we have not_ attributed the ascii documents globally from Maven:
+
+    <attributes>
+        <doctype>book</doctype>
+        <toc>left</toc>
+        <source-highlighter>coderay</source-highlighter>
+    </attributes>
+
+but we are experimenting directly in selected adocs:
+
+    :doctype: book
+    :toc: left
+    :toclevels: 3
+
+
+== Mermaid rendering
+
+We are creating mermaid graphs and placing them directly in the `adoc`.
+Then we are applying `asciidoctor-diagram` supported by `asciidoctorj-diagram`
+in Maven to create `html/svg` output.
+
+For a smooth start into a new software the Maven Project should be self contained 
+and build successful without external dependencies. 
+This works fine for `[ditaa]` diagrams, since it is written in Java.
+
+=== `mmc` command
+
+For `[mermaid]` diagrams an external converter is required 
+and you can observe this in debug mode
+
+    [INFO] asciidoctor: DEBUG: Finding 'mmdc' in attributes
+    [INFO] asciidoctor: DEBUG: Finding 'mmdc' in environment
+    [INFO] asciidoctor: DEBUG: Found '/usr/local/bin/mmdc' in environment
+
+We don't want users to install `sudo` stuff in whatever system the software is build.
+It simply doesn't make a good impression to distribute software 
+that fails creating the documentation and requires system changes. 
+Distributors can't predict each CD/CI environment 
+in which the software will be composed.
+
+For a self-contained environment the conversion could be achieved with 
+https://github.com/asciidoctor/docker-asciidoctor[docker-asciidoctor].
+
+
+=== Kroki Diagram Server
+
+If we do accept an external dependency to the internat at build time
+we might as well use the https://kroki.io/[Kroki Diagram Server/Service]
+as described in 
+https://docs.asciidoctor.org/browser-extension/diagrams-extension-option[Use Kroki via the diagrams extension].
+
+[quote, see https://kroki.io]
+____
+Kroki creates diagrams from textual descriptions! +
+Kroki provides a unified API with support for BlockDiag (.. Mermaid ..). +
+Kroki provides a unified API for all the diagram libraries. 
+____
+
+Let's use kroki for simplicity
+
+    <diagram-server-type>kroki_io</diagram-server-type>
+    <diagram-server-url>https://kroki.io</diagram-server-url>
+      <kroki-server-url>https://kroki.io</kroki-server-url>
+
+As kroki is a free service you might experince server problems in you build
+
+    [INFO] --- asciidoctor-maven-plugin:3.1.1:process-asciidoc (generate-html-docs) @ bm-traccar ---
+    [INFO] Converted /home/kbeigl/git/bm/bm-traccar/src/asciidoc/setup-tests.adoc
+    [INFO] asciidoctor: ERROR: bm-traccar-arc.adoc: line 25: 
+                        Failed to generate image: 400 "Bad Request"
+                        
+Simply try again another time and make sure images are present
+before checking in the latest html set.
+
+Now we have created a cyclic compilation of documents 
+which does not interrupt the build, can override existing source files
+and allows developers to type and free their minds.
+
+
+=== internal
+
+For a clean documentation all html pages and svg graphics are deleted 
+and documentation is generated with a local kiko server.
+
+==== kroki with docker
+
+Before `v1.1.16` a combined docker setting of kroki with a 'Mermaid companion'
+was used for doc generation:
+
+  # Start Mermaid companion (with plenty of memory/shm)
+  docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
+    -p 8002:8002 yuzutech/kroki-mermaid
+
+  @Deprecated
+  # Start main Kroki and link it to the companion
+  docker run -d --name kroki --memory=2g --shm-size=1g \
+    --link kroki-mermaid:mermaid \
+    -e KROKI_MERMAID_HOST=mermaid \
+    -e KROKI_MERMAID_PORT=8002 \
+    -p 8000:8000 \
+    yuzutech/kroki:latest
+
+Beginning with `v1.1.16` we are only starting the `kroki-mermaid` container
+with a pre-installed Chromium binary that works 
+without any sandbox, without download, without `/dev/..` issues.
+
+[IMPORTANT]
+====
+In `v1.1.16` the docker configuration had to be changed due to permission problems
+after ubuntu and docker upgrade. It turns out that `kroki-mermaid` is sufficient
+for mermaid generation without `kroki` container! +
+To be observed!
+====
+
+and with the maven configuration
+
+[source,xml]
+----
+   <diagram-server-url>http://localhost:8000</diagram-server-url>
+     <kroki-server-url>http://localhost:8000</kroki-server-url>
+----
+
+Here is a simple test
+
+    curl -X POST http://localhost:8000/mermaid/svg -d 'graph LR; A-->B'
+
+to get a sample svg (text) as response.
+
+If you only install the kroki server on ubuntu 
+you can run into Puppeteer/Chromium problems.
+This may not be a longterm solution 
+as the images are pretty big chunks
+(and not feasible for cd/ci)
+
+[source,xml]
+----
+docker images
+REPOSITORY               TAG             SIZE
+traccar/traccar          6.10.0-ubuntu     313 MB
+yuzutech/kroki           latest          2.41  GB
+yuzutech/kroki-mermaid   latest          1.06  GB
+----
+
+and the docker command line is claiming a lot of memory.
+
+The `mmdc` command line is probably much 'cheaper'...
+
+==== Mermaid CLI `mmdc`
+
+  mermaid diagrams require the Mermaid CLI (mmdc) to be installed
+  (Node.js + @mermaid-js/mermaid-cli)
+  so asciidoctorj-diagram can render to SVG.
+
+  ensure mermaid CLI is installed on the build machine
+  (Node + npm install -g @mermaid-js/mermaid-cli)
+
+  install Mermaid CLI (mmdc) on the build machine
+  (global npm install -g @mermaid-js/mermaid-cli)
+  so asciidoctorj-diagram can call it.
+
+  Ensure mermaid CLI (mmdc) is available on the build machine (needed to render mermaid to SVG):
+  - install Node.js if missing
+  - npm install -g @mermaid-js/mermaid-cli
+  - ensure mmdc is on PATH
+
+== outlook
+
+For the time being we can type into the adocs as we please. +
+This is the top priority for a software creation process. +
+At a later stage we might introduce a
+
+    <module>bm-documentation<module> 
+
+project at the end of the build.
+This follows the idea of an aggregator module (standard Maven best practice for complex builds) 
+that can pull previously zipped (`maven-assembly-plugin`) documents
+from all projects, assemble them to one structure (`maven-dependency-plugin`)
+and finally process them to a full site or single pdf etc.
+
+As we learn to know AsciiDoc we add more features and head towards this finalization.
+Hava a look at the `bm-parent.adoc` how to create a single page with toc 
+and counter check the output `bm-parent.html` file .

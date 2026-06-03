@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-tracker</artifactId>
-        <version>1.1.23</version>
+        <version>1.1.24</version>
     </parent>
 
     <artifactId>gps-osmand-tracker</artifactId>
@@ -57,5 +57,22 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>asciidoc</directory>
+                <targetPath>asciidoc</targetPath>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.html</exclude>
+                    <exclude>**/*.svg.cache</exclude>
+                    <exclude>**/.asciidoctor/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
+    </build>
 
 </project>

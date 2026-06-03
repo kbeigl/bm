@@ -1,0 +1,15 @@
+:toc: left
+:toclevels: 2
+:doctype: book
+
+include::traccar-arc.adoc[]
+
+include::client-development.adoc[]
+
+include::bm-traccar-arc.adoc[]
+
+include::setup-docker.adoc[]
+
+include::test-database.adoc[]
+
+include::setup-development.adoc[]

@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.23</version>
+        <version>1.1.24</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -41,10 +41,12 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>false</openapi.skip>
+        <openapi.skip>true</openapi.skip>
         <!-- dev mode: mvn docker:run with JUnit for ITs -->
-        <integration.tests.skip>true</integration.tests.skip>
-        <asciidoc.process.skip>true</asciidoc.process.skip>
+        <integration.tests.skip>false</integration.tests.skip>
+        
+        <!-- do not use anymore!! slowly moving to bm-docs -->
+        <asciidoc.process.skip>false</asciidoc.process.skip>
 
         <maven.javadoc.skip>false</maven.javadoc.skip>
         <!-- analyze how Spring/Test handles this in a single project .. -->
@@ -53,19 +55,16 @@
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- actual traccar vs sub!project version !
-        traccar version is used for docker image, traccar development only in
-        bm-traccar 
-        <traccar.version>${project.version}</traccar.version> -->
-        <traccar.version>6.12.2</traccar.version>
+        <!-- actual traccar vs sub!project version -->
+        <traccar.version>6.14.2</traccar.version>
 
         <!-- ${java.runtime.version} and requireJavaVersion -->
         <jdk.version>21</jdk.version>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
         <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
-        <maven-surefire-plugin-version>3.5.5</maven-surefire-plugin-version>
-        <maven-failsafe-plugin-version>3.5.5</maven-failsafe-plugin-version>
+        <maven-surefire-plugin-version>3.5.6</maven-surefire-plugin-version>
+        <maven-failsafe-plugin-version>3.5.6</maven-failsafe-plugin-version>
         <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
         <maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
 
@@ -366,98 +365,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.asciidoctor</groupId>
-                <artifactId>asciidoctor-maven-plugin</artifactId>
-                <version>${asciidoctor.maven.version}</version>
-
-                <dependencies>
-                    <dependency>
-                        <groupId>org.asciidoctor</groupId>
-                        <artifactId>asciidoctorj-diagram</artifactId>
-                        <version>${asciidoc.diagram.version}</version>
-                    </dependency>
-                </dependencies>
-
-                <executions>
-                    <execution>
-                        <id>generate-html-docs</id>
-                        <phase>generate-resources</phase>
-                        <!-- <phase>prepare-package</phase> -->
-                        <goals>
-                            <goal>process-asciidoc</goal>
-                        </goals>
-                        <configuration>
-                            <skip>${asciidoc.process.skip}</skip>
-                            <standalone>true</standalone>
-                            <sourceDirectory>${project.basedir}/src/asciidoc</sourceDirectory>
-                            <outputDirectory>${project.basedir}/src/asciidoc</outputDirectory>
-                            <!-- preserve source subdirectory structure when
-                            writing output (e.g. bm/bm.adoc -> bm/bm.html) -->
-                            <relativeBaseDir>true</relativeBaseDir>
-                            <!-- keep directory hierarchy from sourceDirectory
-                            in outputDirectory -->
-                            <preserveDirectories>true</preserveDirectories>
-                            <backend>html5</backend>
-                            <doctype>book</doctype>
-                            <enableVerbose>false</enableVerbose>
-                            <requires>
-                                <require>asciidoctor-diagram</require>
-                            </requires>
-                            <attributes>
-                                <kroki-server-url>http://localhost:8002</kroki-server-url>
-                                <!--
-                                <kroki-server-url>https://kroki.io</kroki-server-url>
-                                <kroki-fallback-server-url>https://kroki.io</kroki-fallback-server-url>
-                                 -->
-                                <kroki-fetch-diagram>true</kroki-fetch-diagram>
-                                <!-- kroki-mermaid on :8002 rejects encoded GET URLs; force POST /mermaid/svg -->
-                                <diagram-max-get-size>0</diagram-max-get-size>
-                                <allow-uri-read />
-
-                                <diagram-server-type>kroki_io</diagram-server-type>
-                                <!-- <diagram-server-url>http://localhost:8002/mermaid/svg</diagram-server-url> -->
-                                <diagram-server-url>http://localhost:8002</diagram-server-url>
-                                <!-- use online Kroki server as fallback or to check latest release
-                                <diagram-server-url>https://kroki.io</diagram-server-url> --> 
-                                <diagram-impl>kroki</diagram-impl>
-                                <imagesdir>diagrams</imagesdir>
-                                <data-uri />
-
-                                <asciidoctor-diagram-verbose>false</asciidoctor-diagram-verbose>
-                                <diagram-format>svg</diagram-format>
-                                <diagram-output-dir>diagrams</diagram-output-dir>
-                                <!--
-                                <diagram-svg-inline>true</diagram-svg-inline> -->
-
-                                <mermaid-diagram-helper>kroki</mermaid-diagram-helper>
-                                <!-- Explicitly enable embedded Mermaid
-                                rendering -->
-                                <mermaid-initialize>true</mermaid-initialize>
-                                <!-- Explicitly disable external Mermaid CLI -->
-                                <mermaid-command>none</mermaid-command>
-                                <mermaid-format>svg</mermaid-format>
-                            </attributes>
-                            <!-- relativeBaseDir>true -->
-                            <sourceDocumentExtensions>
-                                <sourceDocumentExtension>adoc</sourceDocumentExtension>
-                            </sourceDocumentExtensions>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/src/asciidoc</directory>
-                                    <excludes>
-                                        <exclude>**/*.html</exclude>
-                                        <exclude>**/*.png</exclude>
-                                        <exclude>**/*.svg</exclude>
-                                        <exclude>**/*.svg.cache</exclude>
-                                    </excludes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
 
             <!-- move to pluginManagement ! 
             Repackage existing JAR and WAR archives so that they 

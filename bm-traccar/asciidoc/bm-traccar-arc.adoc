@@ -1,0 +1,93 @@
+== bm-traccar architecture
+
+// :toc:
+// :icons: font
+// :sectnums:
+
+== Overview
+
+The `bm-traccar` module is a multi-project Maven build that provides client implementations for interacting with a Traccar server, 
+supporting both REST and real-time (WebSocket) communication. +
+The architecture is modular, separating OpenAPI-generated, API interface and real-time logic.
+
+== Project Structure
+
+The parent project `bm-traccar` aggregates three submodules: +
+
+- `traccar-openapitools-client`: OpenAPI-based client code for Traccar REST APIs.
+- `traccar-api-client`: Custom API client logic for RESTful communication.
+- `traccar-rt-client`: Real-time and WebSocket-based processing, including session management and event routing.
+
+== Component Interaction
+
+This diagram shows the runtime flow from REST API calls to real-time event processing and WebSocket communication.
+
+// TODO bm color
+// box rgb(188, 214, 246) bm-traccar
+// conflicts with lines of the sequence diagram
+// this works
+// box rgb(255, 255, 222) bm-traccar
+ 
+[mermaid]
+....
+%%{init: {'themeVariables': { 'sequenceNumberColor': '#000', 'actorLineColor': '#333' }}}%%
+sequenceDiagram
+    participant UserApp as client Application <br/> buisiness logic
+    box rgb(188, 214, 246) bm-traccar
+        participant RT as RealTimeController
+        participant WS as TraccarWebSocketRoute
+        participant APIClient as traccar-api-client
+    end
+    box rgb(255, 255, 222) Traccar Server
+        participant TraccarServer as Traccar Server
+    end
+    
+    RT->>APIClient: initialize scenario via REST API 
+    APIClient->>TraccarServer: HTTP Request
+    TraccarServer-->>APIClient: HTTP Response (JSON)
+    APIClient-->>RT: initialize DTO arrays
+    RT<<-->>UserApp: live DTOs
+
+    TraccarServer-->>WS: WebSocket Event (position update)
+    WS->>RT: Forward event for processing
+    RT-->>WS: Processed result/ack/nak
+    RT-->>UserApp: live update
+....
+
+For simplification the `traccar-openapitools-client` is not shown. +
+It is shown in the lower level diagram  
+xref:./traccar-api-client/traccar-api-client.adoc#_component_interaction
+[`traccar-api-client` Component Interaction].
+
+When the client Application starts the `RealTimeController` which populates 
+the `RealTimeManager scenario` via REST API calls to the `Traccar Server`.
+After this initialization the `RealTimeController` 
+is automatically and continuously updated via `TraccarWebSocketRoute`.
+
+Now the client Application can access the DTOs of the `RealTimeController` 
+and can get notified about every server event.
+
+In conclusion the client Application is only running against 
+the local `RealTimeController`, which is automatically kept 
+up to date with the Server Status. This is a clear separation
+of the application from client-server communication.
+
+== bm-traccar packages
+
+bm.traccar @SpringbootApplication will scan all subpackages,
+i.e. the other Maven Projects in the bm-traccar branch.
+
+packages are organized by technical layers, e.g. API client, 
+WebSocket client, real-time processing, DTOs, etc.
+
+.. and project structure, e.g. generated code from OpenAPI, 
+custom API client code, real-time processing code.
+
+[source,xml]
+----
+    bm.traccar
+    bm.traccar.rt
+    bm.traccar.ws
+    bm.traccar.api
+    bm.traccar.generated...
+----

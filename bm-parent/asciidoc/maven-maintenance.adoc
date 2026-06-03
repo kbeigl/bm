@@ -1,0 +1,327 @@
+:toc: left
+
+= Maven maintenance
+
+    
+== upgrades and updates
+
+The following steps cover the vital coordinates. 
+
+=== step 1 - Maven versions
+
+Upgrade maven versions with 
+
+  mvn versions:display-plugin-updates
+
+until you get
+
+    [INFO] --- versions-maven-plugin:2.17.1:display-plugin-updates (default-cli) @ bm-sim ---
+    [INFO] 
+    [INFO] All plugins with a version specified are using the latest versions.
+    [INFO] All plugins have a version specified.
+    [INFO] 
+    [INFO] Project requires minimum Maven version for build of: 3.8.8
+    [INFO] Plugins require  minimum Maven version of: 3.8.8
+    [INFO] 
+    [INFO] No plugins require a newer version of Maven than specified by the pom.
+
+And you are also informed to upgrade the major Maven version
+
+    [INFO] Require Maven 4.0.0-beta-3 to use the following plugin updates:
+    [INFO]   maven-source-plugin ......................... 3.4.0 -> 4.0.0-beta-1
+    
+In this case we are _not_ upgrading to Maven 4 yet,
+since it is still in beta phase: `4.0.0-beta-1` 
+
+- [ ] Update the maven wrapper as described below
+- [ ] Update the `maven-minimum-version` in `bm/pom.xml`
+
+
+=== step 2 - Camel and Spring versions  
+
+The above maven command does not check the BOM versions of the two frameworks.
+Therefor they are incremented one by one until the repository
+is completly build with `mvn install`.
+
+        <camel-version>4.18.0</camel-version>
+  <spring-boot-version>4.0.4</spring-boot-version>
+
+SpringBoot was upgraded from 3 to 4 in `v1.1.17`.
+We usually stick to the `LTS` versions provided.
+
+
+=== step 3 - Java and JDK version
+
+Upgrading Java can be fine for the repository.
+Nevertheless we would like to keep a compromise between highest available 
+and lowest backward compatibility for users of the released jar files.
+
+        <jdk.version>21</jdk.version>
+
+=== step 4 - Traccar version
+
+==== pull and run new container
+
+Updating the Docker Traccar version is as simple as incrementing to the desired version. +
+Just change the `traccar.version` in the `bm-parent/pom.xml`
+    
+    <traccar.version>6.12.2</traccar.version>
+
+and run 
+
+    ~/git/bm/bm-parent$ ../mvnw docker:run
+
+and see how the new container is pulled and started
+
+    [INFO] --- docker-maven-plugin:0.48.1:run (default-cli) @ bm-parent ---
+    [INFO] DOCKER> Pulling from traccar/traccar
+    01d7766a2e4a: Pull complete 
+    e152e288890f: Pull complete 
+    88ba7e9ad9ed: Pull complete 
+    4f4fb700ef54: Pull complete 
+    [INFO] DOCKER> Digest: sha256:cfd9859e85480b75c30f7d2f31a6e45c429322f6e8d04084b2e60d52b390a3eb
+    [INFO] DOCKER> Status: Downloaded newer image for traccar/traccar:6.12.2-ubuntu
+    [INFO] DOCKER> Pulled traccar/traccar:6.12.2-ubuntu in 19 seconds 
+    [INFO] DOCKER> [traccar/traccar:6.12.2-ubuntu] "traccar": Start container c779cda54c47
+    [INFO] DOCKER> [traccar/traccar:6.12.2-ubuntu] "traccar": Waiting on url http://localhost with method HEAD for status 200..399.
+    [INFO] DOCKER> [traccar/traccar:6.12.2-ubuntu] "traccar": Waited on url http://localhost 5172 ms
+
+All relevant external sources are specified in the `docker-maven-plugin`.
+
+
+==== generate Traccar API
+
+After changing the `traccar.version` the `traccar-openapitools-client` 
+needs to be run in order to create a new `traccar-api-generated`.
+No changes in the project are required and therfor you can simply
+start a complete repository `install` and it should run past the API generation.
+
+goto
+xref:../bm-traccar/traccar-openapitools-client/openapitools.adoc[`traccar-openapitools-client`]
+
+
+==== fix `traccar-api-client`
+
+After `traccar-openapitools-client` the `traccar-api-client` compilation 
+will probably fail and you have to delve into this project.
+
+It is vital to understand that the `traccar-api-client` is the fundament 
+for all client implementations. Therefor this _layer_ should be held 
+as constant as possible in order to avoid massive code changes
+all over the repository!
+
+goto
+xref:../bm-traccar/traccar-api-client/traccar-api-client.adoc[`traccar-api-client`]
+
+
+==== version number bumps
+
+The bulk of the OpenAPI additions landed around early 2026 (leading into v6.12 series), 
+including the geofence report, health check, and orders support.
+
+
+== push project
+
+1. check pom structure and build order (`mvn clean`)
+2. update `bm.adoc` and `releases.adoc` versioning
+3. generate documentation
+4. set skips before releasing
+
+
+=== generate documentation
+
+Start `kroki-mermaid`: 
+
+    $ docker run -d --name kroki-mermaid --memory=1g --shm-size=1g 
+                 -p 8002:8002 yuzutech/kroki-mermaid
+
+turn ON asciidoc for doc generation:
+
+    <asciidoc.process.skip>false</asciidoc.process.skip>
+    
+If you want you can delete all `html, svg and svg.cache` files,
+but after the first generation you should leave then in your local repo
+to save build time.
+
+Now you can run 
+
+    ./mvnw generate-resources
+
+to create all `html` files and mermaid `svg` files.
+And you can interactively edit the `adoc` texts 
+and look at the html files with diagrams.
+Be sure to check documentation errors and fix
+and check mermaid diagrams visually.
+
+To run mermaid and asciidoc in a subproject
+
+  /gps-osmand-tracker$ ../../mvnw generate-resources
+
+with `generate-html-docs` in the output
+
+  [INFO] --- asciidoctor-maven-plugin:3.2.0:process-asciidoc (generate-html-docs) 
+             @ gps-osmand-tracker ---
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/OsmAndProtocolSpecification.adoc
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-osmand-tracker.adoc
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker-arc.adoc
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker-impl.adoc
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker-simu.adoc
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/gps-tracker.adoc
+  [INFO] Converted /gps-osmand-tracker/src/asciidoc/mermaid-test.adoc
+  [INFO] ------------------------------------------------------------------------
+  [INFO] BUILD SUCCESS
+
+
+After everything is in place and files are generated
+you should turn OFF asciidoc for doc generation:
+
+    <asciidoc.process.skip>true</asciidoc.process.skip>
+
+Don't forget to stop the kroki server to save valuable memory
+and to commit the generated files!
+
+nice2have: +
+start docker if `skip>false`
+
+
+=== skip Docker Integration Tests for light version
+
+The Docker Integration Tests are invaluable for development.
+They should only be committed, if they run with a green bar.
+On the other hand Maven can simply build the code with Unit Tests
+for a quick start to get into the project. 
+The generated `jars` can be used 
+- individually in other projects.
+
+Therefor every `vx.y.z` release in the public repo 
+is set to a _light version_ focussed on _building without contributing_:
+
+ /bm-sim/bm-parent/pom.xml
+                 <docker.skip.tests>true</docker.skip.tests>
+            <integration.tests.skip>true</integration.tests.skip>
+
+
+== maven reactor
+
+If you want to delve into a multi module project 
+you should initially build the complete repo on your machine.
+Then you will have all artifacts in your `.m2` repo and 
+can focus on coding inside a single project domain.
+The Reactor will pull the required `jars` for this project.
+
+During development you don't want to bother building the repo from scratch for every code change. +
+For example you might create a test-jar which can be used with classifier 'tests' in anthor project.
+Then this test-jar must be published to local repo to be used elsewhere in the repo.
+
+For example we can produce a test-jar in the gps-osmand-tracker build 
+to provide a `TrackerRegistration` in higher level tests.
+Then you can add the test-jar to the test section with with classifier 'tests'
+to pick up the package.
+
+From the repository root `/bm`, either:
+
+      •  Build the tracker module first to produce the test-jar,
+         then run traccar tests:
+         
+            mvn -pl bm-tracker/gps-osmand-tracker package -DskipTests
+            mvn -pl bm-traccar/0traccar-realtime-client test
+
+      •  Or run the traccar-realtime-client tests in reactor 
+      so required modules (including test-jar) are built automatically:
+
+            mvn -pl bm-traccar/traccar-realtime-client -am test
+                                                       ==== --also-make switch
+
+[NOTE]
+====
+In earlier releases (before `v1.1.16` we had to use the above practice 
+to switch the natural order of repo branches to `/tracker` before `/traccar`.
+This development order was used to provide a GTS, before developing GPS Trackers.
+
+On a short term we wan't to avoid hooks inside the repo to keep it simple alap
+====
+
+
+== maven wrapper
+
+To make sure that the complete project is build with a specified Maven Version
+it is possible to add a Maven Wrapper with a determined version.
+
+Simply run this from the root directory
+
+    ~/git/bm$ mvn wrapper:wrapper -Dmaven=3.8.8
+
+to get
+
+    bm/
+    ├── .mvn/
+    │   └── wrapper/
+    │       ├── maven-wrapper.jar
+    │       └── maven-wrapper.properties
+    ├── mvnw
+    ├── mvnw.cmd
+    ├── pom.xml (Root POM)
+    ├── bm-parent/
+    │   └── pom.xml
+    └── etc.
+    
+Now we can build the complete multimodule project from the root with
+
+    /git/bm$ ./mvnw clean install
+
+And you can build any subproject _from the root_ with 
+    
+    /git/bm$ ./mvnw clean install -pl bm-tracker    -am
+    /git/bm$ ./mvnw clean install -pl bm:bm-tracker -am
+    
+Or, better, if you are working inside a subproject like the `gps-osmand-tracker`
+    
+      ~/git/bm/bm-tracker/gps-osmand-tracker$ ../../mvnw clean install
+      
+Note that you reference the `mvnw` in the root by going up two folders
+with `../../` + 
+depending on where you are working from the command line.
+
+Since this setup is generally idempotent the wrapper can be upgraded
+anytime with
+
+        ~/git/bm$ mvn wrapper:wrapper -Dmaven=3.9.2
+    
+Then the next build will pick up the required files.
+
+ 
+== useful mvn commands
+
+=== analyse dependencies
+
+Maven also provides 
+
+    dependency:analyze 
+    
+plugin goal for analyzing the dependencies:
+it helps making this best practice more achievable.
+
+=== Sources and Javadocs 
+
+Most Maven plugins have a help goal
+that prints a description of the plugin and its parameters and types. +
+For instance, to see help for the javadoc goal, type:
+
+      mvn javadoc:help -Ddetail -Dgoal=javadoc
+
+To build jar files with the source code you can run this command from the root folder 
+or from any subfolder for single project sources.
+
+    mvn source:jar install
+
+You can check your local repo to verify that the -sources.jar, +
+i.e. jeets-protocols-traccar-4.2.1-beta-sources.jar has been installed.
+
+Creating -javadoc.jars works the same way by entering:
+
+    mvn javadoc:jar install
+
+to create jeets-pu-traccar-4.2-javadoc.jar for every project.
+
+    mvn dependency:resolve -Dclassifier=javadoc
+    mvn dependency:resolve -Dclassifier=sources
