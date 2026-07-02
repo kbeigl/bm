@@ -43,6 +43,7 @@ jobs:
             -e KROKI_MAX_URI_LENGTH=25000 \
             -e KROKI_TIMEOUT=60000 \
             yuzutech/kroki:0.27.0
+          # Note: KROKI_TIMEOUT is in milliseconds (60000ms = 60s)
 
       - name: Wait for Kroki health
         shell: bash
