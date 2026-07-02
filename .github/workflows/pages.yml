@@ -31,19 +31,16 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Start Kroki
+      - name: Start Kroki Mermaid
         shell: bash
         run: |
           set -euo pipefail
-          docker rm -f kroki >/dev/null 2>&1 || true
-          docker run -d --name kroki \
-            -p 8002:8000 \
+          docker rm -f kroki-mermaid >/dev/null 2>&1 || true
+          docker run -d --name kroki-mermaid \
+            -p 8002:8002 \
             --memory=2g \
-            --cpus=2 \
-            -e KROKI_MAX_URI_LENGTH=25000 \
-            -e KROKI_TIMEOUT=60000 \
-            yuzutech/kroki:0.27.0
-          # Note: KROKI_TIMEOUT is in milliseconds (60000ms = 60s)
+            --shm-size=1g \
+            yuzutech/kroki-mermaid:latest
 
       - name: Wait for Kroki health
         shell: bash
@@ -65,8 +62,8 @@ jobs:
           echo "::error::Kroki did not become healthy in time"
           echo "==== docker ps ===="
           docker ps -a || true
-          echo "==== kroki logs ===="
-          docker logs kroki || true
+          echo "==== kroki-mermaid logs ===="
+          docker logs kroki-mermaid || true
           exit 1
 
       - name: Build project and generate documentation
@@ -153,7 +150,7 @@ jobs:
 
       - name: Stop Kroki
         if: always()
-        run: docker rm -f kroki || true
+        run: docker rm -f kroki-mermaid || true
 
   deploy:
     environment:

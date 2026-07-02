@@ -408,13 +408,13 @@ and with the maven configuration
 
 [source,xml]
 ----
-   <diagram-server-url>http://localhost:8000</diagram-server-url>
-     <kroki-server-url>http://localhost:8000</kroki-server-url>
+   <diagram-server-url>http://localhost:8002</diagram-server-url>
+     <kroki-server-url>http://localhost:8002</kroki-server-url>
 ----
 
 Here is a simple test
 
-    curl -X POST http://localhost:8000/mermaid/svg -d 'graph LR; A-->B'
+    curl -X POST http://localhost:8002/svg -d 'graph LR; A-->B'
 
 to get a sample svg (text) as response.
 
