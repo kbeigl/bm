@@ -414,7 +414,7 @@ and with the maven configuration
 
 Here is a simple test
 
-    curl -X POST http://localhost:8002/svg -d 'graph LR; A-->B'
+    curl -X POST http://localhost:8002/mermaid/svg -d 'graph LR; A-->B'
 
 to get a sample svg (text) as response.
 
