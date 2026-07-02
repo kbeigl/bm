@@ -36,7 +36,13 @@ jobs:
         run: |
           set -euo pipefail
           docker rm -f kroki >/dev/null 2>&1 || true
-          docker run -d --name kroki -p 8002:8000 yuzutech/kroki:0.27.0
+          docker run -d --name kroki \
+            -p 8002:8000 \
+            --memory=2g \
+            --cpus=2 \
+            -e KROKI_MAX_URI_LENGTH=25000 \
+            -e KROKI_TIMEOUT=60000 \
+            yuzutech/kroki:0.27.0
 
       - name: Wait for Kroki health
         shell: bash
@@ -46,6 +52,9 @@ jobs:
             code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8002/health || true)"
             if [ "$code" = "200" ]; then
               echo "Kroki is healthy."
+              # Give Kroki extra time to fully stabilize before processing diagrams
+              echo "Waiting 5 seconds for Kroki to fully stabilize..."
+              sleep 5
               exit 0
             fi
             echo "[$i/90] waiting for Kroki health endpoint (got: ${code:-none})..."
@@ -113,6 +122,28 @@ jobs:
           </body>
           </html>
           EOF
+
+      - name: Delete old artifacts (if any)
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            
+            for (const artifact of artifacts.data.artifacts) {
+              if (artifact.name === 'github-pages') {
+                console.log(`Deleting old artifact ${artifact.id}`);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                });
+              }
+            }
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
