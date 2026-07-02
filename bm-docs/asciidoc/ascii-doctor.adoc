@@ -381,7 +381,7 @@ was used for doc generation:
 
   # Start Mermaid companion (with plenty of memory/shm)
   docker run -d --name kroki-mermaid --memory=2g --shm-size=1g \
-    -p 8002:8002 yuzutech/kroki-mermaid
+    -p 8002:8002 yuzutech/kroki-mermaid:0.27.0
 
   @Deprecated
   # Start main Kroki and link it to the companion

@@ -40,7 +40,7 @@ jobs:
             -p 8002:8002 \
             --memory=2g \
             --shm-size=1g \
-            yuzutech/kroki-mermaid:latest
+            yuzutech/kroki-mermaid:0.27.0
 
       - name: Wait for Kroki health
         shell: bash
