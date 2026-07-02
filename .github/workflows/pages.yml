@@ -36,14 +36,14 @@ jobs:
         run: |
           set -euo pipefail
           docker rm -f kroki >/dev/null 2>&1 || true
-          docker run -d --name kroki -p 8000:8000 yuzutech/kroki:0.27.0
+          docker run -d --name kroki -p 8002:8000 yuzutech/kroki:0.27.0
 
       - name: Wait for Kroki health
         shell: bash
         run: |
           set -euo pipefail
           for i in {1..90}; do
-            code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/health || true)"
+            code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8002/health || true)"
             if [ "$code" = "200" ]; then
               echo "Kroki is healthy."
               exit 0
@@ -67,7 +67,7 @@ jobs:
             -Ddocker.skip.tests=true \
             -Dopenapi.skip=false \
             -Dasciidoc.process.skip=false \
-            -Dasciidoctor.attributes="kroki-server-url=http://127.0.0.1:8000"
+            -Dasciidoctor.attributes="kroki-server-url=http://127.0.0.1:8002"
 
       - name: Prepare documentation for upload
         run: |
