@@ -41,7 +41,7 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>true</openapi.skip>
+        <openapi.skip>false</openapi.skip>
         <!-- dev mode: mvn docker:run with JUnit for ITs -->
         <integration.tests.skip>false</integration.tests.skip>
         
