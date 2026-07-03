@@ -27,7 +27,7 @@ to simulate and process real-time location data.
     [INFO] ..... traccar-openapitools-client      6.12.2 
     [INFO] ..... traccar-api-client               6.12.2-1.1.24 
     [INFO] ..... traccar-realtime-client          6.12.2-1.1.24 
-    [INFO] --- blue marble docs aggregator   *NEW*   --- 1.1.24-beta
+    [INFO] --- blue marble docs aggregator   *NEW*   --- 1.1.24
 -----------------
 
 For earlier versions check the 

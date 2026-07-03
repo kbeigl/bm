@@ -13,19 +13,16 @@ formats, like a complete website or a pdf document.
 [TIP]
 ====
 - for plain reading go to the 
-link:https://kbeigl.github.io/bm/bm-parent/src/asciidoc/bm/bm.html[*Github Pages*] 
+link:https://kbeigl.github.io/bm[*bm Github Pages*] 
 of this repository.
 
 - If you are not writing, simply skip the documentation generation with +
   `<asciidoc.process.skip>true</asciidoc.process.skip>` +
-  in the highest level `pom.xml`.  
+  in the parent `pom.xml`.  
 
 - at development time you should browse the `.adoc` files to _edit_, +
-while the `.html` files are produced via  `mvn package` 
+while the `.html` files are produced via  `./mvnw clean generate-resources` 
 and checked in for releases.
- 
-- during development you can ignore (or assume unchanged) + 
-the `.html` files in commits. 
 ====
 
 The final resort for the documentation is published with every release 
@@ -54,8 +51,8 @@ On the other hand you can view the local `.html` files in your browser.
 
 We are using the 
 xref:./bm-parent/src/asciidoc/maven-plugins.adoc[`asciidoctor-maven-plugin`] 
-to convert all `.adoc` files in all `src/asciidoc` folders  to `.html` pages.
-We are currently using `mermaid` charts for documentation,
+to convert all `.adoc` files in all `asciidoc` folders  to `.html` pages.
+We are using `mermaid` charts for documentation,
 which are converted to `svg` format by the external (or internal) `kroki` service.
 
 These conversions should spare the interested to developer from 
@@ -63,15 +60,6 @@ different processing and viewing of `adoc/mermaid` sources
 in a user friendy output format `html/svg`,
 which does not require any settings on your browser or elsewhere.
 
-The following links point to the repository parent 
-// not xref ! this file is never compiled by asciidoc !
-link:./bm-parent/src/asciidoc/bm/bm.adoc[`bm.adoc`]
-or 
-link:./bm-parent/src/asciidoc/bm/bm.html[`bm.html`]. +
-Choose your own entry point and format to navigate through the documentation
-depending on your environment.
-
-Or browse the 
-link:https://kbeigl.github.io/bm/bm-parent/src/asciidoc/bm/bm.html[*bm Github Pages*]
-for a smooth reading experience.
+The following links point to the repository home of the github pages
+link:https://kbeigl.github.io/bm[*bm Github Pages*]
 
