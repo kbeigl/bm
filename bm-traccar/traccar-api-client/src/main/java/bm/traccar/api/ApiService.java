@@ -12,6 +12,7 @@ import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
 import bm.traccar.invoke.auth.HttpBasicAuth;
+import bm.traccar.invoke.auth.HttpBearerAuth;
 import org.springframework.stereotype.Service;
 
 /**
@@ -71,6 +72,32 @@ public class ApiService implements Api {
     apiClient.setBasePath(host);
   }
 
+  /**
+   * Return which authentication is currently active. Since traccar accepts only one authentication,
+   * either ApiKey.BearerToken or BasicAuth will be set.
+   *
+   * <p>Currently used for testing and logging purposes. Could be refined for better usage in
+   * scenario code.
+   */
+  @Override
+  public String whoIsAuthenticated() {
+    HttpBearerAuth apiKey = (HttpBearerAuth) apiClient.getAuthentication("ApiKey");
+    HttpBasicAuth basicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
+
+    String bearerToken = apiKey != null ? apiKey.getBearerToken() : null;
+    String username = basicAuth != null ? basicAuth.getUsername() : null;
+    String password = basicAuth != null ? basicAuth.getPassword() : null;
+
+    if (bearerToken != null) {
+      return "ApiKey.BearerToken=" + bearerToken;
+    } else if (username != null || password != null) {
+      return "BasicAuth=" + username + "/" + password;
+    } else {
+      // easy to be checked against
+      return null;
+    }
+  }
+
   /* constructor injection makes dependencies explicit and objects immutable. */
   public ApiService(
       ApiClient apiClient,
@@ -89,7 +116,7 @@ public class ApiService implements Api {
   }
 
   // currently public for convenience (api.users)
-  // can be private if not needed outside of this class.
+  // can be privated if not needed outside of this class.
   public final Api.Users users;
   public final Api.Devices devices;
   public final Api.Session session;

@@ -26,7 +26,6 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
   @Test
   public void switchAuthentication() {
-
     // 'login' as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
     showCredentials();
@@ -39,6 +38,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     // change back to SuperUserAccess
     api.setBearerToken(virtualAdmin);
+    showCredentials();
     users = api.users.getAllUsers();
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
@@ -89,5 +89,8 @@ public class AuthenticationIT extends BaseIntegrationTest {
     // if usr/pwd = null then authenticated by ApiKey.BearerToken
     logger.info("ApiKey.BearerToken={}", ApiKey.getBearerToken());
     logger.info("         BasicAuth={}/{}", BasicAuth.getUsername(), BasicAuth.getPassword());
+
+    // Use the new whoIsAuthenticated() method
+    logger.info("whoIsAuthenticated: {}", api.whoIsAuthenticated());
   }
 }

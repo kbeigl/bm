@@ -6,20 +6,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-@SpringBootApplication
-public class RealTimeClient implements CommandLineRunner {
+/**
+ * Real-time client component for connecting to Traccar server.
+ *
+ * <p><b>Note:</b> This is now a library component, not a standalone application. To run standalone,
+ * use RealTimeApp from traccar-realtime-app module.
+ *
+ * @deprecated For standalone execution, use {@link bm.traccar.RealTimeApp} instead
+ */
+@Component
+@Deprecated
+public class RealTimeClient {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeClient.class);
 
   @Autowired private RealTimeController controller;
   @Autowired private ConfigurableApplicationContext context;
-  @Autowired private Environment environment;
 
   @Value("${traccar.name}")
   private String name;
@@ -34,35 +38,33 @@ public class RealTimeClient implements CommandLineRunner {
   @Value("${traccar.host}")
   private String host;
 
-  /** Start RealTimeClient and wait for messages */
-  public static void main(String[] args) {
-    SpringApplication app = new SpringApplication(RealTimeClient.class);
-    app.setWebApplicationType(WebApplicationType.NONE);
-    app.run(args);
-  }
-
-  @Override
-  public void run(String... args) throws Exception {
-
-    // hook to skip run() in test context
-    if (isTestContext()) return;
-
+  /**
+   * Initialize real-time client. Call this method from your application after Spring context is
+   * initialized.
+   */
+  @Deprecated
+  public void initialize() throws Exception {
     User admin = new User();
     admin.setName(name);
     admin.setPassword(password);
     admin.setEmail(email);
+
     logger.info(
         "Login RealTimeController for '{}' to traccar server '{}` ...", admin.getEmail(), host);
+
     boolean success = controller.loginAndInitialize(admin);
     if (success) {
       logger.info("RealTimeController started and logged in successfully.");
     } else {
       logger.error("RealTimeController failed to log in.");
       shutdown();
-      return;
+      throw new IllegalStateException("Failed to initialize RealTimeClient");
     }
+  }
 
-    // Wait for manual shutdown (e.g., Ctrl+C)
+  /** Wait until interrupted or shutdown is called. For standalone applications only. */
+  @Deprecated
+  public void waitForShutdown() throws InterruptedException {
     Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     logger.info("Application running. Press Ctrl+C to exit.");
     synchronized (this) {
@@ -70,17 +72,8 @@ public class RealTimeClient implements CommandLineRunner {
     }
   }
 
-  /** used in test context to avoid blocking */
-  private boolean isTestContext() {
-    for (String profile : environment.getActiveProfiles()) {
-      if ("test".equals(profile)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void shutdown() {
+  @Deprecated
+  public void shutdown() {
     logger.info("Graceful shutdown initiated.");
     if (context != null) {
       context.close();

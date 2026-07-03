@@ -28,7 +28,7 @@ In this diagram, we have highlighted the components
 that we are coding against in `bm-traccar` and `bm-tracker` branches. +
 
 
-[mermaid]
+[mermaid, traccar-server-arc]
 ....
 flowchart LR
 

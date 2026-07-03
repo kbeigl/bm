@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.24</version>
+        <version>1.1.25</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -41,14 +41,12 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>false</openapi.skip>
+        <openapi.skip>true</openapi.skip>
         <!-- dev mode: mvn docker:run with JUnit for ITs -->
         <integration.tests.skip>false</integration.tests.skip>
-        
-        <!-- do not use anymore!! slowly moving to bm-docs -->
+        <!-- dev mode: save time on bm-docs project -->
         <asciidoc.process.skip>false</asciidoc.process.skip>
-
-        <maven.javadoc.skip>false</maven.javadoc.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
         <!-- analyze how Spring/Test handles this in a single project .. -->
         <test.logback.configuration.file>
             ${maven.multiModuleProjectDirectory}/logback-test.xml</test.logback.configuration.file>
@@ -58,19 +56,9 @@
         <!-- actual traccar vs sub!project version -->
         <traccar.version>6.14.2</traccar.version>
 
-        <!-- ${java.runtime.version} and requireJavaVersion -->
-        <jdk.version>21</jdk.version>
-        <maven.compiler.source>${jdk.version}</maven.compiler.source>
-        <maven.compiler.target>${jdk.version}</maven.compiler.target>
-        <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
-        <maven-surefire-plugin-version>3.5.6</maven-surefire-plugin-version>
-        <maven-failsafe-plugin-version>3.5.6</maven-failsafe-plugin-version>
-        <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
-        <maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
-
         <!-- prefer LTS versions -->
-        <camel-version>4.20.0</camel-version>
-        <spring-boot-version>4.0.5</spring-boot-version>
+        <camel-version>4.21.0</camel-version>
+        <spring-boot-version>4.1.0</spring-boot-version>
         <spring-boot-maven-plugin-version>${spring-boot-version}</spring-boot-maven-plugin-version>
 
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>

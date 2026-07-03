@@ -58,7 +58,7 @@ public class QuartzSchedulerBean {
         TriggerBuilder.newTrigger().withIdentity(triggerKey).startAt(fireTime).build();
     try {
       quartzScheduler.rescheduleJob(triggerKey, newTrigger);
-      logger.info("next trigger planed in {}s at {}.", delayMs / 1000, fireTime);
+      logger.debug("next trigger planed in {}s at {}.", delayMs / 1000, fireTime);
     } catch (SchedulerException e) {
       logger.error("Exception replaning Quartz-Trigger.", e);
     }
@@ -81,7 +81,7 @@ public class QuartzSchedulerBean {
         // player.tracker.sendMessage(current);
         messageToTrackerStatus(current);
         player.tracker.sendTrackerStatus();
-        logger.info(
+        logger.debug(
             "Sent TrackPoint( {} ) for tracker {}, timestamp: {}",
             player.nextIndex,
             player.tracker.getUniqueId(),

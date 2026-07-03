@@ -1,0 +1,393 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+
+= Implementation
+
+After reviewing the components and outlining a Real Time Scenario + 
+we can now _combine the components_ to a Real Time Application.
+
+
+== `RealTimeAppService`
+
+The following figure focuses on the `traccar-realtime-app` project. +
+It forms a layer between the Traccar GTS and the Real Time Scenario, being any custom application.
+
+
+[mermaid, target="traccar-realtime-app", title="Real Time Application projects", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}']
+....
+graph BT
+ 
+    subgraph RS [Realtime Scenario] 
+    end 
+
+    subgraph RT [traccar-realtime-app] 
+        DEV@{ shape: processes, label: "<b>Send</b> Real Time Data .<br> /bm-tracker <br> gps-osmand-tracker" }
+        subgraph TRC [traccar-realtime-client .]
+            API[Server <b>Admin</b> <br> traccar-api-client]
+            RTC[<b>Receive</b> Real Time Data . <br> WebSocketRoute <br> EntityMapper <br> RealTimeController]
+        end
+    end 
+    style TRC fill:#bcd6f6
+    
+    RS   <-->  RT
+    
+    subgraph TS [Traccar GTS .] 
+        DCS[DCS .] 
+        REST[REST .] 
+        WS[Websocket] 
+    end 
+    
+    RT    <-->  TS
+
+    subgraph TRA [Traccar Trackers .] 
+    end 
+
+    TS   <-->  TRA    
+
+    subgraph UI [Traccar UI / Map / Admin ] 
+    end 
+
+    TS   <-->  UI    
+....
+
+
+The Spring `@Service RealTimeAppService` combines functionality from 
+the three main RealTimeApp components RealTimeController, Api, and TrackerRegistration.
+It provides a single entry point for the Real Time Application to interact 
+with the Traccar GTS and the Real Time Scenario with higher level operations and abstractions.
+
+
+=== Architecture Notes
+
+The service follows these design principles:
+
+*Composition over Inheritance* - Combines functionality from multiple components +
+*High-level Abstractions* - Hides complexity of coordinating multiple APIs +
+*Consistent Error Handling* - Uses logging and exceptions appropriately +
+*Extensibility* - Placeholder methods for future features +
+*Type Safety* - Uses strongly-typed DTOs and helper classes
+
+**Reduced Boilerplate** - No need to coordinate multiple components manually +
+**Better Testing** - Easier to test complex workflows +
+**Maintainability** - Centralized business logic +
+**Extensibility** - Easy to add new combined operations
+
+
+=== Key Features
+
+- Device and Tracker Operations (create, delete, batch operations)
+- User and Permission Management (create users, assign devices, manage permissions)
+- Query Operations (lookup devices, trackers, users)
+- Placeholder methods for future features (latency measurement, hiding operations)
+
+
+==== Device & Tracker ops
+
+We must distingish between Device and Tracker semantics. +
+A `Device` is a Traccar entity that _represents_ a physical or simulated GPS Tracker. +
+Let's look at typical use case in a sales team:
+
+- Your company has a fleet of vehicles for their sales team.
+- A new employee will start next week and will be assigned a company car.
+- You need to create a new Device in Traccar for the new employee's car.
+
+At this point the new Device in Traccar is merely an account to store some vehicle data. +
+What is missing is the actual Tracker to be placed in the car for continous tracking. +
+In Real Time Application terms, the Device is an entity on server side, +
+while the Tracker is a client component that sends data to the GTS' DCS in a separate protocol.
+
+What actually combines and unites Device and Tracker is the `uniquId`.
+
+Hardware Devices with a SIM card usually provide an `IMEI` that can be used.
+Once the server Device gets the `uniquId` of the Tracker in the field,
+it will be tracked 24/7 regardless of any one logged in or not.
+
+The `RealTimeAppService` provides methods to create, delete, and manage both Devices and Trackers together. +
+Typical Device & Tracker Operations would be
+
+- `createDeviceWithTracker(name, uniqueId, model)` - Creates device on server + local tracker
+- `createDevicesWithTrackers(deviceConfigs)` - Batch creation
+- `getOrCreateTracker(uniqueId)` - Get or create tracker
+- `deleteDeviceWithTracker(deviceId)` - Remove device and tracker
+- `hasTracker(uniqueId)` - Check tracker existence
+
+Note that a tracker client is not part of a Scenario, before it sends a message to the GTS. +
+This accounts for the fact that a Scenario is composed only of the Entities in the Controller! 
+
+We can send a `ping` message to the server and check reception in the controller. +
+But if the scenario is restricted to a bounding area the tracker is still not part of it. +
+
+- [ ] Therefor we need to define a clean `entry` and  `exit` conditions for each scenario.
+
+
+==== API ops
+
+As we expect a growing number of Entity Types for the Real Time App, +
+we can continously add methods to combine Entity operations like:
+
+- `getDevicesForUser(userId)` - Get user's devices
+- `getDeviceForTracker(uniqueId)` - Get device by tracker ID
+- `hasTracker(uniqueId)` - Check tracker status
+
+
+==== access APIs
+
+Currently the service works with different API endpoints:
+
+* *Server API* (`api.getServerApi()`) - Server configuration and settings
+* *Users API* (`api.getUsersApi()`) - User account management
+* *Devices API* (`api.getDevicesApi()`) - Device management
+* *Permissions API* (`api.getPermissionsApi()`) - User-device relationships
+
+and additional APIs can be easily be added on the fly.
+
+On a longer term we can also offer a generic API access method 
+to dynamically access any API endpoint and add a 
+`getApiForEntityType(entityType)` method to dynamically access any API endpoint.
+
+
+==== User & Permission ops
+
+All permissions are provided by the one Traccar account that we use to start the Real Time App. +
+With given permissions we can create operations like:
+
+- `createUserForDevices(userName, password, email, deviceIds)` - Create user + assign existing devices
+- `createUserWithDevices(userName, password, email, deviceConfigs)` - Create user + new devices + trackers
+- `assignDevicesToUser(userId, deviceIds)` - Add device permissions
+- `unassignDevicesFromUser(userId, deviceIds)` - Remove device permissions
+
+
+==== nice2have ops
+
+Inside the Real Time App we can use a lot of live information combined.
+For example we can use a message from a Tracker software client 
+to determine the latency of the app:
+
+- `measureMessageLatency(uniqueId, message)` - Measure tracker-to-controller latency
+- `measureRoundTripLatency(uniqueId, timeoutMs)` - Full round-trip measurement
+
+And we can design some methods to be used inside a Scenario:
+
+- `hideUser(userId)` - Hide user and remove permissions
+- `hideDevice(deviceId)` - Hide device from all users
+
+
+=== `RealTimeAppServiceIT`
+
+In `RealTimeAppServiceIT` you will find the usage  of the above listed methods. +
+More will be added as we continue to implement the Real Time Application.
+
+
+
+== `RealTimeAppContext`
+
+After the initial design of the `RealTimeAppService` we still need a way 
+to provide the APIs to a Scenario not being a part of the Real Time Library.
+Even without knowing the Real Time Scenario to integrate into.
+So we'll provide a `RealTimeAppContext` as a complete abstraction  
+that can be used to access the `RealTimeAppService` from any Scenario.
+
+
+=== Architecture Impact
+
+The `RealTimeAppContext` should provide
+
+**Low-level Components** (RealTimeController, Api, TrackerRegistration) +
+   - Direct access when fine-grained control is needed
+   
+**High-level Service** (RealTimeAppService) +
+   - Convenient methods combining multiple components +
+   - Reduces boilerplate in scenario code
+   
+**Flexibility** +
+   - use whichever approach fits the needs +
+   - and mix approaches as needed
+
+
+=== Context Usage
+
+[NOTE]
+====
+The `RealTimeAppContext` is a singleton that can be accessed from any Scenario +
+to provide a single entry point to everything we created +
+in the `bm-traccar` and `bm-tracker` branches. 
+====
+
+Since we cannot expect a Sceario to be a Spring Boot application, 
+we need to provide a way to access the `RealTimeAppService` from any Scenario.
+Let's look at a plain Java Scenario, 
+which is created by the good old constructor `new Scenario()`. +
+This Scenario _is not_ a Spring Bean! +
+Therefore, `@Autowired` does not work in scenario class  
+and this pattern will cause a `NullPointerException`
+
+[source,java]
+----
+    public class Scenario {
+      @Autowired private RealTimeAppService appService;  // ❌ Won't work!
+      
+      public void initScenario() throws Exception {
+        appService.createDeviceWithTracker(...);  // ❌ NullPointerException!
+      }
+    }
+----
+
+The correct way to access the `RealTimeAppService` is to use the `RealTimeAppContext`:
+[source,java]
+----
+    public class Scenario {
+        protected RealTimeAppContext context;
+        
+        public void setContext(RealTimeAppContext context) {
+          this.context = context;
+        }
+        
+        public void initScenario() throws Exception {
+            // Access components via context
+            context.getAppService().createDeviceWithTracker(...);  // ✅ Works!
+            context.getApi().getUsersApi().createUser(...);
+            context.getRealTimeController().getAllDevices();
+            context.getTrackerRegistration().registerTracker(...);
+        }
+----
+
+Before we are heading to a first Scenario implementation, 
+we need to provide a way to start the `RealTimeAppService`
+(with sub beans) in a Spring Boot application.
+
+
+== `RealTimeAppRunner`
+
+The `org.springframework.boot.ApplicationRunner` interface is used to indicate 
+that a bean should run when it is contained within a SpringApplication. 
+That is a great entry point exactly after Spring Boot has started and all beans are initialized. 
+So let's define the starting point of each `RealTimeApp`
+
+
+[source,java]
+----
+    @Component
+    public class RealTimeAppRunner implements ApplicationRunner {
+
+      @Override
+      public void run(ApplicationArguments args) throws Exception {
+    
+        loginRealTimeAdmin(); // implies controller.loginAndInitialize(realtimeAdmin)
+    
+      }
+----
+
+and use it to login (and initialize) with our existing Traccar Admin.
+
+
+== RealTimeApp Architecture
+
+The following diagram shows the complete RealTimeApp architecture 
+with all components and their relationships:
+
+[mermaid, target="rt-app-arch", title="RealTimeApp Architecture", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}']
+....
+graph BT
+ 
+    subgraph SCN [Realtime Scenario]
+    end
+
+    subgraph APP [RealTimeApp Spring Boot .]
+        RUNNER[RealTimeAppRunner .]
+        CONTEXT[RealTimeAppContext .]
+        SERVICE[RealTimeAppService .]
+        CTRL[RealTimeController .]
+        APICLI[Api .]
+        TRACKREG[TrackerRegistration .]
+    end
+    style APP fill:#bcd6f6
+    
+    SCN   <-->  APP
+    
+    subgraph SERVER [Traccar GTS .]
+        WSS[WebSocket .]
+        RESTAPI[REST API .]
+        DCSPROT[DCS Protocol .]
+    end
+    
+    APP    <-->  SERVER
+....
+
+=== Component Responsibilities
+
+The RealTimeApp architecture consists of six main components organized in layers:
+
+==== Entry Layer
+
+*RealTimeAppRunner* (`@Component`, implements `ApplicationRunner`) +
+- Entry point that runs after Spring Boot initialization +
+- Initializes the RealTimeAppService +
+- Performs login with Traccar Admin credentials +
+- Sets up the initial application state
+
+==== Foundation Layer (Low-Level Components)
+
+*RealTimeController* +
+- Handles WebSocket communication with Traccar GTS +
+- Receives real-time updates (devices, positions, events) +
+- Maintains live state of all tracked entities +
+- Provides query methods for real-time data
+
+*Api* (`traccar-api-client`) +
+- Wrapper for Traccar REST API +
+- Provides typed access to all Traccar entities +
+- Methods: `getUsersApi()`, `getDevicesApi()`, `getServerApi()`, `getPermissionsApi()` +
+- Handles authentication and error handling
+
+*TrackerRegistration* (`bm-tracker`) +
+- Creates and manages GPS tracker instances +
+- Configures tracker protocols (OsmAnd, etc.) +
+- Handles device-to-server communication +
+- Manages tracker lifecycle (register/unregister)
+
+==== Service Layer
+
+*RealTimeAppService* (`@Service`) +
+- *Composition Pattern* - Combines the three foundation components +
+- *High-Level Operations* - Provides convenient methods like: +
+** `createDeviceWithTracker()` - Creates server device + local tracker +
+** `createUserWithDevices()` - *Creates user + devices + trackers* +
+** `assignDevicesToUser()` - Manages permissions +
+- Reduces Boilerplate* - One method call instead of coordinating multiple APIs +
+- *Consistent Error Handling* - Unified exception handling
+
+==== Access Layer
+
+*RealTimeAppContext* (Singleton) +
+- *Bridge Pattern* - Connects Spring Boot components to non-Spring scenarios +
+- *Facade Pattern* - Single access point for all components +
+- Provides methods: +
+** `getAppService()` - Access high-level operations +
+** `getRealTimeController()` - Direct WebSocket access +
+** `getApi()` - Direct REST API access +
+** `getTrackerRegistration()` - Direct tracker management
+
+==== Component Relationships
+
+[source,text]
+----
+Scenario (non-Spring)
+    └─→ RealTimeAppContext (access point)
+         ├─→ RealTimeAppService (high-level ops)
+         │    ├─→ RealTimeController (WebSocket)
+         │    ├─→ Api (REST API)
+         │    └─→ TrackerRegistration (Trackers)
+         ├─→ RealTimeController (direct access)
+         ├─→ Api (direct access)
+         └─→ TrackerRegistration (direct access)
+
+Spring Boot Startup
+    └─→ RealTimeAppRunner (entry point)
+         ├─→ initialize RealTimeAppService
+         └─→ login via Api
+----
+
+
+
+

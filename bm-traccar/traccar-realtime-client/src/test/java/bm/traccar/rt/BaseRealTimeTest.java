@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Base class for integration tests using Spring Boot. This class provides a common setup and
@@ -20,21 +21,23 @@ import org.springframework.test.context.ContextConfiguration;
  * <p>An abstract base class for Spring Boot Camel integration tests.
  *
  * <p>This class provides the necessary setup to initialize a Spring ApplicationContext that scans
- * for components, services, and Camel routes in specified packages, which is necessary when
- * no @SpringBootApplication class is present.
+ * for components, services, and Camel routes in specified packages, which is necessary when no
+ * {@code @SpringBootApplication} class is present.
  *
- * <p>It disables JMX for faster test execution and provides pre-configured Camel test utilities
- * like CamelContext and ProducerTemplate.
+ * <p>Uses explicit configuration instead of @SpringBootApplication to test library components in
+ * isolation. This is a SLICE TEST that only loads RealTimeManager and API components, without the
+ * full RealTimeClient infrastructure (no Camel, no WebSocket, no Controller).
  */
-@SpringBootTest // (classes = BaseRealTimeTest.TestConfig.class)
+@SpringBootTest
 @ContextConfiguration(
     classes = {
+      RealTimeManager.class, // Only the state manager, not the full RealTimeConfig
       ApiService.class,
       ApiConfig.class,
       ScenarioLoader.class,
-      ScenarioConfig.class,
-      RealTimeManager.class
+      ScenarioConfig.class
     })
+@TestPropertySource(locations = "classpath:test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseRealTimeTest {

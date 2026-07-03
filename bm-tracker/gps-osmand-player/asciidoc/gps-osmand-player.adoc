@@ -130,7 +130,7 @@ The `gps-osmand-tracker` component is designed to be fed with position updates. 
 The `gps-osmand-player` is a software that can read position updates from 'sources', + 
 tranform them into the format `MessageOsmand` and feed them into one or more `gps-osmand-tracker`.
 
-[mermaid]
+[mermaid, source-player-tracker]
 ....
 flowchart LR
   subgraph Sources[Track Sources]
@@ -139,8 +139,8 @@ flowchart LR
     EXT[Other Sources]
   end
 
-  PARSER[GpxToMessageOsmandParser]
-  TIMER[PlayerTimerRoute\nQuartzSchedulerBean]
+  PARSER[ETL2MessageOsmandParser]
+  TIMER[PlayerTimerRoute\n QuartzSchedulerBean]
 
   subgraph Trackers[gps-osmand-tracker Instances]
     T1[Tracker #1]
@@ -192,7 +192,7 @@ The main cycle is
 
 
 
-[mermaid]
+[mermaid, player-itest-dev]
 ....
 flowchart TB
   subgraph L1[Layer 1 - Mediation Layer]

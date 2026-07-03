@@ -22,17 +22,13 @@ public interface Api {
   // authentication and other ApiClient methods
   void setBasicAuth(String mail, String password);
 
-  // String whoAmI() - mail/name and password
   HttpBasicAuth getBasicAuth();
 
   void setBearerToken(String token);
 
   void setBasePath(String host);
 
-  // apiClient.getAuthentication();
-  // apiClient.getUsername(); // mail
-  // apiClient.getPassword(); // password
-  //    return session with mail, if set
+  String whoIsAuthenticated();
 
   Api.Server getServerApi();
 

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @CamelSpringBootTest
@@ -30,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
       SessionManager.class,
       DeviceProcessor.class
     })
+@TestPropertySource(locations = "classpath:test.properties")
 // DOES NOT extend BaseReaTimeScenarioTest
 // no server required (IT), only CBR unit test
 public class WebSocketMessageTest {

@@ -68,9 +68,9 @@ public class WebSocketRoute extends RouteBuilder {
             ex -> {
               ex.getIn().setHeader("bm.emptyBody", isEmptyPayload(ex.getIn().getBody()));
             })
+        .log(LoggingLevel.DEBUG, "process json message: ${body}")
         .choice()
         // ===== JSON parsing
-        .log(LoggingLevel.DEBUG, "process json message: ${body}")
 
         // ===== empty message: use computed header
         .when(header("bm.emptyBody").isEqualTo(true))

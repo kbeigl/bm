@@ -325,7 +325,7 @@ Finally the server is restored and the messages are sent successfully :)
 We are using two frameworks to take care of `@Autowired` Spring components and Camel routes. +
 The general constellation for all trackers (to come) looks like this
 
-[mermaid]
+[mermaid, tracker-spring-wiring]
 ....
 graph TD
   subgraph bm.gps
@@ -358,7 +358,7 @@ Each one can be looked up in the `Registration` to send `Messages` with the `Tra
 
 sending a GPS snapshot
 
-[mermaid]
+[mermaid, tracker-sending-seq]
 ....
 sequenceDiagram
   participant Client as Application
@@ -372,9 +372,9 @@ sequenceDiagram
   Reg-->>Server: OK
   Server->>Sender: enqueue/send MessageOsmand
   Sender->>External: HTTP GET/POST MessageOsmand.toString()
-  External-->>Sender: 200 OK
+  External-->>Sender: 200 OK / ACK
   Sender-->>Server: delivery status
-  Server-->>Client: 200 OK
+  Server-->>Client: 200 OK / ACK
 ....
 
 Register a number of Trackers in your application and send messages whenever appropriate.

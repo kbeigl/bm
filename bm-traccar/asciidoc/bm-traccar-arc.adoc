@@ -28,7 +28,7 @@ This diagram shows the runtime flow from REST API calls to real-time event proce
 // this works
 // box rgb(255, 255, 222) bm-traccar
  
-[mermaid]
+[mermaid, traccar-seq-diagram]
 ....
 %%{init: {'themeVariables': { 'sequenceNumberColor': '#000', 'actorLineColor': '#333' }}}%%
 sequenceDiagram

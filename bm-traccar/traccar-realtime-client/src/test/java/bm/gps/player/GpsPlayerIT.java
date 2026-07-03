@@ -35,18 +35,15 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
 
     // do not play all messages at once. Only start playback.
     assertThat(player.playOsmAndTrack()).isTrue();
-    // investigate:
+    // investigate traccar:
     // first message is sent and device is showing online in the Tracking System Frontend.
     // But position is not showing until second message arrives two minutes later. !?
 
+    // send single message and end test
     Position pos = awaitPositionForDevice(deviceId, 8000L);
     assertNotNull(pos, "Position not available in controller after GPX sample processing");
     assertThat(pos.getDeviceId()).isEqualTo(deviceId);
     assertThat(pos.getId()).as("Latest position should have a persisted id").isGreaterThan(0L);
-
-    // sleep(120000); // almost 2 minutes from first to second message in the GPX file
-
-    // tbc
   }
 
   @Test
@@ -70,7 +67,8 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
       assertThat(player.playOsmAndTrack()).isTrue();
     }
 
-    // sleep(600000);
+    // put sleep to 10 minutes or more to observe scenario (in Tracking System Frontend).
+    sleep(10);
 
     // rest is verification and assertions ----------------
     //    for (PlayerOsmAnd player : allPlayers) {

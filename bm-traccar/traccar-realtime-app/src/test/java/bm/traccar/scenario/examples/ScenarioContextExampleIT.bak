@@ -1,0 +1,140 @@
+package bm.traccar.scenario.examples;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import bm.traccar.generated.model.dto.Device;
+import bm.traccar.generated.model.dto.User;
+import bm.traccar.rtapp.RealTimeAppService;
+import bm.traccar.scenario.BaseScenarioTest;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Example integration test demonstrating how to use RealTimeAppService through ScenarioContext.
+ *
+ * <p>This test shows how scenario tests can leverage the high-level RealTimeAppService methods
+ * instead of manually coordinating the three main components (Controller, Api,
+ * TrackerRegistration).
+ */
+public class ScenarioContextExampleIT extends BaseScenarioTest {
+  private static final Logger logger = LoggerFactory.getLogger(ScenarioContextExampleIT.class);
+
+  @Test
+  void testUsingAppServiceFromScenarioContext() throws Exception {
+    logger.info("\n********** testUsingAppServiceFromScenarioContext() **********");
+
+    // Given: Initialize the controller with admin
+    controller.loginAndInitialize(admin);
+
+    // When: Access RealTimeAppService through ScenarioContext
+    RealTimeAppService appService = scenarioContext.getAppService();
+    assertNotNull(appService, "RealTimeAppService should be available in ScenarioContext");
+
+    // Then: Use the service to create a device with tracker
+    Device device =
+        appService.createDeviceWithTracker("Context Test Device", "ctx-device-001", "TestModel");
+
+    // Cleanup
+    appService.deleteDeviceWithTracker(device.getId());
+    assertFalse(appService.hasTracker("ctx-device-001"));
+
+    logger.info("✓ Successfully used RealTimeAppService from ScenarioContext");
+  }
+
+  @Test
+  void testCreateScenarioWithAppService() throws Exception {
+    logger.info("\n********** testCreateScenarioWithAppService() **********");
+
+    // Given: Initialize the controller
+    controller.loginAndInitialize(admin);
+    RealTimeAppService appService = scenarioContext.getAppService();
+
+    // When: Create a complete scenario (user with devices and trackers) using appService
+    List<RealTimeAppService.DeviceConfig> deviceConfigs =
+        Arrays.asList(
+            new RealTimeAppService.DeviceConfig(
+                "Scenario Runner", "scenario-runner-001", "Android"),
+            new RealTimeAppService.DeviceConfig(
+                "Scenario Chaser", "scenario-chaser-001", "iPhone"));
+
+    User scenarioUser =
+        appService.createUserWithDevices(
+            "scenariouser", "scenario123", "scenario@example.com", deviceConfigs);
+
+    // Then: Verify the scenario is set up correctly
+    assertNotNull(scenarioUser);
+    assertEquals("scenariouser", scenarioUser.getName());
+
+    assertTrue(appService.hasTracker("scenario-runner-001"));
+    assertTrue(appService.hasTracker("scenario-chaser-001"));
+
+    var runnerDevice = appService.getDeviceForTracker("scenario-runner-001");
+    var chaserDevice = appService.getDeviceForTracker("scenario-chaser-001");
+
+    assertTrue(runnerDevice.isPresent());
+    assertTrue(chaserDevice.isPresent());
+
+    // Cleanup
+    api.setBearerToken(virtualAdmin);
+    appService.deleteDeviceWithTracker(runnerDevice.get().getId());
+    appService.deleteDeviceWithTracker(chaserDevice.get().getId());
+    api.getUsersApi().deleteUser(scenarioUser.getId());
+
+    logger.info(
+        "✓ Successfully created and cleaned up a complete scenario using RealTimeAppService");
+  }
+
+  @Test
+  void testAccessComponentsThroughContext() throws Exception {
+    logger.info("\n********** testAccessComponentsThroughContext() **********");
+
+    // ScenarioContext provides access to all components
+    assertNotNull(
+        scenarioContext.getRealTimeController(), "RealTimeController should be available");
+    assertNotNull(scenarioContext.getApi(), "Api should be available");
+    assertNotNull(
+        scenarioContext.getTrackerRegistration(), "TrackerRegistration should be available");
+    assertNotNull(scenarioContext.getAppService(), "RealTimeAppService should be available");
+
+    // The components are the same instances used throughout the application
+    assertSame(controller, scenarioContext.getRealTimeController());
+    assertSame(api, scenarioContext.getApi());
+
+    logger.info("✓ All components accessible through ScenarioContext");
+  }
+
+  @Test
+  void testMixingDirectAndServiceApproaches() throws Exception {
+    logger.info("\n********** testMixingDirectAndServiceApproaches() **********");
+
+    // Initialize
+    controller.loginAndInitialize(admin);
+    RealTimeAppService appService = scenarioContext.getAppService();
+
+    // Approach 1: Use the high-level service for quick device + tracker creation
+    Device device1 = appService.createDeviceWithTracker("Quick Device", "quick-001", "Model1");
+
+    // Approach 2: Use the API directly for more control
+    Device device2 = new Device();
+    device2.setName("Manual Device");
+    device2.setUniqueId("manual-001");
+    device2.setModel("Model2");
+    Device createdDevice2 = scenarioContext.getApi().getDevicesApi().createDevice(device2);
+
+    // Then manually register tracker
+    scenarioContext.getTrackerRegistration().registerTracker("manual-001");
+
+    // Both approaches work - verify
+    assertTrue(appService.hasTracker("quick-001"));
+    assertTrue(appService.hasTracker("manual-001"));
+
+    // Cleanup using the service (works for both!)
+    appService.deleteDeviceWithTracker(device1.getId());
+    appService.deleteDeviceWithTracker(createdDevice2.getId());
+
+    logger.info("✓ Successfully mixed direct API and service approaches");
+  }
+}

@@ -30,7 +30,7 @@
 
     <groupId>bm</groupId>
     <artifactId>bm-sim</artifactId>
-    <version>1.1.24</version>
+    <version>1.1.25</version>
     <packaging>pom</packaging>
 
     <name>=== blue marble simulations               ===</name>
@@ -59,16 +59,28 @@
         <!-- os-maven-plugin-version>1.6.0</os-maven-plugin-version -->
         <!-- always generate new maven wrapper version! -->
         <!-- lower version for github and eclipes m2e -->
+
+        <!-- ${java.runtime.version} and requireJavaVersion -->
+        <jdk.version>21</jdk.version>
+        <maven.compiler.source>${jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${jdk.version}</maven.compiler.target>
+        
         <maven-minimum-version>4.0.0-rc-5</maven-minimum-version>
-        <maven-enforcer-plugin-version>3.6.2</maven-enforcer-plugin-version>
-        <maven-clean-plugin-version>3.5.0</maven-clean-plugin-version>
-        <maven-install-plugin-version>3.1.4</maven-install-plugin-version>
-        <maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
+        <maven-compiler-plugin-version>3.15.0</maven-compiler-plugin-version>
+        <maven-enforcer-plugin-version>3.6.3</maven-enforcer-plugin-version>
+
+        <maven-clean-plugin-version>4.0.0-beta-2</maven-clean-plugin-version>
+        <maven-install-plugin-version>4.0.0-beta-2</maven-install-plugin-version>
+        <maven-deploy-plugin-version>4.0.0-beta-2</maven-deploy-plugin-version>
+
         <maven-resources-plugin-version>3.5.0</maven-resources-plugin-version>
-        <maven-compiler-default-plugin-version>3.15.0</maven-compiler-default-plugin-version>
         <maven-jar-plugin-version>3.5.0</maven-jar-plugin-version>
+        <maven-surefire-plugin-version>3.6.0-M1</maven-surefire-plugin-version>
+        <maven-failsafe-plugin-version>3.6.0-M1</maven-failsafe-plugin-version>
+        <maven-source-plugin-version>3.4.0</maven-source-plugin-version>
+        <maven-javadoc-plugin-version>3.12.0</maven-javadoc-plugin-version>
+        
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- <bm.project.root>${maven.multiModuleProjectDirectory}</bm.project.root> -->
     </properties>
 
     <modules>
@@ -104,7 +116,7 @@
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-compiler-plugin</artifactId>
-                  <version>${maven-compiler-default-plugin-version}</version>
+                  <version>${maven-compiler-plugin-version}</version>
               </plugin>
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>

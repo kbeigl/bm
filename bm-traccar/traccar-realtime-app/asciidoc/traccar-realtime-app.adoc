@@ -1,0 +1,187 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+
+= GTS Real Time Application
+
+After developing several independent components we can put them all together 
+to compile a Real Time Application with them.
+With a Real Time Application we can control and interact with a Realtime Scenario. 
+
+
+== milestone
+
+Please read the  
+xref:../milestone/bm-traccar-milestone.adoc[milestone]
+for the bm-traccar and bm-tracker branches
+to get a wrap-up of the current state of development and 
+about the next development steps to a Real Time Application.
+You can also find a general Real Time Application Structure listing the Traccar Components 
+and the Real Time Components in the milestone document.
+And you can read how to integration test Components during development.
+
+
+== `bm` Components
+
+After reading the milestone document you should have a good understanding of the a Real Time Application.
+As we progress we can abstract the Real Time Components more and more.
+The following figure focuses on the projects and some major classes of the coming `traccar-realtime-app` project.
+
+// actually this diagram should be changed to TB for better readability
+
+[mermaid, target="traccar-realtime-app", title="Real Time Application projects", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}']
+....
+graph BT
+ 
+    subgraph RS [Realtime Scenario] 
+    end 
+
+    subgraph RT [traccar-realtime-app] 
+        direction LR
+        subgraph TRC [traccar-realtime-client .]
+                API[<b>Control</b>  Server <br> traccar-api-client]
+                RTC[<b>Receive</b> Real Time Data . <br> WebSocketRoute <br> EntityMapper <br> RealTimeController]
+            end
+        subgraph TR [<b>Send</b> Real Time Data .]
+            DEV@{ shape: processes, label: "/bm-tracker <br> gps-osmand-tracker" }
+        end
+    end 
+    style TR fill:#bcd6f6
+    style TRC fill:#bcd6f6
+    
+    RS   <-->  RT
+    
+    subgraph TS [Traccar GTS .] 
+        DCS[DCS .] 
+        REST[REST .] 
+        WS[Websocket] 
+    end 
+    
+    RT    <-->  TS
+
+    subgraph TRA [Traccar Trackers .] 
+    end 
+
+    TS   <-->  TRA    
+
+    subgraph UI [Traccar UI / Map / Admin ] 
+    end 
+
+    TS   <-->  UI    
+....
+
+The next task is to create a code structure of the bottom `traccar-realtime-app` box with the listed `bm` classes and projects.
+
+
+== `rt-app` Functionality
+
+First it is important to note that the `traccar-realtime-app` box is split into two parts. 
+One part is the `Send Real Time Data` part, referring to the `bm-tracker` projects.
+The other part is the `traccar-realtime-client` project, which is subdivided into the
+`Receive Real Time Data` part and the `Control Server` part, referring to the `traccar-api-client` project.
+But that does not reflect the full functionality of the `traccar-realtime-app`!
+
+At the top of the figure you can see the `Traccar Trackers`, which refers to the regular use of a GTS.
+If, for example, you manage your fleet with Traccar and sophisticated OBD trackers.
+In this case you won't need the `Send Real Time Data` part. 
+You can use the real time app to observe and directly control your fleet with the `Receive Real Time Data` part.
+
+By using simulated trackers in conjunction with the `Traccar Trackers` you can actually create a mixed reality scenario.
+Virtual devices are augmented with real devices, while Traccar is not aware of the difference. + 
+That is the original idea of the ROAF!
+
+
+== Realtime Scenario
+
+Note that the `traccar-realtime-app` is not a real time scenario itself,
+which is clearly separated in the figure above.
+We are already using a 
+xref:../traccar-api-client/scenario.adoc[Traccar Scenario]
+to test `traccar-api-client` functionality.
+
+So let's define a *Traccar Realtime Scenario* as a solid guideline
+
+- *A Scenario is always live*, i.e. _happening now_, and can be observed in real time. 
+
+- The core of a *Traccar Realtime Scenario* is composed of a set of Tracking Devices registered in a Traccar GTS. 
+ 
+- The Tracking Devices can be either real or simulated devices, but *can not be distiguished by the GTS*.
+
+- Each Scenario *must have _one_ registered Traccar User*, which is used to access the GTS and the Tracking Devices. +
+  The Scenario can see everything that this one Traccar User can see.
+  Administration and permission management is done by this one Traccar User - programmatically or manually via Traccar Frontend.
+
+- In addition a Scenario _can have_ a set of *Scenario Users*, which can access their own Tracking Devices.
+
+- and a Scenario can make use of any Traccar GTS functionality, e.g. Geofences, Notifications, etc.
+
+- a Scenario can be *open* or *closed*, i.e. it can be open to the public or closed to a specific group of users.
+
+- a Scenario can have a *timeframe*, i.e. it can be limited to a specific start and end time, or it can be open-ended.
+
+- a Scenario can be restricted a *bounding area*, i.e. it can focus on a certain area. +
+  This area can be defined by a Geofence or by a set of coordinates (polygon). +
+  It could be a city- or a country polygon or even the whole world. 
+
+
+=== Registration of a Scenario
+
+After knowing the definition of a *Traccar Realtime Scenario* we need to know how to register a Scenario in a Traccar GTS.
+Technically we need to register the Scenario Manager _before_ we run the `traccar-realtime-app`,
+which is a measure of precaution to avoid any security issues on Traccar side. 
+
+Afterwards we can register Devices, Users, Geofences and other traccar Entities for the Scenario User.
+Then we can start the `traccar-realtime-app` and programmatically 
+register (and unregister) the Scenario in the GTS with the `traccar-api-client`. 
+
+The `traccar-realtime-client` is always kept in sync with the GTS, 
+so that every registration and receiving of real time data is reflected
+and serves as a validation and verification of the Scenario.
+
+The registration _controls the population_ of the Scenario and implies the server load.
+
+==== open registration: BUELL
+
+In the `traccar-realtime-client` you can find the `ScenarioIT` test class, as a good example of an open registration of a Scenario.
+The test class shows how to setup and teardown a full scenario for realtime client integration tests.
+The `BaseRealTimeClientTest` class runs the actual `RealTimeClient` application with full context for testing.
+
+The test execution flow is as follows:
+
+. The `BaseRealTimeClientTest.setup()` method is called once before all tests. 
++
+--
+It uses a `ScenarioLoader` to set up all required Traccar entities (Users, Devices, etc.) via the Traccar API.
+Afterwards it logs in the `RealTimeController` with the scenario's admin user and initializes the WebSocket connection to receive live data.
+--
+. The `BaseGpsTrackerIT.registerScenarioTrackers()` method is called.
++
+--
+This method registers and creates `TrackerOsmAnd` instances for each device defined in the scenario. These trackers are responsible for sending GPS data.
+--
+. The `ScenarioIT.startAllPlayers()` method is called.
++
+--
+It creates a `PlayerOsmAnd` for each tracker and loads a GPX file containing the track data.
+Then it starts the playback for all players, which begin to send GPS positions to the Traccar server, simulating live tracking.
+--
+. The actual test methods in `ScenarioIT` are executed (currently commented out), which can be used to run the scenario for a specific duration.
+. After all tests are finished, the teardown process begins:
+. The `ScenarioIT.stopAllPlayers()` method stops all `PlayerOsmAnd` instances.
+. The `BaseGpsTrackerIT.unregisterScenarioTrackers()` method unregisters all the `TrackerOsmAnd` instances.
+. Finally, the `BaseRealTimeClientTest.teardown()` method is called.
++
+--
+It tears down the scenario by deleting all created Traccar entities via the API and shuts down the `RealTimeController`, closing the WebSocket connection.
+--
+
+This entire process demonstrates a complete, open registration scenario where devices are created, tracked, and then cleaned up, all orchestrated through the integration test setup.
+
+After this wrap up of the functionality we have a lot of integration test code, 
+which is a good starting point for implementing the `traccar-realtime-app` project.
+
+include::rt-app-implementation.adoc[]
+
+include::rt-app-itesting.adoc[]
+
+

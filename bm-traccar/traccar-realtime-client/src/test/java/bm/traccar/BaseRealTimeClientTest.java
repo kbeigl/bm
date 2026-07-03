@@ -3,6 +3,7 @@ package bm.traccar;
 import bm.gps.tracker.TrackerOsmandConfig;
 import bm.traccar.api.ApiException;
 import bm.traccar.api.scenario.ScenarioLoader;
+import bm.traccar.rt.RealTimeConfig;
 import bm.traccar.rt.RealTimeController;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,11 +20,11 @@ import org.springframework.test.context.ActiveProfiles;
  * Base class for integration tests provides setup and teardown of a full scenario for realtime
  * client integration tests.
  *
- * <p>This class runs the actual RealTimeClient application with full context for testing. Only the
- * RealTimeClient.run method is skipped in tests, i.e. @ActiveProfiles("test").
+ * <p>This class uses RealTimeConfig (not RealTimeClient) to load the library configuration for
+ * testing. The RealTimeClientRunner is skipped in tests via @ActiveProfiles("test").
  */
 @SpringBootTest(
-    classes = RealTimeClient.class,
+    classes = RealTimeConfig.class,
     properties = "logging.config=classpath:logback-test.xml")
 @Import(TrackerOsmandConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

@@ -1,0 +1,117 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+
+= RTApp Integration Testing
+
+The `traccar-realtime-app` project marks a fundamental milestone of the Real Time Application development.
+For development with integration testing we created the IT test project `RealTimeAppIT`, 
+which needs more effort to set up and run than the unit tests.
+We want the test to be as close to running the `RealTimeApp` from the command line as possible.
+
+== static server setup
+
+We have defined some rules to start up the Real Time Application:
+
+- in order to run the Real Time Application we need a running Traccar Server
+- the Real Time Application requires an Admin user with a valid token to access the Traccar Server 
+
+This implies that we need to create an Admin account _before_ running the Real Time Application.
+In real life we would create the Admin account by using the Traccar Web Interface.
+For testing we can create the Admin account by using the Traccar API Client with vitual admin access.
+This is a chicken-and-egg problem because we need to create the admin user before the Spring context starts. 
+It is tricky because you need Spring beans (Api, @Value properties) to create the admin
+and requires manually initializing the API client. 
+
+- [ ] validate to simply use a *static* `@BeforeAll` method 
+      to create the Admin user before Spring context starts.
+
+To achieve this we decided to use a Spring Boot `ApplicationContextInitializer` +
+to create the Admin user before the Spring context starts:
+
+```java
+  @ContextConfiguration(initializers = {RealTimeAppIT.Initializer.class})
+        
+    static class Initializer
+     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+      @Override
+      public void initialize(ConfigurableApplicationContext applicationContext) { .. }
+        initLogger.info("*** INITIALIZE BEFORE Spring context starts ***");
+            :
+    }
+```
+This way we can 'manually' access the `app.props` 
+create the Admin user before the Spring context starts.
+
+The execution order of the `Initializer` is as follows:
+
+    1. Manually loads `application.properties` (Spring hasn't started)
+    2. Manually creates `ApiClient` and `UsersApi` (no autowiring)
+    3. Creates admin `User` on Traccar server
+    4. Stores admin in static field `adminCreatedBeforeSpring`
+
+In the log output we can see the execution order 
+of the `Initializer` and the `RealTimeAppIT` test class:
+
+
+```xml
+
+ * Initializer.initialize * 
+ RealTimeAppIT$Initializer - *** INITIALIZE BEFORE Spring context starts ***
+ RealTimeAppIT$Initializer - --- Setup Admin on server BEFORE Spring context ---
+ RealTimeAppIT$Initializer - Using host: http://localhost
+ RealTimeAppIT$Initializer - Created User.id10069: admin BEFORE Spring context
+ 
+ * start RealTimeAppIT * 
+ RealTimeAppIT - Starting RealTimeAppIT using Java 21.0.11 with PID 285675
+ RealTimeAppIT - The following 1 profile is active: "test"
+ RealTimeAppIT - Started RealTimeAppIT in 2.414 seconds (process running for 3.483)
+ 
+ * @Component RealTimeAppRunner.run *
+ RealTimeAppRunner - RealTimeAppRunner started with arguments: []
+ 
+ * @BeforeAll public void setup() * 
+ RealTimeAppIT - *** INSTANCE SETUP - Running AFTER Spring context starts ***
+ RealTimeAppIT - Using admin created before Spring: admin
+ 
+ * @Test void runRealTimeApp() * 
+ RealTimeAppIT - Running RealTimeAppIT test with 'test' profile.
+ 
+ * @AfterAll public void teardown() *
+ RealTimeAppIT - Tearing down RealTimeAppIT test context.
+ RealTimeAppIT - Deleted User.id10069: admin
+```
+
+with `@Test void runRealTimeApp()` as a placeholder for one integration test.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -18,16 +18,17 @@ to simulate and process real-time location data.
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.24 
-    [INFO] --- blue marble BOM                       --- 1.1.24 
-    [INFO] ---- GPS Trackers                         --- 1.1.24 
-    [INFO] ..... gps-osmand-tracker                      1.1.24 
-    [INFO] ..... gps-osmand-player                       1.1.24 
-    [INFO] ---- Traccar 6.14.2 Clients   *UPGRADE*   --- 1.1.24 
-    [INFO] ..... traccar-openapitools-client      6.12.2 
-    [INFO] ..... traccar-api-client               6.12.2-1.1.24 
-    [INFO] ..... traccar-realtime-client          6.12.2-1.1.24 
-    [INFO] --- blue marble docs aggregator   *NEW*   --- 1.1.24
+    [INFO] === blue marble simulations               === 1.1.25 
+    [INFO] --- blue marble BOM                       --- 1.1.25 
+    [INFO] ---- GPS Trackers                         --- 1.1.25 
+    [INFO] ..... gps-osmand-tracker                      1.1.25 
+    [INFO] ..... gps-osmand-player                       1.1.25 
+    [INFO] ---- Traccar 6.14.2 Clients               --- 1.1.25 
+    [INFO] ..... traccar-openapitools-client      6.14.2 
+    [INFO] ..... traccar-api-client               6.14.2-1.1.25 
+    [INFO] ..... traccar-realtime-client          6.14.2-1.1.25 
+    [INFO] ..... traccar-realtime-app      *NEW*  6.14.2-1.1.25-beta 
+    [INFO] --- blue marble docs aggregator           --- 1.1.25 
 -----------------
 
 For earlier versions check the 
@@ -127,7 +128,7 @@ Technology Stack as of `v1.1.24`:
 |===
 
 
-=== Components used via Camel Endpoints
+=== Camel Endpoints
 
 The table below lists the common Camel (`camel-version: 4.20.0`) endpoint URI patterns used across the projects, +
 the Camel component artifact, and the underlying library version.
@@ -385,6 +386,22 @@ xref:./bm-traccar/traccar-realtime-client/traccar-rt-quickstart.adoc[Quickstart]
 to get started with the `traccar-realtime-client` and 
 find out how it can be used to connect to a Traccar server and 
 receive real-time data from it.
+
+
+=== `traccar-realtime-app`
+
+The `traccar-realtime-app` is a Java Client Software 
+to provide full (remote) control over and interact 
+via live surveillance of your Traccar Server Scenario. 
+
+This application is putting the Trackers, the Traccar API and the Traccar Client 
+together to a general real time application,
+which can be used to create a customized scenario, like a vehicle fleet.
+
+A customized model can help to improve your business by observing and controlling your vehicles.
+
+
+xref:./bm-traccar/traccar-realtime-app/traccar-realtime-app.adoc[details ...]
 
 
 == gps2gts2realtime *Milestone*

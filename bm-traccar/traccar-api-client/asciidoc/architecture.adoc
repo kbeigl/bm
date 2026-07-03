@@ -26,7 +26,7 @@ Pull driving reports for your sales team ... and much more ;)
 
 This sequence diagram illustrates how components interact at runtime for REST API calls:
 
-[mermaid]
+[mermaid, traccar-api-seq]
 ....
 %%{init: {'themeVariables': { 'sequenceNumberColor': '#000', 'actorLineColor': '#333' }}}%%
 sequenceDiagram

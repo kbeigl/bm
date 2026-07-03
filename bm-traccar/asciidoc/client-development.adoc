@@ -16,7 +16,7 @@ dockerized for automated integration testing
 
 // image::svg/bm-traccar-flow.svg[Static]
 
-[mermaid]
+[mermaid, traccar-client-dev]
 ....
 flowchart TD
     subgraph bm/

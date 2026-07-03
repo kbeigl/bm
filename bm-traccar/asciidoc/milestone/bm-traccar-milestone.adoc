@@ -1,7 +1,7 @@
 :toc: left
 :toclevels: 4
 
-= Real Time Apps 
+= Real Time Applications 
 
 
 == Proof of Concept
@@ -256,7 +256,7 @@ including the Traccar server, the real-time client, and the necessary test data.
 This class ensures that each test runs with a fresh and isolated context, 
 making it suitable for verifying the end-to-end flow from tracker data ingestion to real-time client processing.
 
-[mermaid]
+[mermaid, rt-client-test]
 ....
 flowchart LR
     BRTCT[BaseRealTimeClientTest .]
@@ -375,13 +375,6 @@ graph BT
     RTC <--> | live feedback  | WS
     
 ....
-
-=== outlook
-
-Let's head on to the next chapter to start developing the `gps-player v1.1.21`. +
-And while we're at it, we will also provide GPS files to be used for the simulations. +
-And then we will create a showcase with many motorcycle tracks, +
-which can also be used for performance testing of the real-time capabilities of the system. 
 
 
 

@@ -52,7 +52,7 @@ The idea is to _describe_ charts with the mermaid syntax
 [source,xml]
 ----
     flowchart TD
-            A --> B{"Decision"}
+            B{"Decision"}
             B --> C["Option A"]
             B --> D["Option B"]
 ----
@@ -60,10 +60,10 @@ The idea is to _describe_ charts with the mermaid syntax
 and our Maven Plugin combination of AsciiDoc and Mermaid 
 will generate html pages with SVG graphics on the fly:
 
-[mermaid]
+[mermaid, mermaid-sample-diagram]
 ....
 flowchart TD
-        A --> B{"Decision"}
+        B{"Decision"}
         B --> C["Option A"]
         B --> D["Option B"]
 ....
