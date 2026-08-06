@@ -75,13 +75,10 @@
         <docker.image.version>${traccar.version}</docker.image.version>
         <docker.image.os>ubuntu</docker.image.os>
 
-        <!-- avoid agent warning since Java 21 in surefire and failsafe testing. 
-        TODO Version should be derived from spring/camel stack!
+        <!-- avoid agent warning since Java 21 in surefire and failsafe testing.
         see
         https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
          <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine> -->
-        <mockito.version>5.20.0</mockito.version>
-
         <!-- TODO create patterns for test (PID etc) and production -->
         <!-- patterns are picked up in suefire/failsafe argLine below -->
         <!-- removed ${PID:-}, causes problems in Eclipse JUnit-->
@@ -177,7 +174,7 @@
                     <configuration>
                         <argLine>
                             -Xshare:off
-                            -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                            -javaagent:${org.mockito:mockito-core:jar}
                             -Dlogging.config=${test.logback.configuration.file}
                             <!-- -Dlogging.pattern.console=${logging.pattern.console}
                                  -Dlogging.pattern.file="${logging.pattern.file}" -->
@@ -200,7 +197,7 @@
                                     ${project.build.outputDirectory}</classesDirectory>
                                 <argLine>
                                     -Xshare:off
-                                    -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+                                    -javaagent:${org.mockito:mockito-core:jar}
                                     -Dlogging.config=${test.logback.configuration.file}
                                     <!-- -Dlogging.pattern.console="${logging.pattern.console}"
                                          -Dlogging.pattern.file="${logging.pattern.file}" -->
