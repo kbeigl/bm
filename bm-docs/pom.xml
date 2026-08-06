@@ -71,7 +71,7 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-realtime-app</artifactId>
-            <version>${traccar.version}-${project.version}</version>
+            <version>${traccar.version}-${project.version}-beta</version>
         </dependency>
     </dependencies>
 
