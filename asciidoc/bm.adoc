@@ -2,7 +2,7 @@
 
 = repo content
 
-This repository serves as development environment +
+This repository serves as development environment + 
 for the  
 link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[`The RealObject Application Framework`]
 
