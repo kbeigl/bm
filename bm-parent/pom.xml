@@ -301,6 +301,19 @@
         </pluginManagement>
 
         <plugins>
+            <!-- Resolves ${groupId:artifactId:type} properties for use in argLine
+                 (e.g. ${org.mockito:mockito-core:jar} for -javaagent in surefire) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>com.spotify.fmt</groupId>
                 <artifactId>fmt-maven-plugin</artifactId>
