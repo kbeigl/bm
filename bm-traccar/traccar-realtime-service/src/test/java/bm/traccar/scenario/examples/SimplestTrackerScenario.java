@@ -43,7 +43,7 @@ public class SimplestTrackerScenario extends Scenario {
   @Override
   public void initScenario() throws Exception {
 
-    logger.info("Creating test device as {}", context.getApi().whoIsAuthenticated());
+    logger.info("Creating test device as {}", context.getApi().getAuthentication());
     testDevice =
         context
             .getAppService()

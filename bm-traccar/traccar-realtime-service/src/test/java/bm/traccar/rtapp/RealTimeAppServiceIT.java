@@ -56,7 +56,7 @@ public class RealTimeAppServiceIT extends BaseRealTimeAppTest {
   void testCreateUserWithDevices() throws Exception {
     logger.info("\t********** testCreateUserWithDevices() **********");
     // Given: authenticate as admin
-    logger.info("Authenticated: {}", api.whoIsAuthenticated());
+    logger.info("Authenticated: {}", api.getAuthentication());
 
     // Use unique email to avoid conflicts from previous test runs
     String timestamp = String.valueOf(System.currentTimeMillis());
@@ -82,7 +82,7 @@ public class RealTimeAppServiceIT extends BaseRealTimeAppTest {
 
     // Verify devices were created by checking via API (authenticate as the new user)
     api.setBasicAuth(user.getEmail(), "pass123");
-    logger.info("Authenticated: {}", api.whoIsAuthenticated());
+    logger.info("Authenticated: {}", api.getAuthentication());
 
     List<Device> userDevices = api.getDevicesApi().getDevices();
     assertEquals(3, userDevices.size(), "User should have 3 devices");
@@ -101,7 +101,7 @@ public class RealTimeAppServiceIT extends BaseRealTimeAppTest {
     logger.info("✓ User with multiple devices and trackers created and cleaned up successfully");
 
     api.setBasicAuth(admin.getEmail(), admin.getName());
-    logger.info("Set back admin authentication: {}", api.whoIsAuthenticated());
+    logger.info("Set back admin authentication: {}", api.getAuthentication());
   }
 
   // @Test
@@ -109,7 +109,7 @@ public class RealTimeAppServiceIT extends BaseRealTimeAppTest {
     logger.info("\t********** testAssignAndUnassignDevices() **********");
 
     // Given: authenticate as admin and create user and devices
-    logger.info("Authenticated: {}", api.whoIsAuthenticated());
+    logger.info("Authenticated: {}", api.getAuthentication());
 
     String timestamp = String.valueOf(System.currentTimeMillis());
     String uniqueEmail = "assigntest" + timestamp + "@example.com";
@@ -140,19 +140,17 @@ public class RealTimeAppServiceIT extends BaseRealTimeAppTest {
     Device device1 = rtService.createDeviceWithTracker("Device A", uniqueId1, "Android");
     Device device2 = rtService.createDeviceWithTracker("Device B", uniqueId2, "iPhone");
 
-    // When: assign devices to user
-    int assignedCount =
-        rtService.assignDevicesToUser(
-            user.getId(), Arrays.asList(device1.getId(), device2.getId()));
-
-    // Then: devices should be assigned
-    assertEquals(2, assignedCount);
-
-    // When: unassign one device
-    int unassignedCount = rtService.unassignDevicesFromUser(user.getId(), List.of(device1.getId()));
-
-    // Then: device should be unassigned
-    assertEquals(1, unassignedCount);
+    //    // When: assign devices to user
+    //    int assignedCount =
+    //        rtService.assignDevicesToUser(
+    //            user.getId(), Arrays.asList(device1.getId(), device2.getId()));
+    //    // Then: devices should be assigned
+    //    assertEquals(2, assignedCount);
+    //    // When: unassign one device
+    //    int unassignedCount = rtService.unassignDevicesFromUser(user.getId(),
+    // List.of(device1.getId()));
+    //    // Then: device should be unassigned
+    //    assertEquals(1, unassignedCount);
 
     // Cleanup
     api.setBearerToken(virtualAdmin);

@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.25</version>
+        <version>1.1.26</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -41,9 +41,9 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>false</openapi.skip>
+        <openapi.skip>true</openapi.skip>
         <!-- dev mode: mvn docker:run with JUnit for ITs -->
-        <integration.tests.skip>true</integration.tests.skip>
+        <integration.tests.skip>false</integration.tests.skip>
         <!-- dev mode: save time on bm-docs project -->
         <asciidoc.process.skip>false</asciidoc.process.skip>
         <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -52,6 +52,9 @@
             ${maven.multiModuleProjectDirectory}/logback-test.xml</test.logback.configuration.file>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Default empty argLine for surefire/failsafe, can be overridden by jacoco or similar tools -->
+        <argLine></argLine>
 
         <!-- actual traccar vs sub!project version -->
         <traccar.version>6.14.2</traccar.version>
@@ -172,9 +175,8 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin-version}</version>
                     <configuration>
-                        <argLine>
+                        <argLine>@{argLine}
                             -Xshare:off
-                            -javaagent:${org.mockito:mockito-core:jar}
                             -Dlogging.config=${test.logback.configuration.file}
                             <!-- -Dlogging.pattern.console=${logging.pattern.console}
                                  -Dlogging.pattern.file="${logging.pattern.file}" -->
@@ -195,13 +197,7 @@
                                 <skipITs>${integration.tests.skip}</skipITs>
                                 <classesDirectory>
                                     ${project.build.outputDirectory}</classesDirectory>
-                                <argLine>
-                                    -Xshare:off
-                                    -javaagent:${org.mockito:mockito-core:jar}
-                                    -Dlogging.config=${test.logback.configuration.file}
-                                    <!-- -Dlogging.pattern.console="${logging.pattern.console}"
-                                         -Dlogging.pattern.file="${logging.pattern.file}" -->
-                                </argLine>
+                                <argLine>@{argLine} -Xshare:off -Dlogging.config=${test.logback.configuration.file}</argLine>
                             </configuration>
                         </execution>
                     </executions>

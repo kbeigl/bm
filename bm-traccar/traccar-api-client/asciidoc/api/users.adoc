@@ -1,0 +1,354 @@
+:toc: left
+:toclevels: 3
+:doctype: book
+
+== Users API
+
+https://www.traccar.org/user-management/[Traccar's User Management] is a complex topic 
+and we will explore the details in this section.
+
+Before using the Traccar GTS we need to create an initial Traccar Account - a Traccar `User`. +
+The `User` DTO is defined in the model `bm.traccar.generated.model.dto.User` +
+and the `UsersApi` is defined in `bm.traccar.generated.api.UsersApi`. 
+
+=== Traccar Roles
+
+see `RolesIT`
+
+Traccar's User Management distiguishes *three user roles*
+
+[quote, see https://www.traccar.org/user-management/]
+____
+Traccar user management model supports use cases from simple individual user accounts +
+to large organizations with multiple *managers, administrators* and *regular users*.
+____
+
+For integration testing against a fresh Traccar GTS we need to access the server somehow.
+Therfor we have created the `bm.traccar.api.BaseIntegrationTest`,
+which creates some basic users to be used in all API integration tests. 
+
+How does this work?
+
+
+==== `virtualAdmin`
+
+Well it is not totally correct that we need to create a Traccar Account to access the server. +
+Traccar provides a hardcoded `serviceAccount` which is used to access the server without a Traccar Account. 
+It should be used in emergency cases and for technical service, which are not part of our scenario. 
+
+[quote, see https://www.traccar.org/user-management/]
+____
+*web.serviceAccountToken* - A token to log in as a virtual admin account. 
+Can be used to restore access in case of issues with regular admin login. 
+For example, if a password is lost and can't be restored.
+____
+
+
+Therefor we have setup a `virtualAdmin`, which is predefined
+in the `traccar.xml` file with
+
+    <entry key='web.serviceAccountToken'>VIRTUAL_ADMIN_ACCESS</entry>
+
+then this value is matched in the `application.properties`
+
+    traccar.web.serviceAccountToken=VIRTUAL_ADMIN_ACCESS
+
+and we can login to the server with
+
+    api.setBearerToken(virtualAdmin);
+
+to create an Admin User defined in the prop file.
+
+===== browser validation
+
+During testing you can debug the ITests and set a breakpoint 
+before the scenario is torn down. +
+Then you can login to the Traccar frontend via browser URL
+
+    http://localhost/?token=VIRTUAL_ADMIN_ACCESS
+
+and check _and modify_ the status of users and devices interactively.
+
+[WARNING]
+====
+If you debug your ITests and stop the execution before the scenario is torn down, 
+you can login to the Traccar frontend via above listed browser URL
+and clean up the created Users and Devices manually. +
+Otherwise the subsequent test runs can easily fail, since the Users pre exist. +
+====
+
+
+==== Account
+
+The ROAF is about Tracking Devices being tracked by Traccar GTS. +
+Traccar is a multi client user system with a detailed permission structure
+that we want to use. +
+We have setup the `serviceAccount` password to access the fresh server. +
+The first step is to create a *Traccar Account* represented by the `admin User`.
+
+In the `BaseIntegrationTest` the fresh Traccar GTS is accessed with the `virtualAdmin`. +
+Then the initial `admin User` and a `regular User` are created:
+
+[source,java]
+----
+  @BeforeAll
+  public void setup() throws ApiException {
+    api.setBearerToken(virtualAdmin);            <1>
+    User user  = api.users.createUserWithCredentials(usrName, usrPw, usrMail, false);  <2>
+    User admin = api.users.createUserWithCredentials(admName, admPw, admMail, true);   <3>
+
+    // login as admin for subsequent tests ?
+    api.setBasicAuth(adminMail, adminPassword);  <4>
+  }
+----
+<1> login with the `virtualAdmin` to the fresh Traccar GTS
+<2> create a `regular User` with `createUserWithCredentials`
+<3> create an `admin User` with `createUserWithCredentials`
+<4> login with the now existing `admin User` for subsequent tests
+
+And we can always counter check the Traccar Database 
+with the `Users` table to see if the Users are created as expected. +
+
+[source,xml]
+----
+    SELECT * FROM TC_USERS;
+      ID    NAME    EMAIL           ADMINISTRATOR   DEVICE- USERLIMIT
+      20    user    user@domain.com     FALSE           0   0
+      21    admin   admin@domain.com    TRUE            0   0
+----
+
+We'll introduce the `createUser..` methods soon, but first we need to understand the Traccar User Roles.
+
+
+==== `admin`
+
+[quote, see https://www.traccar.org/user-management/]
+____
+*Admin* - superuser with full unlimited access to the whole Traccar server.
+____
+
+The admin User is created on the server straight forward with minimal attributes.
+This is the technical service administrator of the Traccar GTS,
+is not part of the scenario and has no restrictions. +
+So we can leave the `virtualAdmin` behind and log in as admin as listed above. +
+We can fetch the password from the user in the prop file,
+since passwords are not transfered from server.
+
+
+==== `manager`
+
+[quote, see https://www.traccar.org/user-management/]
+____
+*Manager* - user with extended capabilities allowing them +
+to manage 
+a subset of users and register new ones. +
+The difference between manager and regular user is in their user limit value. +
+A manager has the user limit not equals to 0.
+____
+
+We want one manager for each scenario.
+Or a game master for each game. +
+He can observe the scenario and interfere like a referee, 
+even disqualify and take devices out of the scenario.
+
+To be aware of the Traccar Roles as part of the User Management, 
+we should define an enumeration in the `Users` interface with a `getTraccarRole` method.
+This will be useful for more sophisticated API implementations hiding the intricacies of the REST API.
+Note that we are talking about the `TraccarRole` as a technical role
+and not about a role in a scenario we might define for a game. 
+
+[source,java]
+----
+  interface Users {
+      :
+    enum TraccarRole { REG_USER, MANAGER, ADMIN, VIRTUAL_ADMIN }
+    TraccarRole getTraccarRole(User user);
+      :
+----
+
+
+=== Traccar `User`
+
+see `UsersApiIT`
+
+The Traccar `User` defines the attributes of a Traccar Account. +
+The REST API provides platonic methods to create (`POST`), 
+update (`PUT`) and delete (`DELETE`) a `User`. +
+// and fetch (`GET`) a `User`.  missing in the REST API, 
+// but we can fetch a User via `GET /api/users/{id}`
+Defining interface methods and implementing them 
+in the `UsersApi` is straight forward 
+and you will find the details in the integration tests. 
+
+Creating an API interface only for basic REST operations 
+would not be worth the effort. +
+We want to turn our experiences into convenience during development.
+
+
+==== `createUser`
+
+Since Traccar defines three user roles, 
+we want to provide methods to create a User with a specific role. 
+
+[source,java]
+----
+  interface Users {
+      :
+    User createUser(User user) throws ApiException; // POST
+
+    User createUserWithCredentials   (name, pwd, mail, Bool admin);
+    User createManagerWithCredentials(name, pwd, mail, Int userLimit);
+    User createManagerWithCredentials(name, pwd, mail, Int userLimit, Int deviceLimit);
+      :
+----
+
+Note that the `createUser` method is a direct mapping 
+to the REST API `POST /api/users` and throws an `ApiException`.
+The other methods are based on this call need no specific exception.
+
+
+==== `getUsers`
+
+Now we add the `getUsers` method to fetch all Users
+with the same signature as the REST API `GET /api/users` call: 
+
+[source,java]
+----
+    List<User> getUsers(String userId, Integer limit, Integer offset, String keyword)
+        throws ApiException;
+----
+
+All Users? +
+Let's have a look at the `getUsersTest()` output in `UsersApiIT`.
+Calling 
+
+    users = api.users.getUsers(null, null, null, null);
+        
+with different Authentications we get different results:
+
+[source,xml]
+----
+UsersApiIT - Authenticated: ApiKey.BearerToken=VIRTUAL_ADMIN_ACCESS
+UsersApiIT - User: admin@domain.com true 0 0 464
+UsersApiIT - User: user@domain.com false 0 0 463
+
+UsersApiIT - Authenticated: BasicAuth=admin@domain.com/admin in ADMIN role
+UsersApiIT - User: admin@domain.com true 0 0 464
+UsersApiIT - User: user@domain.com false 0 0 463
+
+UsersApiIT - Authenticated: BasicAuth=user@domain.com/user
+UsersApiIT - No users found
+
+UsersApiIT - manager user created with id 465
+UsersApiIT - Authenticated: BasicAuth=manager@domain.com/manager in ADMIN role
+UsersApiIT - No users found
+----
+
+Conclusion +
+Initially the `virtualAdmin` and the `admin` can see all Users, +
+but a `regular User` and a `manager` cannot see any Users - yet. +
+If you login with different roles (this is easy as virtualAdmin) 
+and look at the Settings of your Traccar Account, 
+you will see that the `admin` and `manager` have a `Users` tab, i.e. user list,
+but the `regular User` does not. 
+
+TODO +
+
+    check role - userId - Can only be used by admin or manager users
+    clarify managedId lookup
+    List<User> getAllUsers(String userId);
+    users = api.users.getUsers(userId, null, null, null);
+
+    List<User> searchAllUsers(String keyword);
+    users = api.users.getUsers(null, null, null, keyword);
+    List<User> searchAllUsers(String userId, String keyword);
+    users = api.users.getUsers(userId, null, null, keyword);
+
+
+==== managerUserLimit
+
+
+If you'll have a look at the `@Test managerUserLimit()` in
+link:https://github.com/kbeigl/bm/blob/main/bm-traccar/traccar-api-client/src/test/java/bm/traccar/api/UsersApiIT.java[UsersApiIT]
+you can see how a - technical - `admin` creates a `manager` via REST.
+Then this `manager` is authenticated and is used to create 
+*three* Users with `manager.setUserLimit(2)`!
+
+Further analysis showed that all created Users belong to the users
+marked as `admin`.
+ 
+
+=== User management
+
+see `RolesIT` 
+
+_Traccar User_ Management provides a Role based access control (RBAC)  
+in this hierarchical order of Users
+
+    virtualAdmin > admin > manager > regularUser
+
+for which we have defined these _Traccar Roles_
+
+    enum TraccarRole { VIRTUAL_ADMIN, ADMIN, MANAGER, REG_USER }
+      
+
+==== Scenario Hierarchy
+
+Let's define simple _scenario rules_ with a hierarchy of Users and their roles in the Traccar GTS:
+
+[IMPORTANT]
+====
+To create a scenario we need to create a scenario -`manager` and some `regular Users`. + 
+To create a scenario manager we need to be logged in as `admin` and create a `manager`. +
+Scenarios should be created, managed and ended by a `manager`. +
+Only a `manager`, no `virtualAdmin` or `admin` should be required to create a scenario. 
+====
+
+These rules are important for drawing boundaries between the Traccar GTS and a Realtime Scenario. 
+
+If you are hosting different customers on the same Traccar GTS, 
+you want to have a `manager` for each customer and his fleet 
+and you do not want them to see each other. 
+
+
+==== Roles Hierarchy
+
+The `RolesIT createUsersHierarchyTest()` demonstrates +
+how the admin creates a manager, logs in as manager creating two users:  
+
+  RolesIT - Authenticated: BasicAuth=admin@domain.com/ *****
+  RolesIT - Current session user: admin@domain.com (id=1604) has role ADMIN
+  RolesIT - Created User scenarioMgr@domain.com (id=1605)
+  RolesIT - Visible users:
+  RolesIT -   User:       admin@domain.com (id=1604) has role ADMIN
+  RolesIT -   User: scenarioMgr@domain.com (id=1605) has role MANAGER
+  RolesIT -   User:        user@domain.com (id=1603) has role REG_USER
+  .
+  RolesIT - Authenticated: BasicAuth=scenarioMgr@domain.com/ *****
+  RolesIT - Current session user: scenarioMgr@domain.com (id=1605) has role MANAGER
+  RolesIT - Visible users:
+  RolesIT -   User: scenarioChaser@domain.com (id=1607) has role REG_USER
+  RolesIT -   User: scenarioRunner@domain.com (id=1606) has role REG_USER
+
+And with the ids you can check the Traccar Database with
+
+	SELECT * FROM TC_USERS;
+	ID  	NAME  	        		      EMAIL         ADMIN   
+	1603	user	                  user@domain.com	FALSE	
+	1604	admin	                 admin@domain.com	 TRUE	
+	1605	scenarioMgr	       scenarioMgr@domain.com	FALSE	
+	1606	scenarioRunner	scenarioRunner@domain.com	FALSE	
+	1607	scenarioChaser	scenarioChaser@domain.com	FALSE	
+
+    SELECT * FROM TC_USER_USER;
+    USERID  	MANAGEDUSERID  
+        1605	   1606
+        1605	   1607
+
+        
+        
+        
+        
+        
+        
+        

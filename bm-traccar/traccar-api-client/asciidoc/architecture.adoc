@@ -9,7 +9,17 @@ like Human Resources-, Sales- and Fleet Management Software.
 Synchronize your employees with their cars and driver information without utilizing the Traccar UI.
 Pull driving reports for your sales team ... and much more ;)
 
-== Architectural Characteristics
+
+[TIP]
+====
+This page is about architecture and usage of the Traccar OpenAPI Client. +
+If you are looking for the usage of the Traccar API and sub APIs +
+you can go directly to the 
+xref:./api/traccar-api.adoc[Traccar API page].
+====
+
+
+== Architectural Design
 
 - **Separation of Concerns** +
   The architecture separates generated API code in `traccar-openapitools-client` + 

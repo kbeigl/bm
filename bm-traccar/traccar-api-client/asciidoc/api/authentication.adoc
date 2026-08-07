@@ -1,0 +1,168 @@
+:toc: left
+:toclevels: 3
+:doctype: book
+
+== API Authentication
+
+see `AuthenticationIT`
+
+=== Overview
+
+The Traccar API supports two authentication methods for REST API calls:
+
+* **Bearer Token (API Key)** - Token-based authentication using a service account token
+* **HTTP Basic Authentication** - Username (email) and password authentication
+
+[IMPORTANT]
+====
+Traccar accepts **only one authentication method at a time**. +
+When you switch authentication methods, the previous authentication is automatically cleared.
+====
+
+=== Authentication Methods
+
+==== Bearer Token Authentication
+
+Bearer Token authentication uses a token (API Key) to authenticate requests. 
+This is commonly used for service accounts or automated systems that need persistent access without user credentials.
+
+===== Setting Bearer Token
+
+[source,java]
+----
+// Set authentication using a bearer token
+api.setBearerToken("YOUR_TRACCAR_TOKEN");
+
+// The token can be obtained from Traccar server configuration
+// e.g., traccar.web.serviceAccountToken
+----
+
+[NOTE]
+====
+When you call `setBearerToken()`, any previously set Basic Authentication credentials (username/password) are automatically cleared.
+====
+
+===== Virtual Admin / Service Account
+
+The bearer token is often used for a "Virtual Admin" or "Service Account" which has unrestricted access to the Traccar server:
+
+[source,java]
+----
+// Virtual Admin has full access to all resources
+api.setBearerToken(virtualAdminToken);
+
+// Can now perform any operation
+List<User> allUsers = api.users.getAllUsers();
+List<Device> allDevices = api.devices.getDevices();
+----
+
+==== HTTP Basic Authentication
+
+HTTP Basic Authentication uses an email address and password to authenticate requests. +
+This is the standard way for regular users, admins, and managers to access the API.
+
+===== Setting Basic Authentication
+
+[source,java]
+----
+// Set authentication using email and password
+api.setBasicAuth("user@domain.com", "userPassword");
+----
+
+// // Now API calls are made with this user's credentials and permissions
+// User currentUser = api.session.createSession(email, password);
+
+
+[NOTE]
+====
+When you call `setBasicAuth()`, any previously set Bearer Token is automatically cleared.
+====
+
+===== User Roles and Permissions
+
+Different user roles have different API access levels:
+
+* **Admin** - Full access to users and devices they manage
+* **Manager** - Can create and manage a limited number of users and devices
+* **Regular User** - Can only access their own user information and assigned devices
+
+[TIP]
+====
+The Traccar Roles are an important part of the security model! +
+They will be described in more detail in the `UsersAPI` and other sections of this documentation.
+====
+
+
+
+=== Switching Authentication
+
+You can switch between authentication methods at any time during program execution:
+
+[source,java]
+----
+// Start with Basic Auth
+api.setBasicAuth("user@domain.com", "password");
+User user = api.users.getUser(123L);
+
+// Switch to Bearer Token for admin operations
+api.setBearerToken(virtualAdminToken);
+List<User> allUsers = api.users.getAllUsers();
+
+// Switch back to Basic Auth with different user
+api.setBasicAuth("admin@domain.com", "adminPassword");
+User newUser = api.users.createUser(user);
+----
+
+=== Get Current Authentication
+
+You can check which authentication is currently active:
+
+[source,java]
+----
+// Check who is authenticated
+String auth = api.getAuthentication();
+logger.info("Currently authenticated as: {}", auth);
+
+// Returns one of:
+// - "ApiKey.BearerToken=<token>" for Bearer Token
+// - "BasicAuth=<email>/ *****" for Basic Auth
+// - null if no authentication is set
+
+// Get Basic Auth details with password (not recommended for logging)
+HttpBasicAuth basicAuth = api.getBasicAuth();
+if (basicAuth != null) {
+    String username = basicAuth.getUsername();
+    String password = basicAuth.getPassword();
+}
+----
+
+
+=== TODO: `apiClient` Authentication Improvements
+
+- [ ] Consult api generator for changing between valid host
+- [ ] problem ananlysis: demo3.traccar <> localhost
+
+After changeing the apiClient to invalidHost (see ITest) + 
+you can't go back to valid host and use api (405 Method Not Allowed) 
+
+
+=== Error Handling
+
+[source,java]
+----
+try {
+    api.setBasicAuth("user@domain.com", "wrongPassword");
+    User user = api.users.getUser(123L);
+} catch (ApiException e) {
+    if (e.getMessage().contains("401")) {
+        logger.error("Authentication failed - invalid credentials");
+    } else if (e.getMessage().contains("403")) {
+        logger.error("Access denied - insufficient permissions");
+    } else {
+        logger.error("API error: {}", e.getMessage());
+    }
+}
+----
+
+- [ ] improve `ApiAspect` for authentication handling and brief error responses
+

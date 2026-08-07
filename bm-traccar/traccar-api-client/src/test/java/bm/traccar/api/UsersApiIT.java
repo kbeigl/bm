@@ -3,7 +3,9 @@ package bm.traccar.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bm.traccar.api.Api.Users.TraccarRole;
 import bm.traccar.generated.model.dto.User;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +18,61 @@ import org.slf4j.LoggerFactory;
  */
 public class UsersApiIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(UsersApiIT.class);
-  private Api.Users usersApi;
+
+  // @Test
+  public void threeTodoTests() {
+    // role testing -----------------------------
+    // api.users.getRole(adminUser));
+    // user lists -------------------------------
+    // check role - userId - Can only be used by admin or manager users
+    // clarify managedId lookup (table!)
+    // List<User> getAllUsers(String userId);
+    // List<User> searchAllUsers(String userId, String keyword);
+    // search tests -----------------------------
+    // Search keyword filter (searches name, email) */
+    // <column name="email"> <constraints nullable="false" unique="true" />
+    // List<User> searchAllUsers(String keyword);
+  }
+
+  /**
+   * Test the getUsers(null, null, null, null) method for different user roles (superAdmin, admin,
+   * regular user, manager).
+   */
+  @Test
+  public void getUsersTest() {
+
+    api.setBearerToken(virtualAdmin);
+    logger.info("Authenticated: {}", api.getAuthentication());
+    listUsers(api.users.getUsers(null, null, null, null));
+
+    // regular user does not have a user list. See Settings -> Users.
+    // Only Admins and Managers can see the user list.
+    api.setBasicAuth(userMail, userPassword);
+    logger.info("Authenticated: {}", api.getAuthentication());
+    listUsers(api.users.getUsers(null, null, null, null));
+
+    api.setBasicAuth(adminMail, adminPassword);
+    logger.info("Authenticated: {}", api.getAuthentication());
+    listUsers(api.users.getUsers(null, null, null, null));
+
+    // move to BaseIntegrationTest to be used by other tests ?
+    String mgrMail = "manager@domain.com", mgrPassword = "manager";
+    User manager = api.users.createManagerWithCredentials("manager", mgrPassword, mgrMail, 4);
+    logger.info("manager user created with id {}", manager.getId());
+
+    api.setBasicAuth(mgrMail, mgrPassword);
+    logger.info("Authenticated: {}", api.getAuthentication());
+    listUsers(api.users.getUsers(null, null, null, null));
+
+    // now the admin can also see the manager
+    api.setBasicAuth(adminMail, adminPassword);
+    logger.info("Authenticated: {}", api.getAuthentication());
+    listUsers(api.users.getUsers(null, null, null, null));
+
+    // clean up this test (only)
+    logger.info("Deleted User {} (id={})", manager.getEmail(), manager.getId());
+    api.users.deleteUser(manager.getId());
+  }
 
   // managerUserLimit conclusion
   // the created users by the manager do NOT belong to the manager, but to the admin user.
@@ -29,37 +85,38 @@ public class UsersApiIT extends BaseIntegrationTest {
     // create manager with user limit AS ADMIN
     api.setBasicAuth(adminMail, adminPassword);
     // explicitly use interface method to test ApiService delegation
-    usersApi = api.getUsersApi();
-    String managerPassword = "manager";
+    // usersApi = api.getUsersApi();
+    String mgrPassword = "manager";
 
-    User manager = new User();
-    manager.setName("manager");
-    manager.setEmail("manager@domain.com");
-    manager.setPassword(managerPassword);
-    manager.setUserLimit(2);
-    manager = usersApi.createUser(manager);
+    User manager =
+        api.users.createManagerWithCredentials("manager", mgrPassword, "manager@domain.com", 2);
 
     // create regular users AS MANAGER
     User user1, user2, user3 = null;
-    if (usersApi.isManager(manager)) {
-      api.setBasicAuth(manager.getName(), managerPassword);
-      user1 = usersApi.createUserWithCredentials("user-1", "user-1-pw", "user-1-mail", false);
-      user2 = usersApi.createUserWithCredentials("user-2", "user-2-pw", "user-2-mail", false);
+
+    if (api.users.getTraccarRole(manager) == TraccarRole.MANAGER) {
+      // if (api.users.isManager(manager)) {
+      api.setBasicAuth(manager.getName(), mgrPassword);
+      user1 = api.users.createUserWithCredentials("user-1", "user-1-pw", "user-1-mail", false);
+      user2 = api.users.createUserWithCredentials("user-2", "user-2-pw", "user-2-mail", false);
       // This should fail - limit reached
       try {
-        user3 = usersApi.createUserWithCredentials("user-3", "user-3-pw", "user-3-mail", false);
+        user3 = api.users.createUserWithCredentials("user-3", "user-3-pw", "user-3-mail", false);
       } catch (ApiException e) {
         logger.info("Expected exception creating user beyond limit: {}", e.getMessage());
       }
-      assertTrue(usersApi.isRegularUser(user1), "user1 is not a regular user as expected");
+      // assertTrue(api.users.isRegularUser(user1), "user1 is not a regular user as expected");
+      assertTrue(
+          api.users.getTraccarRole(user1) == TraccarRole.REG_USER,
+          "user1 is not a regular user as expected");
 
       // clean up AS ADMIN
       // manager does not have permission to delete users!!
       api.setBasicAuth(adminMail, adminPassword);
-      usersApi.deleteUser(manager.getId());
-      usersApi.deleteUser(user1.getId());
-      usersApi.deleteUser(user2.getId());
-      if (user3 != null) usersApi.deleteUser(user3.getId());
+      api.users.deleteUser(manager.getId());
+      api.users.deleteUser(user1.getId());
+      api.users.deleteUser(user2.getId());
+      if (user3 != null) api.users.deleteUser(user3.getId());
     }
   }
 
@@ -128,12 +185,12 @@ public class UsersApiIT extends BaseIntegrationTest {
 
   @Test
   public void convertLongToInt() {
-    // positive test
+    // true positive test
     Long longVal = 12345L;
     Integer intVal = ApiHelper.toInt(longVal);
     assertEquals(longVal, 12345L);
 
-    // negative test
+    // true negative test
     longVal = Integer.MAX_VALUE + 1L;
     try {
       intVal = ApiHelper.toInt(longVal);
@@ -141,5 +198,40 @@ public class UsersApiIT extends BaseIntegrationTest {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }
     logger.error("Long value {} was not converted to Integer!", longVal);
+  }
+
+  /**
+   * Test the new getUser(id) method according to Traccar API reference
+   * https://www.traccar.org/api-reference/#tag/Users/operation/getUsersId
+   */
+  @Test
+  public void getUserByIdTest() {
+    api.setBearerToken(virtualAdmin);
+
+    // Create a test user
+    User testUser =
+        api.users.createUserWithCredentials("testUser", "testPw", "test@example.com", false);
+    logger.info("Created test user with id: {}", testUser.getId());
+
+    User fetchedUser = api.users.getUserById(testUser.getId().toString());
+    assertEquals(testUser.getId(), fetchedUser.getId());
+    assertEquals(testUser.getEmail(), fetchedUser.getEmail());
+    assertEquals(testUser.getName(), fetchedUser.getName());
+    logger.info("Successfully fetched user by id: {}", fetchedUser.getId());
+
+    // Clean up
+    api.users.deleteUser(testUser.getId());
+  }
+
+  private void listUsers(List<User> users) {
+    if (users.isEmpty()) logger.info("No users found");
+    for (User u : users)
+      logger.info(
+          "User: {} {} {} {} {}",
+          u.getEmail(),
+          u.getAdministrator(),
+          u.getDeviceLimit(),
+          u.getUserLimit(),
+          u.getId());
   }
 }

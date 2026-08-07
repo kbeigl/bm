@@ -78,9 +78,11 @@ public class ApiService implements Api {
    *
    * <p>Currently used for testing and logging purposes. Could be refined for better usage in
    * scenario code.
+   *
+   * <p>Caution: The BasicAuth password is returned in plain text. Use with care!
    */
   @Override
-  public String whoIsAuthenticated() {
+  public String getAuthentication() {
     HttpBearerAuth apiKey = (HttpBearerAuth) apiClient.getAuthentication("ApiKey");
     HttpBasicAuth basicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
 
@@ -88,40 +90,44 @@ public class ApiService implements Api {
     String username = basicAuth != null ? basicAuth.getUsername() : null;
     String password = basicAuth != null ? basicAuth.getPassword() : null;
 
-    if (bearerToken != null) {
-      return "ApiKey.BearerToken=" + bearerToken;
-    } else if (username != null || password != null) {
-      return "BasicAuth=" + username + "/" + password;
-    } else {
-      // easy to be checked against
-      return null;
-    }
+    if (bearerToken != null) return "ApiKey.BearerToken=" + bearerToken;
+    if (username != null || password != null) return "BasicAuth=" + username + "/ *****";
+    // dont reveal password
+    return null;
   }
 
   /* constructor injection makes dependencies explicit and objects immutable. */
   public ApiService(
       ApiClient apiClient,
-      SessionApi sessionApi,
       UsersApi usersApi,
+      SessionApi sessionApi,
+      PermissionsApi permissionsApi,
       DevicesApi devicesApi,
-      ServerApi serverApi,
-      PermissionsApi permissionsApi) {
+      ServerApi serverApi) {
+
     this.apiClient = apiClient;
     // sub interface  = new sub interface implementation (wrapping generated API)
     this.users = new UsersImpl(usersApi);
+    this.session = new SessionImpl(sessionApi, apiClient);
+    this.permissions = new PermissionsImpl(permissionsApi);
+
     this.server = new ServerImpl(serverApi);
     this.devices = new DevicesImpl(devicesApi);
-    this.session = new SessionImpl(sessionApi);
-    this.permissions = new PermissionsImpl(permissionsApi);
   }
 
   // currently public for convenience (api.users)
-  // can be privated if not needed outside of this class.
+  // might be privated ..
   public final Api.Users users;
-  public final Api.Devices devices;
   public final Api.Session session;
-  public final Api.Server server;
   public final Api.Permissions permissions;
+
+  public final Api.Devices devices;
+  public final Api.Server server;
+
+  // consider removing these access methods
+
+  // @Override public Api.Session getSessionApi() { return session; }
+  // @Override public Api.Permissions getPermissionsApi() { return permissions; }
 
   @Override
   public Api.Users getUsersApi() {
@@ -134,17 +140,7 @@ public class ApiService implements Api {
   }
 
   @Override
-  public Api.Session getSessionApi() {
-    return session;
-  }
-
-  @Override
   public Api.Server getServerApi() {
     return server;
-  }
-
-  @Override
-  public Api.Permissions getPermissionsApi() {
-    return permissions;
   }
 }

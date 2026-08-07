@@ -23,11 +23,11 @@ import org.springframework.test.context.TestPropertySource;
  * created in the Traccar database in @BeforeAll method. Consequently, the admin and regular user
  * should be logged in the tests to perform API calls.
  */
-@SpringBootTest // implies @EnableAutoConfiguration
+@SpringBootTest(properties = "logging.config=classpath:logback-test.xml")
 // move/add ApiAspect.class from AspectIT and GeneratedSessionApiIT here
 // Tell Spring Boot to create a context containing ONLY these beans.
 @ContextConfiguration(classes = {ApiService.class})
-@Import(ApiConfig.class) // typically @Configuration classes
+@Import(ApiConfig.class) // @Configuration class
 @TestPropertySource("classpath:application.properties")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseIntegrationTest {
@@ -57,7 +57,7 @@ public abstract class BaseIntegrationTest {
 
   // Service is more convenient to use
   @Autowired protected ApiService api;
-  // @Autowired protected Api api;
+  //     @Autowired protected Api api;
 
   Long userId, adminId;
 
@@ -65,22 +65,22 @@ public abstract class BaseIntegrationTest {
   public void setup() throws ApiException {
     logger.info("--- create Admin and User ---");
     api.setBearerToken(virtualAdmin);
-    // dont use these User objects > get it from the database via API and *Id
-    // User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
     User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
     userId = user.getId();
     logger.info("Created User {} (id={})", userMail, userId);
     User admin = api.users.createUserWithCredentials(adminName, adminPassword, adminMail, true);
     adminId = admin.getId();
     logger.info("Created Admin {} (id={})", adminMail, adminId);
+
+    // login as admin for subsequent tests ?
   }
 
   @AfterAll
   public void teardown() throws ApiException {
     logger.info("--- delete Admin and User ---");
-    // api.setBearerToken(virtualAdmin);
     api.setBasicAuth(adminMail, adminPassword);
     // catch Execption in case user or admin have been deleted in a test
+    // fallback api.setBearerToken(virtualAdmin);
     api.users.deleteUser(userId);
     logger.info("Deleted User {} (id={})", userMail, userId);
     api.users.deleteUser(adminId);

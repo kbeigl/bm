@@ -80,14 +80,10 @@ and start querying
 
 == `h2.tools.Console`
 
-You can run a console, which opens a database frontend in your browser
+You can run a console, which pops up a database query tool in your browser
 
-    java -cp /opt/traccar.bak/h2/bin/h2-2.3.232.jar org.h2.tools.Console 
-         -web 
-         -tcp 
-         -url jdbc:h2:./database 
-         -user sa
-
+    opt/traccar/data$ java -cp /opt/traccar/h2-2.3.232.jar org.h2.tools.Console 
+                               -web -tcp -url jdbc:h2:./database -user sa
 
 == database available / locked
 
@@ -96,6 +92,7 @@ You can run a console, which opens a database frontend in your browser
   $ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell 
          -url jdbc:h2:/opt/traccar/data/database 
          -user sa
+         
   Exception in thread "main" org.h2.jdbc.JdbcSQLNonTransientConnectionException:
     Database may be already in use: "/opt/traccar/data/database.mv.db".
     Possible solutions: close all other connection(s); use the server mode [90020-232]

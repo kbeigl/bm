@@ -29,7 +29,9 @@ import org.springframework.test.annotation.DirtiesContext;
  * <p>It disables JMX for faster test execution and provides pre-configured Camel test utilities
  * like CamelContext and ProducerTemplate.
  */
-@SpringBootTest(classes = BaseScenarioTest.TestConfig.class)
+@SpringBootTest(
+    properties = "logging.config=classpath:logback-test.xml",
+    classes = BaseScenarioTest.TestConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseScenarioTest {

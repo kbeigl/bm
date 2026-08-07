@@ -29,8 +29,9 @@ which defines all actors of the - for the time being: _closed_ system.
 [NOTE]
 ====
 For convenience the scenario is placed in the actual project packages
-and _not in the test packages_. 
-This makes it easier to be used to test higher level projects.
+and _not in the test packages_. + 
+This makes it easier to be used to test higher level projects. + 
+And of course allows you to configure your own `scenario.properties`.
 ====
 
 On the long run there are endless ways to persist and load a scenario.
@@ -170,7 +171,7 @@ as you can see by the package names, i.e. application layers:
 ----
 
     bm.traccar.invoke.ApiClient             // traccar-openapitools-client
-    bm.traccar.generated.api.DevicesApi
+    bm.traccar.generated.api.DevicesApi     // generated apis
     ..                   and other *Apis
     bm.traccar.api.ApiService               // traccar-api-client
     ..

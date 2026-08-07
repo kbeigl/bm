@@ -6,7 +6,6 @@ import bm.gps.tracker.TrackerRegistration;
 import bm.traccar.api.Api;
 import bm.traccar.api.ApiException;
 import bm.traccar.generated.model.dto.Device;
-import bm.traccar.generated.model.dto.Permission;
 import bm.traccar.generated.model.dto.Position;
 import bm.traccar.generated.model.dto.User;
 import bm.traccar.invoke.auth.HttpBasicAuth;
@@ -179,68 +178,9 @@ public class RealTimeAppService {
 
   // ========== User and Permission Operations ==========
 
-  /**
-   * Creates a user and assigns existing devices to them by creating permissions.
-   *
-   * <p>IMPORTANT: This approach requires the authenticated admin to have management rights over
-   * both the devices and the target user. This method is problematic because regular admins cannot
-   * assign their own devices to other users.
-   *
-   * <p><strong>RECOMMENDED: Use {@link #createUserWithDevices(String, String, String, List)}
-   * instead</strong>, which creates devices while authenticated as the new user, so they
-   * automatically belong to that user without needing permissions.
-   *
-   * @param userName the user's name
-   * @param password the user's password
-   * @param email the user's email
-   * @param deviceIds list of device IDs to assign to this user
-   * @return the created user
-   * @throws ApiException if user creation or permission assignment fails
-   * @deprecated Use {@link #createUserWithDevices(String, String, String, List)} instead
-   */
-  @Deprecated
-  public User createUserForDevices(
-      String userName, String password, String email, List<Long> deviceIds) throws ApiException {
-    logger.warn(
-        "createUserForDevices() is deprecated and may fail. "
-            + "Use createUserWithDevices() instead to avoid permission issues.");
-    logger.info("Creating user '{}' for {} existing device(s)", userName, deviceIds.size());
-
-    // 1. Create user
-    User user = api.getUsersApi().createUserWithCredentials(userName, password, email, false);
-    logger.info("Created User.id{}: {}", user.getId(), user.getName());
-
-    // 2. Try to assign devices via permissions (THIS WILL LIKELY FAIL)
-    int successCount = 0;
-    for (Long deviceId : deviceIds) {
-      try {
-        Permission permission = new Permission();
-        permission.setUserId(user.getId());
-        permission.setDeviceId(deviceId);
-
-        // This will fail unless using virtualAdmin or the admin manages both device and user
-        api.getPermissionsApi().createPermission(permission);
-        successCount++;
-        logger.debug("Assigned Device.id{} to User.id{}", deviceId, user.getId());
-      } catch (Exception e) {
-        logger.error(
-            "Failed to assign Device.id{} to User.id{}: {}. "
-                + "Regular admins cannot assign their devices to other users. "
-                + "Use createUserWithDevices() to create devices under the user's authentication.",
-            deviceId,
-            user.getId(),
-            e.getMessage());
-      }
-    }
-
-    logger.info(
-        "User '{}' created and assigned {} of {} devices",
-        userName,
-        successCount,
-        deviceIds.size());
-
-    return user;
-  }
+  //  public User createUserForDevices(
+  //      String userName, String password, String email, List<Long> deviceIds) throws ApiException
+  // {}
 
   /**
    * Creates a user with new devices and trackers.
@@ -339,7 +279,7 @@ public class RealTimeAppService {
 
           // Register local tracker
           try {
-            TrackerOsmAnd tracker = trackerRegistration.registerTracker(config.uniqueId);
+            /* TrackerOsmAnd tracker = */ trackerRegistration.registerTracker(config.uniqueId);
             logger.info(
                 "Registered local tracker for device '{}' (uniqueId: {})",
                 config.name,
@@ -379,88 +319,8 @@ public class RealTimeAppService {
     }
   }
 
-  /**
-   * Assigns additional devices to an existing user by creating permissions.
-   *
-   * <p><strong>LIMITATION:</strong> In Traccar's permission model, a regular admin cannot assign
-   * their own devices to other users. This method will fail unless:
-   *
-   * <ul>
-   *   <li>The devices were already created by/for the target user, OR
-   *   <li>You authenticate with superadmin/virtualAdmin privileges, OR
-   *   <li>The admin has explicit management rights over both devices and user
-   * </ul>
-   *
-   * <p><strong>RECOMMENDED:</strong> Instead of trying to assign existing devices, create new
-   * devices while authenticated as the target user using {@link #createUserWithDevices(String,
-   * String, String, List)}.
-   *
-   * @param userId the user ID
-   * @param deviceIds list of device IDs to assign
-   * @return number of successfully assigned devices
-   */
-  public int assignDevicesToUser(Long userId, List<Long> deviceIds) {
-    logger.info("Assigning {} device(s) to User.id{}", deviceIds.size(), userId);
-    logger.warn(
-        "NOTE: This operation will fail if the authenticated admin does not have "
-            + "management rights over the devices and user. Consider creating devices "
-            + "while authenticated as the target user instead.");
-
-    int successCount = 0;
-
-    for (Long deviceId : deviceIds) {
-      try {
-        Permission permission = new Permission();
-        permission.setUserId(userId);
-        permission.setDeviceId(deviceId);
-
-        // This will fail unless the authenticated user has proper management rights
-        api.getPermissionsApi().createPermission(permission);
-        successCount++;
-        logger.debug("Assigned Device.id{} to User.id{}", deviceId, userId);
-      } catch (Exception e) {
-        logger.error(
-            "Failed to assign Device.id{} to User.id{}: {}. "
-                + "Regular admins cannot assign their devices to other users. "
-                + "Create devices while authenticated as the target user instead.",
-            deviceId,
-            userId,
-            e.getMessage());
-      }
-    }
-
-    logger.info("Successfully assigned {} of {} devices", successCount, deviceIds.size());
-    return successCount;
-  }
-
-  /**
-   * Removes device permissions from a user.
-   *
-   * @param userId the user ID
-   * @param deviceIds list of device IDs to unassign
-   * @return number of successfully removed permissions
-   */
-  public int unassignDevicesFromUser(Long userId, List<Long> deviceIds) {
-    logger.info("Unassigning {} device(s) from User.id{}", deviceIds.size(), userId);
-    int successCount = 0;
-
-    for (Long deviceId : deviceIds) {
-      try {
-        Permission permission = new Permission();
-        permission.setUserId(userId);
-        permission.setDeviceId(deviceId);
-        api.getPermissionsApi().deletePermission(permission);
-        successCount++;
-        logger.debug("Unassigned Device.id{} from User.id{}", deviceId, userId);
-      } catch (Exception e) {
-        logger.error(
-            "Failed to unassign Device.id{} from User.id{}: {}", deviceId, userId, e.getMessage());
-      }
-    }
-
-    logger.info("Successfully unassigned {} of {} devices", successCount, deviceIds.size());
-    return successCount;
-  }
+  // public int assignDevicesToUser    (Long userId, List<Long> deviceIds) {}
+  // public int unassignDevicesFromUser(Long userId, List<Long> deviceIds) {}
 
   // ========== Latency Measurement Operations ==========
 
@@ -671,12 +531,13 @@ public class RealTimeAppService {
       logger.info("Found {} device(s) for User.id{}", devices.size(), userId);
 
       // 3. Remove all device permissions
-      if (!devices.isEmpty()) {
-        List<Long> deviceIds =
-            devices.stream().map(Device::getId).collect(java.util.stream.Collectors.toList());
-        int removedCount = unassignDevicesFromUser(userId, deviceIds);
-        logger.info("Removed {} of {} device permissions", removedCount, devices.size());
-      }
+      //      if (!devices.isEmpty()) {
+      //        List<Long> deviceIds =
+      //
+      // devices.stream().map(Device::getId).collect(java.util.stream.Collectors.toList());
+      //        int removedCount = unassignDevicesFromUser(userId, deviceIds);
+      //        logger.info("Removed {} of {} device permissions", removedCount, devices.size());
+      //      }
 
       // 4. Disable user by setting device limit to 0
       // This prevents the user from creating or accessing devices

@@ -82,6 +82,9 @@ If we're lucky every new version is only a version bump with small changes. +
 It this case we can wittness a significant change in the API 
 with the addition of new parameters to existing endpoints and the addition of new endpoints.
 
-No need to go into details here, since we implement new API methods on demand.
+No need to go into details here, since we implement new API methods on demand. +
+If you are looking for the progress and usage of the Traccar API and sub APIs +
+you can go directly to the 
+xref:./api/traccar-api.adoc[Traccar API page].
 
 

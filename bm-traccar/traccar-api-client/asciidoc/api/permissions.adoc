@@ -1,0 +1,233 @@
+:toc: left
+:toclevels: 3
+:doctype: book
+
+== Permissions API
+
+see `PermissionsApiIT` in scenario package `bm.traccar.api.scenario`
+
+
+=== development status `v.1.1.26`
+
+It was planed to create a number of Users and assign them to different Users. +
+Use admin to create Permissions for Users in Manager User List. 
+
+see investigations below
+
+
+==== Conclusion
+
+It was decided to go through the Users API to create Users and assign them to Managers, before creating Devices for those Users. 
+This is because the Traccar REST API does not support creating user-to-user management permissions 
+(the relationship that appears in the `TC_USER_USER` table when a manager manages a regular user).
+
+After User-User management the next step is to create Devices for those Users, which can be done via the Devices API.
+
+After that we will come back to the Permissions API to assign Devices to Users, which can be done via the Permissions API.
+
+
+=== Traccar Permission Model
+
+- It tried to create devices as admin, then assign them to users via permissions
+- **Problem:** Regular admins CANNOT assign their own devices to other users in Traccar
+- **Solution:** Create devices while authenticated AS the target user, so they automatically belong to that user
+
+Understanding Traccar's permission hierarchy:
+
+1. **VirtualAdmin (Superuser)**
+   - Has unlimited access to all entities
+   - Can create cross-user permissions - *this is not confirmed !!*
+   - Configured in traccar.xml
+   - Used for system administration
+
+2. **Administrator**
+   - Full access to their own entities
+   - Can create users and devices
+   - **Cannot assign their devices to other users** (requires superuser)
+   - Created with `administrator=true` flag
+
+3. **Manager**
+   - Can create limited users (`userLimit` > 0)
+   - Can create limited devices (`deviceLimit` > 0)
+   - Can manage permissions for their created users
+   - Must establish `userId -> managedUserId` relationships
+
+4. **Regular User**
+   - Can only access assigned devices
+   - Cannot create users or devices
+   - Cannot manage permissions
+
+1. **Device Ownership:** When a user creates a device, it automatically belongs to that user
+2. **Device Creation Rights:** 
+   - Regular users (deviceLimit = 0): CANNOT create devices
+   - Managers (deviceLimit != 0): CAN create devices up to their limit
+   - Administrators: Can create unlimited devices
+3. **Permission Limitations:** Regular admins CANNOT assign their own devices to other users via permissions
+
+
+==== Summary
+
+**Traccar's REST API does NOT support creating user-to-user management permissions** 
+(the relationship that appears in the `TC_USER_USER` table when a manager manages a regular user).
+
+While the **Traccar web UI** allows clicking "Connections" to add regular users to a manager's managed users list, 
+**the REST API endpoint `/permissions` POST rejects this operation** with:
+
+```
+400 Bad Request: "java.lang.IllegalArgumentException: Invalid permission"
+```
+
+The API documentation lists user-to-user management as a valid permission combination:
+```
+userId  →  managedUserId
+```
+
+
+==== Root Cause
+
+The issue originates from `org.traccar.model.Permission.<init>(Permission.java:56)` in the Traccar server. The Permission validation logic appears to:
+
+1. Accept device permissions: `userId` + `deviceId`
+2. Accept group permissions: `userId` + `groupId`
+3. Accept geofence permissions: `userId` + `geofenceId`
+4. **REJECT** user-management permissions: `userId` + `managedUserId`
+
+This is despite the API documentation suggesting it should be supported.
+
+1. Regular users (deviceLimit = 0 or null) CANNOT create devices
+2. Regular admins CANNOT assign their own devices to other users via permissions
+3. When a user creates a device, it automatically belongs to that user
+
+Solution +
+
+1. Create the new user as admin
+2. Grant the user permission to create devices by setting deviceLimit (make them a "manager")
+3. Switch authentication to the new user
+4. Create devices while authenticated as that user → devices automatically belong to them
+5. Restore original authentication
+
+
+==== Correct Pattern
+
+```java
+// 1. Create user (as admin)
+User user = api.getUsersApi().createUserWithCredentials(name, pwd, email, false);
+
+// 2. Grant device creation permission (as admin)
+user.setDeviceLimit(deviceCount);
+user = api.getUsersApi().updateUser(user.getId(), user);
+
+// 3. Switch authentication to new user
+api.setBasicAuth(user.getEmail(), password);
+
+// 4. Create devices (they automatically belong to this user)
+Device device = api.getDevicesApi().createDevice(device);
+
+// 5. Restore admin authentication
+api.setBasicAuth(originalUser, originalPassword);
+```
+
+
+==== permissions-groups
+
+www.traccar.org/permissions-groups/
+
+Administrators and managers can control permissions for their users
+from the Users menu in the settings.
+It is accessible from the Connections menu option in the users list.
+
+Almost all entities in Traccar have associated permissions and can be linked to user accounts. 
+It applies not only to devices, but also things like geofences, notifications etc.
+
+For example, if a geofence is linked to a group,
+it means that the geofence events will be generated for all devices in the group and subgroups.
+
+  => SY: send geofence event: "Player1 arrived at station 23"
+         to all users/devices ?
+
+
+==== Link an Object to another Object
+
+https://www.traccar.org/api-reference/#tag/Permissions/paths/~1permissions/post
+
+    Authorizations:
+    BasicAuthApiKey
+    Request Body schema: application/json
+    required
+    userId  
+    User id, can be only first parameter
+    
+    deviceId    
+    integer <int64>
+    Device id, can be first parameter or second only in combination with userId
+    
+    groupId 
+    integer <int64>
+    Group id, can be first parameter or second only in combination with userId
+    
+    geofenceId  
+    integer <int64>
+    Geofence id, can be second parameter only
+    
+    notificationId  
+    integer <int64>
+    Notification id, can be second parameter only
+    
+    calendarId  
+    integer <int64>
+    Calendar id, can be second parameter only and only in combination with userId
+    
+    attributeId 
+    integer <int64>
+    Computed attribute id, can be second parameter only
+    
+    driverId    
+    integer <int64>
+    Driver id, can be second parameter only
+    
+    managedUserId   
+    integer <int64>
+    User id, can be second parameter only and only in combination with userId
+    
+    commandId   
+    integer <int64>
+    Saved command id, can be second parameter only
+
+
+==== Link Combinations
+
+    userId       deviceId
+    userId       groupId
+
+    userId      managedUserId
+
+    userId      calendarId
+
+    userId      geofenceId
+    deviceId    geofenceId
+    groupId     geofenceId
+
+    userId      notificationId
+    deviceId    notificationId
+    groupId     notificationId
+
+    userId      attributeId
+    deviceId    attributeId
+    groupId     attributeId
+
+    userId      driverId
+    deviceId    driverId
+    groupId     driverId
+
+    userId      commandId
+    deviceId    commandId
+    groupId     commandId
+
+Administrators and managers can control permissions for their users from the Users menu in the settings. 
+It is accessible from the Connections menu option in the users list.
+
+When an object is shared between several users, they have full access to it, including the ability to delete it. 
+If you want to avoid it, you can duplicate instances so that each user has their own object. 
+Duplicating a device with the same unique id is not possible, 
+so Traccar provides a special device readonly user setting to restrict users for modifying devices.
+

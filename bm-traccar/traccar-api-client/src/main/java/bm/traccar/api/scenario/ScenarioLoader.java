@@ -6,7 +6,6 @@ import bm.traccar.generated.model.dto.Server;
 import bm.traccar.generated.model.dto.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -28,12 +27,17 @@ public class ScenarioLoader {
   @Value("${traccar.web.serviceAccountToken}")
   protected String virtualAdmin;
 
-  @Autowired protected Api api;
-  @Autowired public ScenarioProperties props;
+  protected final Api api;
+  public final ScenarioProperties props;
 
   // admin is not part of the scenario!
   // Each scenario must have a manager account with a view on all Traccar Objects.
   public User admin, manager, hide, seek;
+
+  public ScenarioLoader(Api api, ScenarioProperties props) {
+    this.api = api;
+    this.props = props;
+  }
 
   // consider: setupScenario(adminMail, adminPassword);
 

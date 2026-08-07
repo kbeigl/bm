@@ -1,107 +1,96 @@
 package bm.traccar.api.scenario;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bm.traccar.api.Api;
+import bm.traccar.api.BaseIntegrationTest;
 import bm.traccar.generated.model.dto.Permission;
 import bm.traccar.generated.model.dto.User;
-import java.util.List;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.HttpClientErrorException;
 
-// PermissionsApiIT only makes sense with a scenario
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PermissionsApiIT extends BaseScenarioTest {
-  private static final Logger logger = LoggerFactory.getLogger(BaseScenarioTest.class);
+// @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class PermissionsApiIT extends BaseIntegrationTest {
+  private static final Logger logger = LoggerFactory.getLogger(BaseIntegrationTest.class);
 
-  @Value("${traccar.web.serviceAccountToken}")
-  protected String virtualAdmin;
+  // currently we are focused on users and permissions.
+  // use BaseScenarioTest to create a scenario with users and devices for testing.
 
-  @Autowired private Api api;
-  private Api.Users usersApi;
-
-  // private Api.Devices devicesApi;
-
-  // Tests should be forward compatible to a constantly changing scenario
-
-  /** Check Users for different roles. */
-  //  @Test
-  void roleTests() {
-    usersApi = api.getUsersApi();
-    api.setBearerToken(virtualAdmin);
-    List<User> userList = usersApi.getAllUsers();
-    logger.info("-- all {} server account roles -- ", userList.size());
-
-    for (User u : userList) {
-      assertEquals( // cross check getAllUsers vs getUserById
-          u,
-          usersApi.getUserById(u.getId().toString()),
-          "getUserById returned different user than in userList");
-
-      // implement roles in userApi
-      if (usersApi.isAdmin(u)) logger.info("  admin: {}", u.getEmail());
-      else if (usersApi.isManager(u)) logger.info("manager: {}", u.getEmail());
-      else logger.info("regular: {}", u.getEmail());
-    }
-    logger.info(""); // breakpoint
-
-    // now login to counter check
-    //    // admin
-    //    api.setBasicAuth(scenario.admin.getEmail(), scenario.admin.getPassword());
-    //    String adminId = scenario.admin.getId().toString();
-    //    logger.info("-- all admin{} Users --", adminId);
-    //    userList = usersApi.getUsers(null);
-    //    listUsers(userList);
-    //    listDevices(adminId);
-    //
-    //    // manager
-    //    api.setBasicAuth(scenario.manager.getEmail(), scenario.manager.getPassword());
-    //    String managerId = scenario.manager.getId().toString();
-    //    logger.info("-- all manager{} Users --", managerId);
-    //    userList = usersApi.getUsers(null);
-    //    listUsers(userList);
-  }
-
-  //  @Test
+  @Test
   void permissionTests() {
-    // now we can run permission tests - TO BE integrated in ScenarioLoader
+    // Created user@domain.com (id=835) and admin@domain.com (id=836)
+    // try setting admin user- and deviceLimit
+    // api.setBearerToken(virtualAdmin);
+    api.setBasicAuth(adminMail, adminPassword);
+    createTestUsers();
+    // getAuthentication() returns the userId of the authenticated user (adminId)
+    api.users.getAllUsers().forEach(u -> logger.info("User: {} (id={})", u.getEmail(), u.getId()));
+
+    // manager@domain.com (id=876)	***
+    //    hide@domain.com (id=877)   *
+    //    seek@domain.com (id=878)   *
+    //  SELECT * FROM TC_USER_USER;
+    //    USERID  	MANAGEDUSERID
+    //    	876			877
+    //    	876			878
+
+    // counter check with admin user list
+    // also in the TC_USER_USER table? does user limit matter?
     Permission permission = new Permission();
+    // permission.setUserId(Long.valueOf(adminId));
+    permission.setUserId(manager.getId());
+    permission.setManagedUserId(hide.getId());
     logger.info("Create Permission: {}", permission);
-    //    permission.setUserId(Long.valueOf(adminId));
+
+    // NOTE: Traccar's API does NOT support creating user-to-user management permissions
+    // through the standard /permissions endpoint, even with adminAuth authentication.
+    // The UI allows this through "Connections" but it's not exposed via the REST API.
+    //
+    // Attempting to create userId + managedUserId permission:
+    // This will fail with "Invalid permission" because Traccar's Permission validation
+    // at Permission.java:56 rejects this combination when created via API.
+
+    // Assert that the expected exception is thrown
+    HttpClientErrorException exception =
+        assertThrows(
+            HttpClientErrorException.class,
+            () -> api.permissions.createPermission(permission),
+            "Expected HttpClientErrorException when creating user-to-user permission");
+
+    // Verify the error message contains "Invalid permission"
+    assertTrue(
+        exception.getMessage().contains("Invalid permission"),
+        "Expected error message to contain 'Invalid permission', but got: "
+            + exception.getMessage());
+
+    logger.warn(
+        "User-to-user permission creation failed as expected - not supported via Traccar REST API. "
+            + "Use the web UI 'Connections' feature to manage user relationships.");
+
+    deleteTestUsers();
   }
 
-  // ========== Device will be moved to another IT ==========
+  // passwords should be kept in test context
+  String mgrPw = "manager", hidePw = "hide", seekPw = "seek";
+  User manager = null, hide = null, seek = null;
 
-  /**
-   * This listing depends on the role of the user making the call.
-   *
-   * <p>null - returns a list of the user's devices all boolean <br>
-   * Can only be used by admins or managers to fetch all entities <br>
-   * userId integer - Standard users can use this only with their own userId<br>
-   * id integer - To fetch one or more devices. <br>
-   * Multiple params can be passed like id=31&id=42 <br>
-   * uniqueId string - To fetch one or more devices. <br>
-   * Multiple params can be passed like uniqueId=333331&uniqieId=44442
-   *
-   * @param userId
-   */
-  private void listDevices(String userId) {
-    // whoAmI()
-    //    List<Device> deviceList = devicesApi.getDevices(null);
-    //    if (deviceList.size() == 0) {
-    //      logger.info("No devices found for User-{}!", userId);
-    //      return;
-    //    }
-    //
-    //    deviceList.forEach(
-    //        d ->
-    //            logger.info(
-    //                "Device{}: {} \towned by User{}",
-    //                d.getId(),
-    //                d.getName(),
-    //                devicesApi.getDevices(d.getId().toString()).size()));
+  // @BeforeAll ?
+  void createTestUsers() {
+    // create manager and two regular users hide & seek
+    // move to BaseIntegrationTest to be used by other tests ?
+    manager = api.users.createManagerWithCredentials("manager", mgrPw, "manager@domain.com", 4);
+    hide = api.users.createUserWithCredentials("hide", hidePw, "hide@domain.com", false);
+    seek = api.users.createUserWithCredentials("seek", seekPw, "seek@domain.com", false);
+    logger.info("Created Test Users");
+  }
+
+  private void deleteTestUsers() {
+    // cleanup: delete manager and users for this test (only)
+    api.users.deleteUser(hide.getId());
+    api.users.deleteUser(seek.getId());
+    api.users.deleteUser(manager.getId());
+    logger.info("Deleted Test Users");
   }
 }

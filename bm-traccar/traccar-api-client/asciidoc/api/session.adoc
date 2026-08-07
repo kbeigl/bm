@@ -1,0 +1,226 @@
+:toc: left
+:toclevels: 3
+:doctype: book
+
+
+== Session API
+
+see `SessionApiIT`
+
+
+=== Overview
+
+This section explains the different authentication methods available in Traccar +
+and how they relate to sessions and WebSocket connections. +
+Traccar supports three primary authentication mechanisms _as described in User API_
+
+1. Bearer Token (API Key)
+2. HTTP Basic Authentication
+3. JSESSIONID (Session Cookie)
+
+
+==== JSESSIONID (Session Cookie)
+
+**JSESSIONID** is a session identifier cookie created by the Jetty server when you log in.
+
+**Characteristics:**
+
+* Created by calling `POST /api/session` with email and password
+* Returns a session cookie managed by the server
+* Required for WebSocket connections (`/api/socket`)
+* Session has a timeout configured on the server
+* Multiple concurrent sessions may conflict
+
+**When to use:**
+
+* When establishing WebSocket connections
+* When you need a persistent session (e.g., for web UI)
+* When you want to maintain state between requests
+
+==== Authentication vs Sessions 
+
+[cols="1,2,2,2", options="header"]
+|===
+|Method
+|Session Created?
+|Use Case
+|WebSocket Compatible?
+
+|**Bearer Token**
+|No
+|Service accounts, automation, full admin access
+|No - requires JSESSIONID
+
+|**BasicAuth (REST)**
+|No
+|Stateless REST API calls
+|No - requires JSESSIONID
+
+|**BasicAuth (WebSocket)**
+|Yes (via POST /session)
+|Create session for WebSocket
+|Yes - returns JSESSIONID
+
+|**JSESSIONID**
+|Yes (is the session)
+|Browser sessions, WebSocket connections
+|Yes
+|===
+
+==== GET /session Behavior
+
+The `GET /api/session` endpoint has specific requirements:
+
+**It works with:**
+
+* **Bearer Token parameter**: `GET /api/session?token=xxx`
+* **Existing JSESSIONID cookie**: From a previous login or `POST /session`
+
+**It does NOT work with:**
+
+* Raw BasicAuth headers alone (without an existing session)
+
+This is why when you access `http://localhost/api/session` in your browser as a regular user, + 
+it works - you already have a JSESSIONID cookie from logging into the web UI.
+
+When using the API client with BasicAuth, the `getCurrentUser()` method internally calls `POST /session` to create a session, then returns the user info.
+
+
+=== Usage
+    
+The `SessionApi` is a special case as `REST` and `HTTP` are defined as a stateless protocols.
+A session makes sense, if we log into the browser UI and keep it open.
+For the `traccar-api-client` we don't need to establish a session for REST interactions.
+The sole purpose is to use the `SessionApi` to create a session 
+and retrieve a `JSESSIONID` (Java Session Id) to be used with a websocket connection.
+
+==== Creating Sessions
+
+The Session API allows you to create sessions and obtain JSESSIONID cookies, + 
+which are particularly useful for WebSocket connections:
+
+[source,java]
+----
+// Create a session and get the user
+User sessionUser = api.session.createSession(email, password);
+
+// Create a session and get only the JSESSIONID
+String jsessionId = api.session.createSessionGetJsessionId(email, password);
+
+// Get session information using a bearer token
+User virtualAdminUser = api.session.getSession(virtualAdminToken);
+
+// Delete the current session
+api.session.deleteSession();
+----
+
+
+==== Creating Sessions for WebSocket
+
+You can make a `POST` request to the `/api/session` endpoint with the user's email and password. 
+This will create a session and return a Session Cookie managed by Jetty. 
+This process is implemented in the `ApiService`.
+For a WebSocket connection you need to aquire the `JSESSIONID` cookie 
+
+[source,java]
+----
+// Step 1: Create session and get JSESSIONID
+api.setBasicAuth(userMail, userPassword);
+String jsessionId = api.session.createSessionGetJsessionId(userMail, userPassword);
+
+// Step 2: Use JSESSIONID to connect WebSocket
+// The WebSocket endpoint /api/socket checks for this cookie connectWebSocket(jsessionId);
+----
+
+That's all we need from the `SessionApi` and we will move on to the websocket implementation
+with the returned `JSESSIONID` for the provided User.
+When you connect to _websocket endpoint_ `/api/socket` (_Not REST endpoint_ `/api/session`!), 
+the server checks for the presence of a valid session cookie 
+to authorize _the real-time data stream_.
+
+==== Getting Current User Information
+
+The `getCurrentUser()` method automatically detects your authentication method and retrieves user information:
+
+[source,java]
+----
+// With Bearer Token - no session created
+api.setBearerToken(virtualAdminToken);
+User admin = api.session.getCurrentUser();
+
+// With BasicAuth - creates a session internally
+api.setBasicAuth("user@domain.com", "password");
+User user = api.session.getCurrentUser(); // Calls POST /session internally
+----
+
+**Important:** When using BasicAuth, `getCurrentUser()` creates a session because Traccar's `GET /session` endpoint requires either:
+
+* A token query parameter (`?token=xxx`), OR
+* An existing JSESSIONID cookie
+
+It does NOT support raw BasicAuth headers alone. This is why the method internally calls `POST /session` for BasicAuth users.
+
+**Impact on WebSocket connections:**
+
+If you have an active WebSocket connection using the same BasicAuth credentials, calling `getCurrentUser()` creates a new session which may affect the WebSocket connection. To avoid this, use a Bearer Token instead.
+
+
+=== TODO: Token-based Authentication
+
+- [ ] Implement token-based authentication for endpoint `/api/session/token` 
+
+Traccar also supports a dedicated token system.
+A user can generate a token either through the web application's user preferences or by using the /api/session/token endpoint.
+Once you have a token, you can use it to create a session.￼
+
+To create a token via API:
+
+    Make a POST request to /api/session/token.
+    The response will be the raw token string.
+    You can optionally include an expiration date in the request body.
+
+    Endpoint: POST /api/session/token
+    Parameters (in the request body):
+    expiration: (Optional) A date and time in ISO format (e.g., 2026-09-04T12:00:00Z).
+
+
+Example using curl:
+    
+      Bash
+      curl -X POST -H "Authorization: Basic your_base64_encoded_credentials" http://your_traccar_server:8082/api/session/token
+      Note: Your credentials should be Base64-encoded as "email:password".
+
+To use a token for session creation:
+
+    Make a GET request to /api/session and pass the token as a query parameter.
+
+    Endpoint: GET /api/session?token=YOUR_TOKEN
+    Parameters (in the URL):
+
+    token: The token you generated.
+
+Example using curl:
+
+      Bash
+      curl "http://your_traccar_server:8082/api/session?token=YOUR_TOKEN"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

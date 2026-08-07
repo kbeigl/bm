@@ -1,12 +1,17 @@
 package bm.traccar.api.impl;
 
 import bm.traccar.api.Api;
+import bm.traccar.api.ApiException;
 import bm.traccar.api.ApiHelper;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.generated.model.dto.User;
 import java.util.List;
-import org.springframework.web.client.RestClientResponseException;
 
+/**
+ * See <a href="https://www.traccar.org/api-reference/#tag/Users">UsersApi</a> with ApiService. <br>
+ * In database lingo create, update, delete (CRUD) User in traccar datamodel using generated
+ * entities.
+ */
 public class UsersImpl implements Api.Users {
   private final UsersApi usersApi;
 
@@ -31,48 +36,54 @@ public class UsersImpl implements Api.Users {
     usersApi.usersIdDelete(integerId);
   }
 
-  // getCurrentUser() whoAmI()
-
-  // use getUserById or getAllUsers
-  //  @Deprecated
-  //  public List<User> getUsers(String userId) {
-  //    return usersApi.usersGet(userId);
-  //  }
+  /**
+   * Get a single user by ID. Currently implemented using usersGet with userId parameter as the
+   * generated API doesn't yet have a usersIdGet method corresponding to GET /users/{id}
+   */
+  @Override
+  public User getUser(Long id) {
+    // Use the userId parameter of usersGet to fetch a specific user
+    // According to API docs, this should return the user with the given ID
+    List<User> users = usersApi.usersGet(id.toString(), null, null, null);
+    if (users != null && !users.isEmpty()) return users.get(0);
+    // If not found, throw an exception matching the API behavior
+    throw new ApiException("User with id " + id + " not found");
+  }
 
   /**
    * workaround for getUserById missing in generated api and usersGet(userId) does not work as
    * expected. Check yaml, openapi generator and integer id.
-   *
-   * <p>Fetch a list of Users
-   *
-   * <p><b>200</b> - OK
-   *
-   * <p><b>400</b> - No Permission
-   *
-   * @param userId Can only be used by admin or manager users
-   * @param limit Limit the number of returned results
-   * @param offset Offset for pagination
-   * @param keyword Search keyword filter (searches name, email)
-   * @return List&lt;User&gt;
-   * @throws RestClientResponseException if an error occurs while attempting to invoke the API
    */
   @Override
   public User getUserById(String userId) {
-    List<User> users = usersApi.usersGet(null, null, null, null);
+    List<User> users = getAllUsers();
     for (User u : users) {
-      if (u.getId().toString().equals(userId)) {
-        return u;
-      }
+      if (u.getId().toString().equals(userId)) return u;
     }
     return null;
   }
 
+  /**
+   * Directly call the generated api method usersGet with all parameters. Use null for optional
+   * parameters.
+   *
+   * @see UsersApi#usersGet(String, Integer, Integer, String)
+   */
   @Override
-  public List<User> getAllUsers() {
-    return usersApi.usersGet(null, null, null, null);
+  public List<User> getUsers(String userId, Integer limit, Integer offset, String keyword) {
+    return usersApi.usersGet(userId, limit, offset, keyword);
   }
 
-  // getCurrentUser()
+  // gets all users seen by the current user(?)
+  @Override
+  public List<User> getAllUsers() {
+    return getUsers(null, null, null, null);
+  }
+
+  @Override
+  public List<User> searchAllUsers(String keyword) {
+    return getUsers(null, null, null, keyword);
+  }
 
   @Override
   public User createUserWithCredentials(String name, String pwd, String mail, Boolean admin) {
@@ -84,20 +95,55 @@ public class UsersImpl implements Api.Users {
     return createUser(user);
   }
 
-  // helper to check User Roles
   @Override
-  public boolean isAdmin(User user) {
-    return user != null && Boolean.TRUE.equals(user.getAdministrator());
+  public User createManagerWithCredentials(
+      String name, String pwd, String mail, Integer userLimit) {
+    if (userLimit == null || userLimit != 0) {
+      User manager = new User();
+      manager.setName(name);
+      manager.setEmail(mail);
+      manager.setPassword(pwd);
+      manager.setAdministrator(false);
+      manager.setUserLimit(userLimit);
+      return createUser(manager);
+    } else {
+      throw new IllegalArgumentException(
+          "userLimit must be -1 or a positive integer for a manager");
+    }
   }
 
   @Override
-  public boolean isManager(User user) {
-    if (user.getUserLimit() != null && user.getUserLimit() != 0) return true;
-    return false;
+  public User createManagerWithCredentials(
+      String name, String pwd, String mail, Integer userLimit, Integer deviceLimit) {
+    if (userLimit == null || userLimit != 0) {
+      User manager = new User();
+      manager.setName(name);
+      manager.setEmail(mail);
+      manager.setPassword(pwd);
+      manager.setAdministrator(false);
+      manager.setUserLimit(userLimit);
+      manager.setDeviceLimit(deviceLimit);
+      return createUser(manager);
+    } else {
+      throw new IllegalArgumentException(
+          "userLimit must be -1 or a positive integer for a manager");
+    }
   }
 
+  //  @Deprecated // use getRole(user) instead
+  //  public boolean isAdmin(User user) {}
+  //  public boolean isManager(User user) {}
+  //  public boolean isRegularUser(User user) {}
+
   @Override
-  public boolean isRegularUser(User user) {
-    return !isAdmin(user) && !isManager(user);
+  // top down check: Admin > Manager > Regular User
+  public TraccarRole getTraccarRole(User user) {
+    if (user == null) return TraccarRole.REG_USER; // may be misleading
+    // VIRTUAL_ADMIN detection with hardcoded id 9000000000000000000L
+    if (Boolean.TRUE.equals(user.getAdministrator()) && (user.getId() == 9000000000000000000L))
+      return TraccarRole.VIRTUAL_ADMIN;
+    if (Boolean.TRUE.equals(user.getAdministrator())) return TraccarRole.ADMIN;
+    if (user.getUserLimit() != null && user.getUserLimit() != 0) return TraccarRole.MANAGER;
+    return TraccarRole.REG_USER;
   }
 }

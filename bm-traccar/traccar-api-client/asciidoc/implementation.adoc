@@ -41,7 +41,8 @@ for a starting point on how to apply Maven properties etc.
 == Traccar REST
 
 Traccar `v6.7` provides *17 APIs* (see `package bm.traccar.generated.api`)
-and as the GTS progresses Traccar `v6.12.2` provides *19 APIs*.
+and as the GTS progresses + 
+Traccar `v6.12.2` provides *19 APIs*.
 These APIs support many aspects of GPS Tracking and beyond, like health monitoring.
 
 The `traccar-api-client` defines _one single (nested) API interface:_ 
@@ -131,37 +132,13 @@ In the best case the code changes can be restricted to this project.
 The project can fix and hide specification inconsistencies 
 and should provide consistent Java methods.
 
-
-=== SessionApi
-
-We can find all generated sub APIs in the `bm.traccar.generated.api` package. 
-For example we use the `UsersApi` and `DevicesApi` by setting the authentication,
-sending a request and receive entities.
-The `ApiClient` class holds the username and password. 
-When you call an API method, it will automatically construct and add the Authorization header. 
-This works perfectly for APIs that are stateless and check the basic auth header on every request.
-
-The `SessionApi` is a special case as `REST` and `HTTP` are defined as a stateless protocols.
-A session makes sense, if we log into the browser UI and keep it open.
-For the `traccar-api-client` we don't need to establish a session for REST interactions.
-The sole purpose is to use the `SessionApi` to create a session 
-and retrieve a `JSESSIONID` (Java Session Id) to be used with a websocket connection.
-
-You can make a `POST` request to the `/api/session` endpoint with the user's email and password. 
-This will create a session and return a Session Cookie managed by Jetty. 
-This process is implemented in the `ApiService` and can be called with
-
-[source,java]
-----
-    String jSessionId = api.session.createSessionGetJsessionId(userMail, userPassword);
-----
-
-That's all we need from the `SessionApi` and we will move on to the websocket implementation
-with the returned `JSESSIONID` for the provided User.
-When you connect to _websocket endpoint_ `/api/socket` (_Not REST endpoint_ `/api/session`!), 
-the server checks for the presence of a valid session cookie 
-to authorize _the real-time data stream_.
-
+[TIP]
+====
+This page is about architecture and usage of the Traccar OpenAPI Client. +
+If you are looking for the usage of the Traccar API and sub APIs +
+you can go directly to the 
+xref:./api/traccar-api.adoc[Traccar API page].
+====
 
 == Traccar `ApiAspect` and `ApiException`
 
@@ -205,3 +182,4 @@ and to ensure that you have a binding communication.
           invoke ApiClient.invokeAPI(..)                 |
         Exception in ApiMethod: **UsersApi.usersPost(..) **
 -----------------
+

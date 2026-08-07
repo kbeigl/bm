@@ -18,11 +18,40 @@ public class AuthenticationIT extends BaseIntegrationTest {
   @Autowired // get client from IoC	??
   private ApiClient apiClient;
 
-  /*
-   * TODO Authentication and User management - userId Can only be used by admin or
-   * manager users - create virtualAdmin, admin/s, manager/s and users - find and
-   * get virtualAdmin, admins, managers and users - login/logout > return 'role'
-   */
+  @Test
+  public void demonstrateAuthentication() {
+
+    // 1. Using Bearer Token for admin operations
+    api.setBearerToken(virtualAdmin);
+    logger.info("Authenticated: {}", api.getAuthentication());
+
+    List<User> allUsers = api.users.getAllUsers();
+    logger.info("Found {} users", allUsers.size());
+
+    // 2. Switch to Basic Auth for user-specific operations
+    api.setBasicAuth("manager@domain.com", "managerPass");
+    logger.info("Authenticated: {}", api.getAuthentication());
+
+    // Create a new user as manager
+    User newUser =
+        api.users.createUserWithCredentials("employee", "pass123", "employee@domain.com", false);
+
+    // 3. Login as the new user
+    api.setBasicAuth("employee@domain.com", "pass123");
+
+    // Get session for WebSocket connection
+    String jsessionId = api.session.createSessionGetJsessionId("employee@domain.com", "pass123");
+    logger.info("JSESSIONID for WebSocket: {}", jsessionId);
+
+    // api.session.getSessionGetJsessionId(jsessionId);
+
+    //    User sessionUser = api.session.getSession(jsessionId);
+    //    logger.info("Authenticated: {}", sessionUser);
+
+    // 4. Switch back to service account for cleanup
+    api.setBearerToken(virtualAdmin);
+    api.users.deleteUser(newUser.getId());
+  }
 
   @Test
   public void switchAuthentication() {
@@ -91,6 +120,6 @@ public class AuthenticationIT extends BaseIntegrationTest {
     logger.info("         BasicAuth={}/{}", BasicAuth.getUsername(), BasicAuth.getPassword());
 
     // Use the new whoIsAuthenticated() method
-    logger.info("whoIsAuthenticated: {}", api.whoIsAuthenticated());
+    logger.info("whoIsAuthenticated: {}", api.getAuthentication());
   }
 }

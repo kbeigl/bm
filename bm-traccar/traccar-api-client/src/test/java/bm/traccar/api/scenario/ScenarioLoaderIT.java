@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-@SpringBootTest
+@SpringBootTest(properties = "logging.config=classpath:logback-test.xml")
 @ContextConfiguration(
     classes = {ApiService.class, ApiConfig.class, ScenarioLoader.class, ScenarioConfig.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

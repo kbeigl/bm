@@ -8,8 +8,4 @@ include::implementation.adoc[]
 
 include::scenario.adoc[]
 
-include::usermanagement.adoc[]
-
-include::permissions.adoc[]
-
 include::upgrade.adoc[]

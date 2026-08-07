@@ -1,0 +1,70 @@
+:toc: left
+:toclevels: 2
+:doctype: book
+
+= The Traccar Sub APIs
+
+As described in the xref:../traccar-api-client.adoc[Traccar OpenAPI Client] page 
+the Traccar REST API `v6.12.2` provides 19 APIs with DTOs.
+You can find the classes in the `bm.traccar.generated.model.dto` package 
+and they are available in every `traccar-client-` implementation.   
+In this section we will go through the APIs in the order of appearance 
+and necessity of usage in the course of the prototype implementation.
+We can find all generated sub APIs in the `bm.traccar.generated.api` package. 
+
+
+[TIP]
+====
+This page is about the usage of the Traccar API and sub APIs. +
+If you are looking for the architecture and usage of the Traccar OpenAPI Client. +
+you can go directly to the xref:../traccar-api-client.adoc[Traccar OpenAPI Client].
+====
+
+
+== Sub APIs and DTO Classes
+
+
+[TIP]
+====
+Note that the APIs are introduced in the order of exploration. +
+Starting with `Users API` and `Session API` as the latter is using the earlier + 
+for convenience (and for a fallback solution). +
+With interdependencies of the APIs development, +
+server management (intricities) can be simplified for API usage.
+====
+
+
+|===
+
+|Attribute |Calendar |Command |CommandType
+
+|*Device* |DeviceAccumulators |Driver |Event
+
+|Geofence |*Group* |Maintenance |Notification
+
+|NotificationType |*Permission* |*Position* |ReportStops
+
+|ReportSummary |ReportTrips |*Server* |Statistics
+
+|*User* | | | 
+|===
+
+[NOTE]
+====
+Every API implementation has its `*IT` where you can find a test for every API method +
+and that you can use to experiment with them.
+====
+
+
+
+include::authentication.adoc[]
+
+include::session.adoc[]
+
+include::users.adoc[]
+
+include::devices.adoc[]
+
+include::permissions.adoc[]
+
+

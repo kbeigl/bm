@@ -18,9 +18,12 @@ public class SessionApiIT extends BaseIntegrationTest {
     api.setBearerToken(null);
     api.setBasicAuth(null, null);
 
-    // always a new JSESSIONID is created
+    // a new JSESSIONID is always created
     String jSession1 = api.session.getSessionGetJsessionId(virtualAdmin);
     String jSession2 = api.session.getSessionGetJsessionId(virtualAdmin);
+
+    // handle two connections with different JSESSIONID for the same user (virtualAdmin) ?
+
     assertNotEquals(jSession1, jSession2);
 
     // org.springframework.web.client.HttpClientErrorException$BadRequest:
@@ -56,8 +59,7 @@ public class SessionApiIT extends BaseIntegrationTest {
 
   /*
    * 'virtualAdmin' is a token. i.e. {traccar.web.serviceAccountToken}
-   * This works for virtual admin, but usage with (null) and (token) is yet unclear.
-   */
+   * Works for virtual admin. Clarify usage with (null) and (token)!
   @Test
   public void getSessionSuperUser() {
     User sessionUser = api.session.getSession(virtualAdmin);
@@ -65,22 +67,52 @@ public class SessionApiIT extends BaseIntegrationTest {
     assertEquals("Service Account", sessionUser.getName());
     assertEquals("none", sessionUser.getEmail());
   }
+   */
 
-  @Test
-  public void getJsessionIdForSuperUser() {
-    String jSessionId = api.session.getSessionGetJsessionId(virtualAdmin);
-    logger.info("received JSESSIONID: {}", jSessionId);
-    assertEquals(true, jSessionId != null);
-  }
+  //  @Test
+  //  public void getJsessionIdForSuperUser() {
+  //    String jSessionId = api.session.getSessionGetJsessionId(virtualAdmin);
+  //    logger.info("received JSESSIONID: {}", jSessionId);
+  //    assertEquals(true, jSessionId != null);
+  //  }
 
   // @Test
-  public void createGetDeleteSuperUserSession() {
+  //  public void createGetDeleteSuperUserSession() {
+  //	String jSessionId = api.session.createSessionGetJsessionId(virtualAdmin);
+  //	logger.debug("received JSESSIONID: {}", jSessionId);
+  //	assertEquals(true, jSessionId != null);
+  //	api.session.deleteSession();
+  //	logger.debug("deleted session for super user");
+  //  }
 
-    //	String jSessionId = api.session.createSessionGetJsessionId(virtualAdmin);
-    //	logger.debug("received JSESSIONID: {}", jSessionId);
-    //	assertEquals(true, jSessionId != null);
-    //	api.session.deleteSession();
-    //	logger.debug("deleted session for super user");
+  /**
+   * Test getCurrentUser() - get the currently authenticated user without passing parameters. This
+   * corresponds to GET /api/session without parameters and returns the user based on current
+   * authentication (BasicAuth, BearerToken, or JSESSIONID).
+   */
+  @Test
+  public void getCurrentUser() {
+    // Test with BasicAuth
+    api.setBasicAuth(userMail, userPassword);
+    User currentUser = api.session.getCurrentUser();
+    logger.info("Current user via BasicAuth: {}/{}", currentUser.getName(), currentUser.getEmail());
+    assertEquals(userMail, currentUser.getEmail());
+    assertEquals(userName, currentUser.getName());
 
+    // Test with BearerToken (virtual admin)
+    api.setBearerToken(virtualAdmin);
+    User virtualAdminUser = api.session.getCurrentUser();
+    logger.info(
+        "Current user via BearerToken: {}/{}",
+        virtualAdminUser.getName(),
+        virtualAdminUser.getEmail());
+    assertEquals("Service Account", virtualAdminUser.getName());
+    assertEquals("none", virtualAdminUser.getEmail());
+
+    // Test with different user
+    api.setBasicAuth(adminMail, adminPassword);
+    User adminUser = api.session.getCurrentUser();
+    logger.info("Current user via BasicAuth: {}/{}", adminUser.getName(), adminUser.getEmail());
+    assertEquals(adminMail, adminUser.getEmail());
   }
 }
