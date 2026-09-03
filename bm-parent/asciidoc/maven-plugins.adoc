@@ -2,13 +2,13 @@
 :toc: left
 
 
-= Maven `<plugins>`
+== Maven `<plugins>`
 
 Each section provides a short introduction to each tool 
 with supporting links to drill down.
 
 
-== Asciidoctor 
+=== Asciidoctor 
 
 The complete project is documented in _AsciiDoc_ or `.adoc` files.
 This is the broader approach to technical documents than `markdown`
@@ -36,7 +36,7 @@ Goto projects
 xref:../bm-docs/ascii-doctor.adoc[AsciiDoctor implementation and usage]
 
 
-== Mermaid Chart 
+=== Mermaid Chart 
 
 [quote, see https://docs.mermaidchart.com/mermaid-oss/intro/index.html#about-mermaid]
 ____
@@ -76,7 +76,7 @@ and details can be found in its description
 xref:../bm-docs/ascii-doctor.adoc[AsciiDoctor implementation and usage]
 
 
-== openapi-generator-maven
+=== openapi-generator-maven
 
 The complete Traccar REST API is defined in a single `openapi.yaml` file 
 This file is used with the  
@@ -89,7 +89,7 @@ and produces a `traccar-api-generated-x.y.z.jar` (in two steps).
 xref:../bm-traccar/traccar-openapitools-client/openapitools.adoc[details ...]
 
 
-== Google Code Style
+=== Google Code Style
 
 There are many code formatters and formats out there.
 Just like in the `jeets` project we chose the   

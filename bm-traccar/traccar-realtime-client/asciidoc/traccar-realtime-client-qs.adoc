@@ -1,13 +1,33 @@
 :toc: left
 
+
 = Quickstart: Real Time Console
 
 The three layers around the `ApiClient`, `Api interface` and `RealTimeManager` +
 are combined in the `@SpringBootApplication  RealTimeClient`.
 
+== todo: merge into doc
+
+The `traccar-rt-client` implies the other artifacts of the `/bm-traccar` branch 
+as required layers and can well serve as a Quickstart 
+(and later as a useful supporting component) for Traccar Client development.
+Also the `traccar-realtime-client` is a Spring Boot application, 
+which means that it can be run as a standalone application.
+
+The real time client can easily be integrated into your Spring Boot applications.
+You can use the `RealTimeManager` as a bean in your application context and
+add a little ETL logic to process the Traccar Entities as you like.
+
+Please check the
+xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[Quickstart]
+to get started with the `traccar-realtime-client` and 
+find out how it can be used to connect to a Traccar server and 
+receive real-time data from it.
+
 == `traccar-rt-client` *Release*
 
-The `traccar-rt-client` is a simple client application that connects to a traccar server and listens for real-time updates. 
+The `traccar-rt-client` is a simple client application that connects 
+to a traccar server and listens for real-time updates. 
 It can be used as a solid building block for real time applications.
 You can integrate it in your application and code against the
 `RealTimeManager` as if it was the traccar server.
@@ -22,30 +42,9 @@ Logon to the traccar server to witness the motion of your devices on the map +
 and open the console to see the real time updates as they come in.
 ====
 
-=== prerequisites
-
-All you need is 
-
-* a Java runtime and online access to the Traccar Server
-* a *Traccar Server Address* to connect to and a *User Account*
-* a *Device* on a traccar server to connect to.
-
-[TIP]
-====
-If you are not familiar with traccar server, you can sign up on a public demo server +
-and use your smartphone as a tracker with the traccar client app ... within minutes!
-====
-
-
 === download release
 
-You can pick up the latest release from the 
-https://github.com/kbeigl/bm[repo home],
-go the Release section and click on *latest* label.
-
-Or look at all 
-https://github.com/kbeigl/bm/releases[realeases] 
-and pick a version of the `traccar-realtime-client-u.v.w-x.y.z[-suffix].jar`.
+pick a version of the `traccar-realtime-client-u.v.w-x.y.z[-suffix].jar`.
 
 The first Release Candidate is `traccar-realtime-client-6.12.2-1.1.20-RC.jar`
 
@@ -53,74 +52,13 @@ Download the jar in any folder
 
     /any/folder/traccar-realtime-client-6.12.2-1.1.20-RC.jar
     
-Note that the 
-
-    traccar-realtime-client-u.v.w-x.y.z[-suffix].jar.original
-                                                    ---------
-                                                    
-is the original jar without the `application.properties` file. +
 It was `repackaged` with the `spring-boot-maven-plugin` +
 to include Spring Boot dependencies and the `application.properties` file. +
 
 
-=== provide credentials 
-
-Extract the `application.properties` from the jar and copy it to the same folder as the jar:
-
-    $ cd /any/folder
-    $ jar xf traccar-rt-client-6.10.0-RC.jar application.properties
-
-Or create a new `application.properties` file in the same folder +
-and provide the necessary credentials and server address. +
-For example:
-
-[source,xml]
-----
-    # http:// or secure https://
-    traccar.protocol=https://
-    
-    # port can be empty for default port (80 for http, 443 for https)
-    traccar.port=
-
-    traccar.host=${traccar.protocol}demo3.traccar.org${traccar.port}
-    
-    traccar.name=acount name
-    traccar.password=secret
-    traccar.email=my@mail.com
-----
-
-
-=== prepare tracking
-
-Login to the traccar server with the provided credentials and make sure you have a device on the server. +
-Turn on the tracker and make sure it is connected to the server, sending updates and showing up on the map.
-
-=== run the client
-
-First make the jar executable:
-
-    $ chmod 777 traccar-realtime-client-6.12.2-1.1.20-RC.jar
-    
-Then execute the jar:
-
-    $ java -jar traccar-realtime-client-6.12.2-1.1.20-RC.jar
-
-Note that the client remains running until manually shutdown gracefully with `Ctrl+C`.
-
 === console output
 
-First you will see the startup messages
-
-[source,xml]
-----
-    Starting RealTimeClient using Java 21.0.10 with PID 704815
-    Apache Camel 4.18.0 (camel-1) is starting
-    Routes startup (total:2)
-    Started RealTimeClient in 3.519 seconds (process running for 4.207)
-----
-
-then the login process and loading of initial data from the server
-
+login process and loading of initial data from the server
 
 [source,xml]
 ----

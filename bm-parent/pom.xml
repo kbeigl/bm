@@ -24,13 +24,13 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.26</version>
+        <version>1.1.27</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
     <packaging>pom</packaging>
 
-    <name>--- blue marble BOM                       ---</name>
+    <name>-- blue marble BOM                        ---</name>
     <description>
         Parent POM for common definitions and constants for all sources.
         Acts as the bill of materials for the entire project.
@@ -41,15 +41,17 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>false</openapi.skip>
+        <openapi.skip>true</openapi.skip>
         <!-- dev mode: mvn docker:run with JUnit for ITs -->
-        <integration.tests.skip>true</integration.tests.skip>
+        <integration.tests.skip>false</integration.tests.skip>
         <!-- dev mode: save time on bm-docs project -->
         <asciidoc.process.skip>false</asciidoc.process.skip>
         <maven.javadoc.skip>true</maven.javadoc.skip>
-        <!-- analyze how Spring/Test handles this in a single project .. -->
-        <test.logback.configuration.file>
-            ${maven.multiModuleProjectDirectory}/logback-test.xml</test.logback.configuration.file>
+        <!-- classpath reference: every test module carries logback-test.xml in
+             src/test/resources. Works in Maven AND in IDE JUnit runs, where
+             ${maven.multiModuleProjectDirectory} is not available and would
+             resolve to /logback-test.xml (FileNotFoundException). -->
+        <test.logback.configuration.file>classpath:logback-test.xml</test.logback.configuration.file>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -61,7 +63,7 @@
 
         <!-- prefer LTS versions -->
         <camel-version>4.21.0</camel-version>
-        <spring-boot-version>4.1.0</spring-boot-version>
+        <spring-boot-version>4.2.0-M1</spring-boot-version>
         <spring-boot-maven-plugin-version>${spring-boot-version}</spring-boot-maven-plugin-version>
 
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
@@ -72,7 +74,7 @@
 
         <!-- docker would start, if docker.skip.tests=false -->
         <docker.skip.tests>${integration.tests.skip}</docker.skip.tests>
-        <docker.maven.plugin.version>0.48.1</docker.maven.plugin.version>
+        <docker.maven.plugin.version>0.49.0</docker.maven.plugin.version>
         <docker.image.prefix>traccar</docker.image.prefix>
         <docker.image.name>traccar</docker.image.name>
         <docker.image.version>${traccar.version}</docker.image.version>
@@ -175,6 +177,13 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin-version}</version>
                     <configuration>
+                        <!-- NOTE: do NOT add -javaagent:${org.mockito:mockito-core:jar} here.
+                             The property is only resolved by maven-dependency-plugin:properties
+                             during a Maven build. Eclipse/m2e JUnit launches pass the literal,
+                             unresolved string to the JVM, which fails with
+                             "Error opening zip file or JAR manifest missing".
+                             Re-add it (plus a mockito-core dependency) only when Mockito
+                             inline mocking is actually used. -->
                         <argLine>@{argLine}
                             -Xshare:off
                             -Dlogging.config=${test.logback.configuration.file}
@@ -237,7 +246,7 @@
                                             <volume>
                                                 /opt/traccar/data:/opt/traccar/data:rw</volume>
                                             <volume>
-                                                /opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
+                                                ${maven.multiModuleProjectDirectory}/bm-parent/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
                                         </bind>
                                     </volumes>
                                     <log><!-- do not remove --> </log>
@@ -302,6 +311,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin-version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -359,24 +369,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- move to pluginManagement ! 
-            Repackage existing JAR and WAR archives so that they 
-            can be executed from the command line using java -jar.
-            docs.spring.io/spring-boot/docs/3.2.0-SNAPSHOT/maven-plugin/reference/htmlsingle/#packaging
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot-version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-             -->
         </plugins>
     </build>
 

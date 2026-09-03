@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.traccar.ws;
 
 import bm.traccar.ws.entities.DeviceProcessor;
@@ -13,7 +29,6 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.http.base.HttpOperationFailedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +44,18 @@ public class WebSocketRoute extends RouteBuilder {
   // private static final Logger logger = LoggerFactory.getLogger(WebSocketRoute.class);
   // using RouteBuilder log
 
-  @Value("${traccar.host}")
-  private String host;
+  private final String host;
+  private final SessionManager sessionManager;
+  protected final ProducerTemplate producer;
 
-  // no REST API involved !
-  @Autowired private SessionManager sessionManager;
-  @Autowired protected ProducerTemplate producer;
+  public WebSocketRoute(
+      @Value("${traccar.host}") String host,
+      SessionManager sessionManager,
+      ProducerTemplate producer) {
+    this.host = host;
+    this.sessionManager = sessionManager;
+    this.producer = producer;
+  }
 
   // move (to ApiService) ?
   public void loginAndConnect(String email, String password) throws Exception {

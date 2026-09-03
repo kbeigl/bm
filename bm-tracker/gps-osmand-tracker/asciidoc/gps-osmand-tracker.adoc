@@ -1,6 +1,5 @@
-
 :toc: left
-:toclevels: 1
+:toclevels: 3
 :doctype: book
 
 include::gps-tracker.adoc[]

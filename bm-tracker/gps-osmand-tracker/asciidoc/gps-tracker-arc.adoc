@@ -1,8 +1,8 @@
 
 = Component Architecture
 
-At this point it is important to prototype the components architecture 
-as an reliable development guideline -- and always subject to change.
+At this point it is important to prototype the component's architecture 
+as an reliable development element -- while always being subject to change in the larger dev cycle.
 Prototyping is the first implementation to demo the _proof of concept_
 for single component to a complete framework.
 Main Technology- and Design Decision have to be made to fullfill the POC.
@@ -40,15 +40,14 @@ and a Camel rider starts software design with a local `direct` Endpoint:
 
 [source,java]
 ----
-      // to Sender Component
       from("direct:send-osmand")
 ----
     
 From this point we will send messages to the Traccar server.
-In integration terms it is a _Producer Endpoint_ to send a fixed message.
-On the other hand we want to leave all options to create messages.
+In integration terms it is a (outbound) _Producer Endpoint_ to send a fixed message.
+On the other hand we want to leave all options to _create_ messages.
 This is achieved by using the Camel Producer to send messages 
-`to` `"direct:send-osmand"`, now being a _Consumer Endpoint_.
+`to` `"direct:send-osmand"`, now being a (inbound)  _Consumer Endpoint_.
 
 For example you can create a regular Java method and instead of `return` 
 you end the method with `sendBody`. Camel will take care of the rest.
@@ -76,16 +75,19 @@ Now we are set to start implementing with *this Endpoint* ..
 
 * *as Producer* to send this message.
 
-sounds easy, +
-'cause it is `;)`
+sounds easy, 'cause it is `;)`
 
 
 == Sender
 
-We now have Input and a Controller. +
-Next is the Output, the messaging/transport layer to the GTS. +
-The Transmitter is responsible to submit (and acknowledge) the messages to Traccar. + 
-First we need to make sure the controllers call introduced above
+Now we've got the Input message `record MessageOsmand`  
+
+and the Controller `@Component TrackerOsmAnd` with the `send()` method to send messages.
+
+Next is the Output, the messaging/transport layer to the GTS: `TrackerSender extends RouteBuilder`
+
+The Transmitter is responsible to submit (and acknowledge) the messages to (and from) Traccar. + 
+First we need to make sure the controllers call introduced above method 
 
     // message to Sender
     tracker.sendBody("direct:send-osmand", msg);
@@ -101,12 +103,12 @@ The transmission route starts with
     from("direct:send-osmand")
 
 The route dynamically builds the server URL, manages http headers and properties +
-and sends the message to Traccar via Dynamic Endpoint `.toD( host + parameters )`.
+and sends the message to Traccar via _Dynamic Endpoint_ `.toD( host + parameters )`.
 
 
 === load balancing
 
-In the `// Tracker` listing above different types of sending a message are indicated.
+In the `// Tracker Component` listing above different types of sending a message are indicated.
 This way the prototype leaves some room to scale implementations for a dedicated application.
 Each send type can get its own method as we widen the Software for production.
 
@@ -114,7 +116,7 @@ Note that in the above sample we are using the routeId `send-osmand-route` as tr
 This implies that _this very route_ is re/created in each tracker instance.
 When Camel adds a route with the same routeId is will stop/replace the existing route.
 
-We are interested to create an independant tracker to track an independant thing. +
+We are interested to create an independant tracker to track _one_ independant thing. +
 Therefore the initial implementation will respect the `uniqueId` inside the tracker implementation.
 
     routeId("send-osmand-route-" + uniqueId)
@@ -127,7 +129,7 @@ a single shared Transmitter route that handles any device
 The `CamelContext` provides full flexibility to manage all routes
 and leaves room for load optimization - any time later.
 
-Once the tracker beta version is running there is still room for a different setup. +
+Once the tracker beta-version is running there is still room for a different setup. +
 In the long run this could be controlled with a switch to be introduced.
 
 
@@ -173,7 +175,7 @@ In general a SEDA controller is any mechanism that manages the consumption of re
 such as thread pool size, event queue size, scheduling, etc.
 
 
-=== `"seda:"` Component
+=== SEDA Component
 
 And, of course, Camel does provide a 
 https://camel.apache.org/components/seda-component.html[SEDA component] `"seda:"`
@@ -186,7 +188,10 @@ consumers are invoked in a separate thread from the producer.
 
 Creating a Tracker prototype with SEDA is a walk in the park:
 
-    "seda:send-osmand"
+[source,java]
+----
+	"seda:send-osmand"
+----
 
 Yet SEDA is working in-memory with asynchronous processing within a single JVM
 to support for highly-concurrent traffic. 
@@ -198,7 +203,7 @@ if the JVM terminates while messages are yet to be processed.
 If you need persistence, reliability or distributed SEDA, try using JMS.
 
 We use the SEDA component to decouple your main process from volatile HTTP calls.
-We can "fire and forget" messages into an internal queue, 
+We can "fire & forget" messages into an internal queue, 
 let a separate thread pool handle network timeouts and server crashes.
 
 One thing _we can do_ with the `"seda:"` component is to activate
@@ -206,7 +211,10 @@ a Dead Letter Queue (DLQ) for development inspection of lost messages
 and maybe to improve SEDA performance a bit.
 As as example of a 
 
+[source,java]
+----
     errorHandler( deadLetterChannel(..
+----
 
 have a look at this
 https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/src/main/java/org/jeets/device/RouteParseFile.java[JeeTS Device]
@@ -382,21 +390,3 @@ The sending method returns to the application instantly,
 while the Sender takes care of sending all messages until accepted by the Tracking Server.
 
 
-= Tracker Development IT
-
-The `gps-osmand-tracker` was developed in the first implementation branch `bm-tracker` 
-as a simple sender to transfer GPS messages to the Traccar Server.
-We have used this Tracker for further development and testing the Traccar Server with real GPS data.
-
-With the `traccar-realtime-client` we have reached a complete cycle 
-to start roundtrip development and integrated testing.
-Therefore you can proceed to  
-xref:../../bm-traccar/traccar-realtime-client/integrated-dev-cycle.adoc[IT roundtrip development]
-to follow the development of Tracker Features.
-
-== Traccar Server Events
-
-The Traccar API supports sending GPS tracking data via the http OsmAnd protocol.
-When tracking data is sent to this endpoint the traccar engine triggers
-several handlers to register the data into the system and triggers
-the realtime websocket connection to send out updates.

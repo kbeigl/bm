@@ -4,10 +4,11 @@
 
 In the long run we want to track every _Thing_ (real physical object) acting in a scenario. + 
 Since every message implies the devices `uniqueId`, one Message Broker
-could operate as _one single_ Tracker for a _complete_ scenario.
+could operate as _one single multi_ Tracker for a _complete_ scenario.
 So all simulated devices could send their messages off the same Tracker
-and _could_ be scaled and sudivided with a Message Broker like RabbitMQ, ActiveMQ etc. +
-We want to provide an independantly working GPS Tracker (simulation) for each of these things. 
+and _could_ be leveled, scaled and sudivided with a Message Broker like RabbitMQ, ActiveMQ etc. +
+
+We want to provide an independantly working GPS Tracker (simulation) for each of these things. +
 A _single_ device can be scaled with SEDA to decompose messages for event driven components.
 
 [NOTE]
@@ -22,7 +23,7 @@ The chosen protocol is a easy as it gets and the creation process can serve as a
 We have chosen the `OsmAnd` protocol and defined the `OsmAnd` GPS Message (targeting Traccar).
 That is the information and format the server accepts and understands.
 We will use it as our *Model* to guide Tracker development.
-The protocol defines all attributes exchanged with the GTS platform.
+The protocol defines all attributes exchangeable with the GTS platform.
 
 We could generate a Java Class from the JSON format listed on the 
 link:https://www.traccar.org/osmand/[traccar osmand] page. +
@@ -36,7 +37,7 @@ and will fix the parameters in a simple `record` to hold a single GPS snapshot:
 package bm.gps;
 
     public record MessageOsmand(
-        // must have
+        // must have primitives
         String id,        // traccar device uniqueId
         double lat,       // geometry data
         double lon,
@@ -82,7 +83,7 @@ which could be sneeked into a scenario, if needed.
 
 The above model is a minimal starting example.
 A GPS Tracking Platform has to deal with _a lot more_ attributes. +
-We will use the Traccar GTS, which is build on the following Entities with fixed Relations:
+We are using the Traccar GTS, which is build on the following Entities with fixed Relations:
 
 |===
 
@@ -92,7 +93,7 @@ We will use the Traccar GTS, which is build on the following Entities with fixed
 
 |Geofence |*Group* |Maintenance |Notification
 
-|NotificationType |Permission |*Position* |ReportStops
+|NotificationType |*Permission* |*Position* |ReportStops
 
 |ReportSummary |ReportTrips |*Server* |Statistics
 
@@ -100,12 +101,12 @@ We will use the Traccar GTS, which is build on the following Entities with fixed
 |===
 
 These are not the actual Entities of the Traccar ERM. +
-These are DTO classes generated from the Traccar REST API openapi.yml file.
+These are DTO classes generated from the Traccar REST API `openapi.yml` file.
 
 You can find the classes in the `bm.traccar.generated.model.dto` package + 
 and they are available in every `traccar-client-` implementation.   
 
-Let's compare the generate `Device` class,
+Let's compare the generated `Device` class,
 a `json devices` message sent via websocket +
 and the attributes in the database model:
 
@@ -132,34 +133,35 @@ and the attributes in the database model:
                                  ]}             server attributes  MOTIONSTATE
                                                                    MOTIONTIME
                                                                    MOTIONDISTANCE
+                                                                   MOTIONSTREAK
+                                                                   MOTIONPOSITIONID
                                                                    OVERSPEEDSTATE
                                                                    OVERSPEEDTIME
                                                                    OVERSPEEDGEOFENCEID
-                                                                   MOTIONSTREAK
-                                                                   MOTIONPOSITIONID
 ----
 
 All messages have the devices `uniqueId` in common to refer to the same device. +
 Yet the models deviate by the two attributes `calendarId` and `expirationTime`. +
-Important information for ETL stuff like mapping.
 
 The Traccar Specification is defined by the Traccar Data Entities (Device, Position, Event, etc.)
-is the Java source code. +
+in the Java source code. +
 The websocket API simply takes these internal Java objects and converts them to JSON.
 
-We are using the `com.fasterxml.jackson.databind.ObjectMapper` for JSON handling in a WebSocket Route.
-Have a look at the `bm.traccar.ws.entities.EntityMapper` class for the pre-configured ObjectMapper.
+We are using the `com.fasterxml.jackson.databind.ObjectMapper` for JSON handling in a WebSocket Route. +
+Have a look at the `bm.traccar.ws.entities.EntityMapper` class for the pre-configured ObjectMapper. +
 In the logs you can see the JSON messages sent by the server 
-and the DTOs created by the ObjectMapper.
+and the DTOs created by the ObjectMapper. +
 And you can see the `WARNING` about the unknown fields, _which are not mapped to the DTOs_:
 
     WARN  [vert.x-worker-thread-4] bm.traccar.ws.entities.EntityMapper 
     - UNIMPLEMENTED unknown field 'calendarId' 
+                    --------------------------
       when deserializing bm.traccar.generated.model.dto.Device 
       - skipping
 
-The other attributes of our Tracker Model `record`
-can be found in the `Position` class:
+Note that the `Device` class does not provide geo coordinates.
+It references the `Position` class with the `positionId` provided by the database - logically after persisting it. 
+The other attributes of our `record` can be found in the `Position` class:
 
 
 [source,java]
@@ -186,7 +188,7 @@ The openapi generator creates the `Position` class with `BigDecimal` types
 
     private BigDecimal latitude, longitude, altitude;
 
-The difference between `BigDecimal` and `double` is precision against performance. +
+The evaluation between `BigDecimal` and `double` is precision against performance. +
 For financial computation the precision, 
 i.e. the exact sequence of digits after the point, is indisputable. +
 With `double` the decimal values are not always precise. +
@@ -195,39 +197,41 @@ Therefor some tricky algorithm with memory has to make sure `1 / 3 * 3` is exact
 
 This should be kept in the back of our mind, since it does matter
 when you want to know, if two points on a map are identical.
+Very important to connect different layers of a map.
 Or you want to find all identical points in the complete map data.
 If the values are transfered with a string format like `json` or as URL parameters
-they are actually converted into _their literal value_. 
+they are actually converted into their _literal value_. 
 
-To stay on the save side comparisons should always be made with tolerance. +
+To stay on the safe side comparisons should always be made with tolerance. +
+That is why digital maps use point references instead of the coordinates themselves. +
 For the Tracker and the Message we will use `double`, standard for most geotools and -libs.
 
 
 
 == Requirements
 
-First we collect the functional requirements for the core features of tracking, +
-a _Minimum Viable Product_ we can build on. +
-We have looked at the main 
+First we collect the functional requirements for the core features of tracking, 
+a _Minimum Viable Product_ we can build on. We have looked at the main 
 xref:./gps-tracker.adoc[Tracker Components]
 earlier to gather requirements for the implementation:
 
 === GPS Unit / receiver
 
 - [*] Acquire GPS position (latitude, longitude, altitude)
-- [*] UTC Time 
+- [*] Acquire UTC Time 
 - [ ] incoming Message Buffer here ?
 
 === (GSM) transmitter
 
 - [*] Transmit messages (primarily location data) to a remote server (any TCP, UDP protocols)
 - [ ] configurable intervals e.g. every x seconds when moving, every y minutes when stationary etc.
-- [*] manage connection to server, reconnection
+- [*] manage connection to server, reconnection strategy
 - [*] outgoing Message Buffer
 
 === Controller
 
-The main controller resides between receiving input and transmitting output.
+The main controller resides between receiving input and transmitting output. +
+In hardware terms a controller board with a GPS receiver and a GSM transmitter. +
 Most features of a Tracker can be implemented in it 
 and it is the place to collect system information continuously.
 
@@ -250,8 +254,11 @@ and is sufficient to create a concrete implementation without surprises.
 
 == Primary Use Case
 
-the (Java) application developer, +
-i.e. user of the `gps-osmand-tracker-1.1.1x.jar` +
-wants to create a message and send it. +
+The (Java) application developer, i.e. user of the `gps-osmand-tracker-x.y.z.jar` 
+wants to create a message and send it. 
+Especially when working on server logic, the developer wants to send one or more message whenever required. 
+
 fire & forget
+
+ 
 

@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_call:
 
 jobs:
   build:
@@ -28,3 +29,14 @@ jobs:
             -Ddocker.skip.tests=true \
             -Dopenapi.skip=false \
             -Dasciidoc.process.skip=true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            bm-traccar/traccar-openapitools-client/target/*.jar
+            bm-traccar/traccar-api-client/target/*.jar
+            bm-traccar/traccar-realtime-service/target/*.jar
+            bm-tracker/gps-osmand-player/target/*.jar
+          if-no-files-found: ignore

@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.traccar;
 
 import bm.traccar.api.Api;
@@ -63,9 +79,7 @@ public abstract class BaseRealTimeAppTest {
         }
 
         // Manually resolve property placeholders (Spring hasn't started yet)
-        String protocol = testProps.getProperty("traccar.protocol", "http://"),
-            port = testProps.getProperty("traccar.port", ""),
-            host = protocol + "localhost" + port;
+        String host = testProps.getProperty("traccar.host", "http://localhost:80");
 
         String adminName = testProps.getProperty("traccar.name"),
             adminPassword = testProps.getProperty("traccar.password"),

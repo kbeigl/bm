@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.gps.player;
 
 import bm.gps.MessageOsmand;
@@ -5,6 +21,7 @@ import bm.gps.gpx.Gpx2OsmandParser;
 import bm.gps.tracker.TrackerOsmAnd;
 import java.io.File;
 import java.util.List;
+import java.util.function.Consumer;
 import org.apache.camel.component.quartz.QuartzComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.support.SimpleRegistry;
@@ -48,6 +65,28 @@ public class PlayerOsmAnd {
   private QuartzSchedulerBean quartzScheduler;
   // A stop is final (terminate) versus a pause/resume which is more complicated
   private boolean stopRequested = false;
+  private Consumer<PlayerOsmAnd> onPlaybackFinished;
+
+  public void setOnPlaybackFinished(Consumer<PlayerOsmAnd> onPlaybackFinished) {
+    this.onPlaybackFinished = onPlaybackFinished;
+  }
+
+  //                onPlaybackFinished
+  synchronized void onPlaybackCompleted() {
+    new Thread(
+            () -> {
+              stopOsmAndTrack();
+              if (onPlaybackFinished != null) {
+                try {
+                  onPlaybackFinished.accept(this);
+                } catch (Exception e) {
+                  logger.warn("Error in onPlaybackFinished callback for player '{}'", uniqueId, e);
+                }
+              }
+            },
+            "player-cleanup-" + sanitizeQuartzId(uniqueId))
+        .start();
+  }
 
   /**
    * Starts playback for the loaded track.
@@ -111,9 +150,7 @@ public class PlayerOsmAnd {
    * @return {@code true} if routes are ready; {@code false} on startup failure
    */
   private boolean ensurePlaybackRoutes() {
-    if (camel != null && camel.isStarted()) {
-      return true;
-    }
+    if (camel != null && camel.isStarted()) return true;
 
     try {
       String idSuffix = sanitizeQuartzId(uniqueId);
@@ -179,14 +216,17 @@ public class PlayerOsmAnd {
     // assert that deviceId is set > registered in server and  controller
   }
 
+  /**
+   * Returns the uniqueId of the tracker associated with this player.
+   *
+   * <p>This uniqueId is used to identify the tracker in the system and is also used to derive
+   * unique Quartz group/job names for multi-instance isolation.
+   *
+   * @return the uniqueId of the tracker, or an empty string if no tracker is set
+   */
   public String getUniqueId() {
-    // should be set with tracker
     return uniqueId;
   }
-
-  //  public Long getLastSentPositionId() { return lastSentPositionId; }
-  //  public void setLastSentPositionId(Long previousPositionId) {
-  //    this.lastSentPositionId = previousPositionId; }
 
   public void resetNextIndex() {
     this.nextIndex = 0;
@@ -205,23 +245,36 @@ public class PlayerOsmAnd {
     return osmandTrack == null ? 0 : osmandTrack.size();
   }
 
+  /* should be refactored!
+   * (Parsing of the) gpxFile should not be part of the PlayerOsmAnd.
+   * The List<MessageOsmand> osmandTrack is the tape to be played back.
+   */
   public List<MessageOsmand> parse(File gpxFile, String uniqueId) {
     return parser.parse(gpxFile, uniqueId);
   }
 
   public void load(File gpxFile, String uniqueId) {
+    load(uniqueId, parser.parse(gpxFile, uniqueId));
+  }
+
+  public void load(File gpxFile) {
+    load(gpxFile, uniqueId);
+  }
+
+  /**
+   * Loads an already parsed OsmAnd message list for playback.
+   *
+   * @param uniqueId the tracker/device unique id this track belongs to
+   * @param messages the parsed OsmAnd messages (track)
+   */
+  public void load(String uniqueId, List<MessageOsmand> messages) {
     this.uniqueId = uniqueId;
-    List<MessageOsmand> messages = parser.parse(gpxFile, uniqueId);
-    if (messages.size() <= 2) { // <= 1
+    if (messages == null || messages.size() <= 2) { // <= 1
       trackIsLoaded = false;
     } else {
       osmandTrack = messages;
       trackIsLoaded = true;
       resetNextIndex();
     }
-  }
-
-  public void load(File gpxFile) {
-    load(gpxFile, uniqueId);
   }
 }

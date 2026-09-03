@@ -1,0 +1,286 @@
+:toc: left
+:toclevels: 5
+:doctype: book
+
+
+== `GpsPlayerIT`
+
+Just like the `TrackerOsmAnd` has the `GpsTrackerIT` to test the tracker in action, +
+the `PlayerOsmAnd` has the `GpsPlayerIT` to develop and test the player in action. +
+As described earlier, we have two main test methods to cover the basic use cases of the player:
+
+[source,java]
+----
+  @Test     // single track, single tracker
+  void loadSingleGpxAndSendWithSingleTracker() throws Exception {
+
+  @Test     // multiple tracks, multiple trackers
+  void loadFourGpxAndSendWithFourTrackers() throws Exception {
+----
+
+Let's look at the player test as a step by step implementation 
+for your real world application.
+
+
+=== create a Player
+
+If you already have a tracker instance you can use it with the player to play the track. 
+
+[source,java]
+----
+    PlayerOsmAnd player = new PlayerOsmAnd();
+    player.setTracker(tracker);
+    player.load(gpxFile);
+----
+
+
+=== play the track
+
+To play the track, we simply call 
+
+[source,java]
+----
+    player.playOsmAndTrack()).isTrue();
+----
+
+to start the scheduling of messages based on their _timestamp differences_. +
+The method validates the tracker, the message list and the index in the list.
+Due to different starting conditions of various players the startup procedure
+can run into race conditions. 
+The method
+
+[source,java]
+----
+    player.ensurePlaybackRoutes();
+----
+
+is setting up the scheduler and the scheduler bean in a safe manner
+and adds the actual trigger route.
+After the camel context has started the first message is triggered immediately, 
+and delegates scheduling of all subsequent messages to the `QuartzSchedulerBean`.
+
+
+=== `QuartzSchedulerBean`
+
+When starting the playback the first message is triggered 
+
+[source,java]
+----
+    quartzScheduler.sendCurrentAndScheduleNext();
+----
+
+and the scheduler does his work by sending a message +
+and instantly scheduling the delay to the next message - again - and again.
+
+[source,java]
+----
+    player.tracker.sendMessage(current);
+     :
+    scheduleFireIn(delayMs);
+----
+
+The actual rescheduling is done directly on the `Scheduler` using the native Quartz API 
+— no Camel producer endpoint involved here.
+
+[source,java]
+----
+    quartzScheduler.rescheduleJob(triggerKey, newTrigger);
+----
+
+=== loading time
+
+If we have a look at the loading process of the files
+
+[source,xml]
+----
+22:20:45.616 INFO  GpsPlayerIT -    ********** loadFourGpxAndSendWithFourTrackers() **********
+22:20:46.375 INFO  Gpx2OsmandParser - Parsed 161 track points from 'RGB-BUELL-SE-080607.gpx' 
+22:20:46.477 INFO  Gpx2OsmandParser - Parsed 490 track points from 'RGB-BUELL-NE-070813.gpx' 
+22:20:46.573 INFO  Gpx2OsmandParser - Parsed 652 track points from 'RGB-BUELL-NE-070902.gpx' 
+22:20:46.626 INFO  Gpx2OsmandParser - Parsed 988 track points from 'RGB-BUELL-NE-080524.gpx' 
+----
+
+the parsing of the four GPX files into Osmand messages takes about 1 second for 2291 messages. 
+This okay, if you consider that the external file system is involved 
+and that the parsing is not optimized for performance.
+For a large number of playbacks it makes sense to _first_ 'load' all players 
+and _then_ start the playback of all players at once to guarantee synchronization of the tracks.
+
+
+=== startup
+
+Now we can see that each player is starting up his own Quartz Scheduler. +
+In this case `DefaultQuartzScheduler-camel-2`
+
+[source,xml]
+----
+12:58:39.289 INFO  QuartzScheduler - Quartz Scheduler v2.5.2 created.
+12:58:39.390 INFO  QuartzScheduler - Scheduler meta-data: Quartz Scheduler (v2.5.2) 
+                       'DefaultQuartzScheduler-camel-2' with instanceId 'NON_CLUSTERED'
+12:58:39.391 INFO  StdSchedulerFactory - Quartz scheduler version: 2.5.2
+12:58:39.413 INFO  QuartzScheduler - Scheduler DefaultQuartzScheduler-camel-2_$_NON_CLUSTERED started.
+----
+
+The first message is sent immediately after startup and the next message is scheduled for 92 seconds later, 
+which is the time difference between the first two messages in the track.
+
+[source,xml]
+----
+12:58:39.413 INFO  QuartzScheduler - Scheduler DefaultQuartzScheduler-camel-2_$_NON_CLUSTERED started.
+12:58:39.413 INFO  TrackerOsmAnd - tracker-10 sending url message 
+             id=10&lat=49.0310032&lon=12.1030925&timestamp=1212829735&altitude=319.7756348
+12:58:39.417 INFO  QuartzSchedulerBean - 
+             next trigger planed in 92s at Tue Jun 02 13:00:11 CEST 2026.
+                                                      == == ==
+----
+
+and while our software is doing something else, 
+the scheduler is waiting for the next trigger time to send the next message.
+And there it is
+
+[source,xml]
+----
+13:00:11.424 INFO  osmand-track-playback-10 - Track-Event ausgelöst um: 13:00:11
+== == ==                                                                == == ==
+13:00:11.425 INFO  TrackerOsmAnd - tracker-10 sending url message 
+             id=10&lat=49.0309343&lon=12.1030384&timestamp=1212829827
+             &speed=0.09373277580824096&bearing=207.30759905778746&
+              =====                     =======
+             altitude=319.2950439
+13:00:11.426 INFO  QuartzSchedulerBean - next trigger planed in 11s at Tue Jun 02 13:00:22 CEST 2026.
+----
+
+`osmand-track-playback-10` refers to the Camel route 
+that is responsible to trigger the trackpoints for tracker 10. 
+
+Note that the second message has filled in the `speed` and `bearing` fields, +
+which are calculated based on the previous message. 
+
+
+== Graceful Shutdown
+
+=== problem: Teardown Race Conditions
+
+When running multiple players in a scenario (e.g., `ScenarioIT`), 
+a race condition can occur during scenario teardown:
+
+1. A scenario completes and logs "scenario completed"
+2. Pending Quartz triggers continue to fire in background threads
+3. During broader context teardown, tracker routes are being removed
+4. Late playback callbacks attempt to send messages to routes that no longer exist
+5. This results in errors like `SedaConsumerNotAvailableException: No queue available on endpoint`
+
+This is especially problematic in long-running scenarios where messages are spaced far apart 
+(e.g., 2+ minutes between GPX points), because the final messages may still be scheduled 
+when the scenario teardown begins.
+
+=== solution: stopOsmAndTrack()
+
+The `PlayerOsmAnd` class now provides a graceful shutdown API:
+
+[source,java]
+----
+public synchronized void stopOsmAndTrack() {
+    stopRequested = true;
+    
+    if (camel == null) {
+      return;
+    }
+
+    try {
+      camel.stop();
+    } catch (Exception e) {
+      logger.warn("Failed to stop playback Camel context cleanly.", e);
+    } finally {
+      camel = null;
+      quartzScheduler = null;
+    }
+  }
+----
+
+When `stopOsmAndTrack()` is called:
+
+1. A `stopRequested` flag is set to `true`
+2. The per-player Camel context is stopped gracefully
+3. References to the context and scheduler are cleared
+
+Additionally, a synchronized getter exposes the stop state:
+
+[source,java]
+----
+synchronized boolean isStopRequested() {
+    return stopRequested;
+}
+----
+
+=== Stop Flag Integration
+
+The `QuartzSchedulerBean` checks the stop flag before scheduling and sending:
+
+[source,java]
+----
+// In scheduleFireIn()
+if (player.isStopRequested()) {
+  return;
+}
+
+// In sendCurrentAndScheduleNext()
+if (player.isStopRequested()
+    || player.tracker == null
+    || player.osmandTrack == null
+    || ...) {
+  return;
+}
+----
+
+This ensures that any pending Quartz callbacks simply no-op instead of trying to 
+send messages to routes that have been torn down.
+
+The `playOsmAndTrack()` method also resets the stop flag when restarting, 
+allowing players to be reused:
+
+[source,java]
+----
+public synchronized boolean playOsmAndTrack() {
+    if (tracker == null || osmandTrack == null || osmandTrack.isEmpty()) {
+      return false;
+    }
+    if (nextIndex >= osmandTrack.size()) {
+      return true;
+    }
+
+    stopRequested = false;  // <-- Reset on restart
+    
+    if (!ensurePlaybackRoutes()) {
+      return false;
+    }
+    // ...
+}
+----
+
+=== Test Integration
+
+In scenarios like `ScenarioIT`, an `@AfterEach` teardown method 
+stops all players gracefully before the broader context shutdown:
+
+[source,java]
+----
+@AfterEach
+void stopAllPlayers() {
+  if (allPlayers == null || allPlayers.isEmpty()) {
+    return;
+  }
+
+  logger.info("\t********** Stopping all GPS players gracefully **********");
+  for (PlayerOsmAnd player : allPlayers) {
+    player.stopOsmAndTrack();
+    logger.info("Stopped playback for tracker: {}", 
+                player.getTracker().getUniqueId());
+  }
+}
+----
+
+This ensures that by the time the scenario framework tears down tracker routes and contexts, 
+all scheduled playback callbacks have already been silenced by the stop flag. +
+This cleanly prevents `SedaConsumerNotAvailableException` and other endpoint-not-found errors 
+that would otherwise pollute the logs and potentially cause unexpected failures.

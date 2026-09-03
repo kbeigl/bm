@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.gps.player;
 
 import bm.gps.MessageOsmand;
@@ -86,7 +102,7 @@ public class QuartzSchedulerBean {
             player.nextIndex,
             player.tracker.getUniqueId(),
             current.timestamp());
-
+        reportStatus(current);
       } catch (RuntimeException e) {
         // Tracker routes can still be spinning up right after playback start; retry shortly.
         logger.warn("Track send failed, retrying in {} ms.", RETRY_DELAY_MS, e);
@@ -95,13 +111,37 @@ public class QuartzSchedulerBean {
       }
       player.nextIndex++;
 
-      if (player.nextIndex >= player.osmandTrack.size()) return;
+      if (player.nextIndex >= player.osmandTrack.size()) {
+        player.onPlaybackCompleted();
+        return;
+      }
 
       long nextTimestamp = player.osmandTrack.get(player.nextIndex).timestamp();
       long currentTimestamp = current.timestamp();
       long delayMs = Math.max(0L, (nextTimestamp - currentTimestamp) * 1000L);
 
       scheduleFireIn(delayMs);
+    }
+  }
+
+  private void reportStatus(MessageOsmand current) {
+    int currentMsg = player.nextIndex + 1;
+    int totalMsgs = player.osmandTrack.size();
+    if (currentMsg % 10 == 0) {
+      long firstTime = player.osmandTrack.get(0).timestamp();
+      long lastTime = player.osmandTrack.get(totalMsgs - 1).timestamp();
+      long currentTime = current.timestamp();
+      long passed = Math.max(0L, currentTime - firstTime);
+      long remaining = Math.max(0L, lastTime - currentTime);
+      long total = Math.max(0L, lastTime - firstTime);
+      logger.info(
+          "player {} sending message #{} of {}. Time passed: {} remaining: {} of total: {}",
+          player.tracker.getUniqueId(),
+          currentMsg,
+          totalMsgs,
+          formatDuration(passed),
+          formatDuration(remaining),
+          formatDuration(total));
     }
   }
 
@@ -121,5 +161,13 @@ public class QuartzSchedulerBean {
             : player.tracker.calculateBearingFromLastMessage());
     // timestamp 'now' will be added when sending ...
     player.tracker.setTrackerStatus(status);
+  }
+
+  private static String formatDuration(long seconds) {
+    long s = Math.max(0L, seconds);
+    long hours = s / 3600;
+    long minutes = (s % 3600) / 60;
+    long secs = s % 60;
+    return String.format("%02d:%02d:%02d", hours, minutes, secs);
   }
 }

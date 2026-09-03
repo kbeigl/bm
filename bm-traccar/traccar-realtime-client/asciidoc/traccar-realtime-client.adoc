@@ -14,4 +14,4 @@ include::traccar-rt-client.adoc[]
 
 include::websocket.adoc[]
 
-include::traccar-rt-quickstart.adoc[]
+include::traccar-realtime-client-qs.adoc[]

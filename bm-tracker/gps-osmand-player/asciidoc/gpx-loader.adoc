@@ -1,0 +1,175 @@
+:toc: left
+:toclevels: 5
+:doctype: book
+
+= The gpx Loader
+
+We need to load and transform the `*.gpx` files from a file system into the `PlayerOsmAnd`. +
+The `Gpx2OsmandLoader` is a Spring `@Component` with a Camel route that polls 
+a send directory for GPX files during the complete application runtime.
+Each dropped GPX file is parsed, a `new PlayerOsmAnd` is created 
+and loaded with the messages `List<MessageOsmand>`.
+
+A sample track in the `resources` folder of this project
+will be used for development and testing: 
+
+  bm/bm-tracker/gps-osmand-player/src/test/resources/gpx/RGB-BUELL-SE-080607.gpx
+
+[NOTE]
+====
+The parsing of the gpx file is not the main topic of this project. 
+Therefor the `Gpx*.java` components are added to the `bm.gps` package
+in the `bm.gps.gpx` sub package as a general helper to parse `*.gpx` files 
+and create `MessageOsmand` messages with the help of the GeoTools library.
+====
+
+
+== Loading Procedure
+
+With the `Gpx2OsmandLoader` we want to provide a simple way to load GPX files into the `PlayerOsmAnd`. 
+Developers are focused on their implementation and do not want to care about the file system 
+or go through configuration and runtime details. 
+We want to start the player _once_ with a simple `java -jar gpx-player.jar` command 
+and have the player ready to receive GPX files.
+
+We are aware that a directory has an absolute path and a relative path. 
+By using the Camel `RouteBuilder` we can create a folder if it does not exist. 
+Every GPX file can be placed in the send directory and is polled and picked up 
+by the Camel route and forwarded to the a gpx parser.
+Processed files are moved to the `parsed/` subfolder, and invalid files to `error/`. +
+This procedure repeats for every file placed in the send folder.
+
+	•  The Spring `@Component` route that starts with the application + 
+	   enabled by default via `gps.player.loader-enabled`.
+	•  No explicit file loading: creates the send directory at startup + 
+	   default is `send/` next to the jar (resolved with Spring Boot's `ApplicationHome`), + 
+	   or the preconfigured `gps.player.send-directory`.
+	•  Polls the send directory for the complete runtime. +
+	   By default it is located next to the executable jar file `<jar-dir>/send` +
+	   a different location can be preconfigured via `gps.player.send-directory`.
+	•  Creates a new `PlayerOsmAnd` for each GPX file, loads the messages, and + 
+	   registers the player in a players map `getPlayer(uniqueId)` / `getPlayers()`
+	
+
+=== File Component 
+
+As you can see in the documentation of the  
+https://camel.apache.org/components/file-component.html[Camel file: component] +
+there are a numerous options to tune the behavior of the file consumer.
+
+For `jeets` development we have used a 
+https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/src/main/java/org/jeets/device/LineParser.java[LineParser]
+to feed the player with single position updates. +
+This way we could easily interrupt the player by deleting the file.
+
+This time we want to parse the `gpx` file as a whole to avoid longer lasting file allocations. +
+Anyhow we want to receive feedback, if the file could be parsed or if there was an error. +
+This is achieved by using the `move` and `moveFailed` options:
+
+    &move      = parsed/${file:name}
+    &moveFailed = error/${file:name}
+    
+When the file is parsed successfully it will be moved to a `parsed/` subfolder. +
+When there is an error during parsing it will be moved to an `error/` subfolder. +
+Note that the files are _moved_ and not _copied_ to avoid file allocations. +
+The developer can easily check the `parsed` and `error` folders. 
+
+Note that these actions are performed after parsing - we have not sent anything yet. +
+Files can be gracefully released to relieve system resources. + 
+The next route is technically separated and can make use of the tracker and send - possibly for hours.
+
+
+=== gpx File Route
+
+The `Gpx2OsmandLoader` is a Spring `@Component` with a Camel route that polls files. +
+As our first source for position updates we will use a `*.gpx` file as described above. +
+Since we are using Spring and Camel we can easily apply the Camel `file://` component + 
+to wire the file and create a Camel route to parse it to `MessageOsmand` messages.
+
+Creating the initial Camel `"file: .."` route is straight forward:
+
+[source,java]
+----
+    @Override
+    public void configure() throws Exception {
+        
+      fromF("file:%s?include=%s", sendDirectory, include)
+        .routeId("gpx-osmand-loader")
+        .process(
+            exchange -> {
+              File gpxFile = exchange.getIn().getBody(File.class);
+              if (gpxFile == null) {
+                throw new IllegalArgumentException(
+                    "Unable to resolve GPX file from Camel file exchange");
+              }
+              exchange.getIn().setBody(gpxFile);
+            })
+            
+        // java.io.File is allocated for parsing ... 
+----
+
+This is the implementation of a Camel-based Route using the File Component. +
+It polls from `${gps.player.send-directory}` folder for new `*.gpx` files*. +
+We have defined a `sendDirectory` and an `include` pattern `.*\\.gpx` to read gpx file/s from 
+- as part of the project. 
+
+Do not confuse this with source directories where _you_ store _your_ gpx files on _your_ system! +
+This directory should not be modified, files left untouched.
+
+
+=== send directory
+
+The `sendDirectory` ( `${gps.player.send-directory}`) is created at startup 
+
+- In tests we can always use the `target/` folder to create the `sendDirectory` +
+  which will be cleaned up by maven on each build. 
+
+- When running the application from command line we can use the absolute path `./` folder of the `jar` file +
+  and create a  `sendDirectory` subfolder there.
+
+- In production, when the player.jar is part of a larger application the  `sendDirectory` +
+  should be defined in the app.props. 
+  
+- For a fixed scenario with fixed tracks (like a showcase) +
+  we can also use the `resources` folder and define the `sendDirectory` there.
+
+The idea is to launch the player once and then simply drop `*.gpx` files into the `sendDirectory` to start the simulation.
+The Camel route serves as an ingestion point for the file/s (and player) and will pick them up for processing. 
+
+
+== load and start player
+
+The route listed above is very simple and we get the file as a `java.io.File` object 
+that we can handle in different contexts by code.
+Normally we would set an endpoint to send the file to another route or bean.
+
+- we could direct the file body to a `parser` bean to parse the file +
+  and create a `List<MessageOsmand> messages`
+- and use the 
+  https://camel.apache.org/components/eips/split-eip.html[EIP splitter] 
+  to `.split` the list of messages +
+  and send them one by one to the configurable `outputUri`
+
+[source,java]
+----
+        // java.io.File allocated for parsing ... 
+        .bean(parser, "parse")  // gpx File
+        .split(body())          // List<MessageOsmand>
+        .to(outputUri);         // MessageOsmand
+    }
+  }
+----
+
+For rapid development we will simply create a private method 
+
+[source,java]
+----
+    private void loadAndStartPlayer(File gpxFile) {
+----
+
+
+that will parse the file and create a new `PlayerOsmAnd` instance. +
+This method provides the dev env for parsing, loading and timing of the player. 
+
+xref:gpx-parser.adoc[proceed to parser implementation and player creation...]
+

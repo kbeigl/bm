@@ -2,11 +2,19 @@
 
 = The OsmAnd Tracker
 
+The first ROAF GPS Tracker will serve as a placeholder for more customized trackers.
+We will look at the standard components of a Tracking Device 
+and implement the most simple Tracker by using the public `OsmAnd` protocol.
+You can find the protocol specs  
+link:https://www.traccar.org/osmand/[here], 
+xref:OsmAndProtocolSpecification.adoc[here] and elsewhere.
+
 The `gps-osmand-tracker` is a Java Software to simulate 
 a standard _hardware_ device that _collects_ GPS locations, optionally buffer 
 and send them to a server asap.
-Reporting should be configurable for time- and distance intervals,
-change of direction etc.
+Reporting should be configurable for time- and distance intervals, change of direction etc.
+The implemetation is using a SEDA queue as an async ingress with retry/backoff,
+as a solid pattern for resilient message delivery.
 
 
 == Tracker Components
@@ -88,20 +96,20 @@ from the GPS, while independantly pushing them to the server.
 
 It is important to realize that a Tracking Device *is not* an application client
 and the data transmission has nothing to do with the REST API.
-It is simply some thing (Internet of Things, IoT) that sends information,
+It is simply some pod (Internet of Things, IoT) that sends information,
 very often via proprietary protocols. A protocol is subdivided into _sentences_ 
 to report different concerns. The most primitive GPS Protocol is `NMEA 0183` 
 which actually describes the primitives of GPS acquisition, like the satelite constellation.
 The protocol is described in more detail in
-`The ROAF, Part II - Chapter 4.5 NAVSTAR GPS, 4.5.1 NMEA 0183`
+_The ROAF, Part II - Chapter 4.5 NAVSTAR GPS, 4.5.1 NMEA 0183_
 
-From the Tracker perspective the server *is not* the Traccar Platform,
-but simply a port to a _Device Communication Server_ (DCS) which does the ETL work.
+From Tracker perspective the server *is not* the complete Traccar Platform,
+but simply a port to a _Device Communication Server_ (DCS), which does the ETL work.
 The DCS is implemented with 
 https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/OsmAndProtocol.java[Netty Pipelines]
 and 
 https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/OsmAndProtocolDecoder.java[the Decoder] 
-does the actual parsing targeting Traccar.
+does the actual parsing  and passes the `Position` class to the server logic.
 
 
 === OsmAnd Protocol
@@ -109,7 +117,7 @@ does the actual parsing targeting Traccar.
 Message Sentences combine a number of values that belong together.
 A complete protocol defines the available attributes for an entire system - or scenario.
 We chose the `OsmAnd` protocol because it is very simple and it is implemented
-on the Traccar Server (for the Traccar Client App).
+on the Traccar Server and used for the Traccar Client App.
 Or more general the Traccar Server offers a DCS 
 for this protocol on a configurable port (default 5055).
 Technically "The OsmAnd protocol processes HTTP requests 
@@ -119,165 +127,4 @@ with either query parameters or POST parameters."
 You can find the format (or protocol spec) 
 link:https://www.traccar.org/osmand/[here] and
 xref:OsmAndProtocolSpecification.adoc[here].
-
-
-== Geo Coordinates
-
-For Global Positioning will use the GeoTools library
-as our interface to process _GPS Positions_,
-for dealing with _Digital Maps_ and _Geographic Information Systems_ - GIS.
-This way the Software is compatible to almost any geoengineering tool
-and to components like an embedded `h2GIS` server. usefull!
-
-Yet, in geographic processing the most important performance aspect is mathematical. +
-Imagine you need to _compare_ thousands of distances to operate in a scenario. +
-To calculate the exact `distance` on the globe _we have to_ use a projection system.
-We will look at the performances differences by comparing the formulas
-for a geographical versus a cartesian `distance` below.
-
-The GeoTools library is tightly coupled with the 
-https://locationtech.github.io/jts/jts-features.html[Java Topology Suite (JTS) library]. 
-The `Coordinate` is a core class from the GeoTools / JTS library, 
-which is the standard geometry model GeoTools is built on.
-Note that the Java Topology Suite is actually not working with geocoordinates
-and optimized for trigonometric performance. 
-
-[quote,JTS Coordinate javadoc]   
-It is distinct from Point, which is a subclass of Geometry. 
-Unlike objects of type Point (which contain additional information 
-such as an envelope, a precision model, and spatial reference system information), 
-a Coordinate only contains ordinate values and accessor methods.
-
-Since the cartesian method is much faster we want to be able to ignore projection systems. +
-Therefore we are using the 
-https://locationtech.github.io/jts/javadoc/index.html?org/locationtech/jts/geom/Coordinate.html[Coordinate] 
-to store the `latitude, longitude` and `altitude` with `double` precision. +
-It has many useful features like the usage 2d or 3d coordinate:
-
-    // 2D Koordinate (JTS)
-    Coordinate coord2D = new Coordinate(10.0, 20.0);
-    Coordinate coord3D = new Coordinate(10.0, 20.0, 500.0); // x, y, z
-
-The `GeneralDirectPosition` is constructed the same way
-
-    // GeoTools Position (3D)
-    GeneralDirectPosition pos3D = new GeneralDirectPosition(10.0, 20.0, 500.0);
-
-but belongs to the more complex GeoTools Referencing-Framework
-and carries metadata of coordinate systems etc.
-
-We can always transform the JTS coordinates to geocoordinates (at a cost).
-With the GeoTools library you can tune the `PrecisionModel` 
-and the built-in `GeodeticCalculator` does not require geodetic expertise.
-
-At this point it doesn't seam like a big deal, 
-because we simply storing three double values in one Coordinate. +
-Let's have a look at the formulas to get a sense when to use which.
-
-
-=== Haversine Distance
-:stem: latexmath
-
-The geographically calculation has to consider the globe's radius, the curvature etc. +
-The *Haversine Formula* determines the great-circle distance between two points on a sphere:
-
-[stem]
-++++
-a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1) \cdot \cos(\phi_2) \cdot \sin^2\left(\frac{\Delta\lambda}{2}\right)
-++++
-
-[stem]
-++++
-c = 2 \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)
-++++
-
-[stem]
-++++
-d = R \cdot c
-++++
-
-* _d_ is the distance between the two points.
-* stem:[\phi] is latitude, stem:[\lambda] is longitude.
-* stem:[\Delta\phi = \phi_2 - \phi_1]
-* stem:[\Delta\lambda = \lambda_2 - \lambda_1]
-* stem:[R] is the radius of the sphere (Earth's mean radius is approx. 6,371 km).
-
-[TIP]
-====
-Most programming languages provide trigonometric functions that require input in radians. + 
-To convert degrees to radians, use the formula: radians = degrees * pi /180.
-====
-
-
-When _comparing_ distances their precise value does not matter, only relativity counts. +
-To calculate a distance in a cartesian plane we can also apply Pythagoras:
-
-=== Pythagorean Distance
-
-The Pythagorean Theorem is a fundamental principle in Euclidean geometry relating the three sides of a right triangle. 
-The theorem states that in a right-angled triangle, the area of the square whose side is 
-the hypotenuse (the side opposite the right angle) is equal to the sum of the areas of the squares on the other two sides.
-
-[stem]
-++++
-a^2 + b^2 = c^2
-++++
-
-Or simply speaking `a` and `b` are the orthogonal deltas of `lat` and `lon` and `c` is the distance,
-i.e. length of the hypotenuse.
-Calculating a comparable distance `c` is as simple as
-
-[stem]
-++++
-distance = \sqrt{\Delta lat^2 + \Delta lon^2}
-++++
-
-By simply comparing this with the *Haversine Formula* you can sense the differences in performance.
-While the distance is simply calculating a length the real number crunching takes place
-when overlapping Geofences come into play. Note that geofence has many edges and 
-each one has to be taken into account, yet should not slow down the real time scenario.
-
-
-=== The `bm` Geodesy Standard 
-
-We don't want to be distracted by reference systems.
-
-[quote, docs.geotools.org/latest/userguide/library/referencing/crs.html]   
-The most conservative way to deal with the definition of a CoordinateReferenceSystem is not to. +
-Instead make use of an authority that provides complete definitions defined by a simple code.
-
-Throughout this `bm` repository we will use identical geodetic formulas. +
-Then the distances from `location 1` to `location 2` +
-and from `location 2` to `location 1` are guaranteed to be identical. +
-This is very important for synchronicity.
-
-Check out the 
-https://locationtech.github.io/jts/jts-features.html[JTS feature list]
-to get an idea of geometric operations.
-
-
-==== Distance Example
-
-With the GeoTools GeodeticCalculator we calculate the geodesic distance in meters 
-between two `(lat,lon)` GPS points in the standard WGS84 (EPSG:4326) system: 
-
-[source,java]
-----
-  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <1>
-
-  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <2>
-
-  calculator.setStartingGeographicPoint   (lon1, lat1);          // <3>
-  calculator.setDestinationGeographicPoint(lon2, lat2);
-
-  return calculator.getOrthodromicDistance();                    // <4>
-----
-
-<1> Define the Coordinate Reference System 
-
-<2> Initialize the Geodetic Calculator
-
-<3> Set start- and end coordinates 
-
-<4> Get the orthodromic distance (distance along the ellipsoid surface)
 

@@ -2,26 +2,48 @@
 :toclevels: 3
 :doctype: book
 
-= Multi Module Repository
 
-This `bm-sim` repository is a 
+== Multi Module Structure
+
+A 
 link:https://maven.apache.org/guides/mini/guide-multiple-modules.html[Maven Multiple Module] 
-project.
-The Maven Reactor mechanism makes sure to collect all modules 
-and assert correct build order with every `mvn` command executed. 
-It assures that any project is build as required by another.
+Project supports project aggregation in addition to project inheritance. 
+The mechanism in Maven that handles multi-module projects is referred to as _the Reactor_. 
 
-We use the Maven multi-module project approach for managing distributed applications 
-where different components need to be developed, versioned, and deployed _independently_ 
-while maintaining coherent dependencies centralized.
-This simplifies and standardizes a consistent build process 
-and scaling with a clear separation of concerns.
+The Reactor or root pom ..
 
-This is a Java project and the development cycle 
-is defined by the major components:
+- Collects all the available modules to build
+- Sorts the projects into the correct build order
+- Builds the selected projects in order
+- Should contain: `<modules>` section listing all submodules (`bm-parent`, `bm-traccar`, etc.).
+- Should NOT contain dependencies or build plugins that are meant to be inherited by modules.
+- Basic project metadata (groupId, artifactId, version, packaging=pom).
+- Common properties (if needed).
+- Plugin management (optional, but usually placed in parent).
 
 
-== Maven build tool 
+and simply is a POM that refers to other Maven projects. 
+
+Note the output line at the beginning of every Maven Build
+
+    [INFO] Reactor Build Order:
+
+The Parent pom defines common `<dependencies>` and `<plugins>` (and `<pluginManagement>`) 
+inherited by all submodules and does not create a JAR or a WAR.
+
+The `bm-parent/pom.xml` ..
+
+- Serves as the parent for all submodules (`bm-traccar`, etc.).
+- Should contain: `<dependencyManagement>` for shared dependency versions. +
+        `<build>` section for shared plugins (like asciidoctor-maven-plugin, compiler plugin, surefire, etc.).
+- Should NOT contain `<modules>` (that’s for the aggregator/root pom).
+- Shared properties (Java version, encoding, etc.).
+
+For a quick overview on the complete project you can always run `mvn clean`
+to see the processing order.
+
+
+=== Maven Build 
  
 Implies `major.minor.patch` versioning (sometimes with -RC, -POC etc. to indicate the build status)
 , dependency management, plugin configuration, 
@@ -31,217 +53,183 @@ link:https://github.com/OpenAPITools/openapi-generator[OpenAPI Generator]
 are integrated into the lifecycle to generate code for subsequent modules.
 
 
-== Camel Integration Framework 
+=== Maven Wrapper
 
-Apache Camel has a very powerful bean injection framework 
-to allow developers _to focus on solving business problems_. 
-At its core, Apache Camel is an integration engine, which can be used 
-to facilitate 
-interactions between a wide and varied array of technologies. 
-These bridges between service- and technology _Endpoints_, 
-the _Routes_ are implemented on an engine - the _CamelContext_,  
-and they communicate with _Exchange Messages_.
-
-In this repository Camel is used to glue independantly developed Units together.
+If you are not sure about your Maven Version it is highly recommended to use the 
+xref:maven-maintenance.adoc#_maven_wrapper[Maven Wrapper]   
+in the root directory! 
+The Parent POM defines all dependency versions, plugin config, 
+Docker setup for Traccar, and AsciiDoc doc generation and 
+acts as the BOM (bill of materials) for all sub-modules.
 
 
-== Camel & Spring
+=== Module Architecture
 
-*Camel* allows you to define your data flow as a declarative route 
-for complex integration and routing work,
-and then handing off the final business logic
-to standard *Spring* components like Controllers or Services.
-While *Spring Boot* handles the lifecycle and dependency injection 
-in the Spring context, dependency injection, and application startup.
+The repository follows a **Maven multi-module** structure with a clear three-tier hierarchy:
 
-[NOTE]
-====
- Spring Boot will auto-configure Camel for you.
-====
- 
-check out 
-https://camel.apache.org/camel-spring-boot/spring-boot.html[camel-spring-boot]
+```
+	bm (bm-sim)                           — Super POM / root aggregate
+	├── bm-parent      — Shared parameters, dependency management, build config
+	├── bm-tracker                        — GPS tracker clients
+	│   └── gps-osmand-tracker            — OsmAnd GPS tracker integration
+	└── bm-traccar                        — Traccar server client modules
+	    ├── traccar-openapitools-client   — OpenAPI-generated Traccar REST client
+	    ├── traccar-api-client            — Higher-level Traccar API client
+	    └── traccar-realtime-client       — Realtime (streaming) Traccar client
+```
 
-Spring Boot component provides auto-configuration for Apache Camel. 
-Our opinionated auto-configuration of the Camel context 
-auto-detects Camel routes available in the Spring context 
-and registers the key Camel utilities 
-(like `producer` and `consumer` templates, type converters etc.) as `@Bean`.
+In 'development' mode ör if you simply want to build the whole project, +
+you can use these Flags to speed up the build process:
 
-
-== `@SpringBootApp` s
-
-// and `@CamelSpringBootApplication`
-
-We are building a multi-module project from multiple Spring projects. + 
-Each project has its own technology stack and can be used independently
-or as a part of the whole system.
-
-The `@SpringBootApplication` annotation is a convenience annotation that adds all of the following: 
-
-1. `@Configuration`: Tags the class as a source of bean definitions for the application context.
-2. `@EnableAutoConfiguration`: Tells Spring Boot to start adding beans based on class
-path settings, other beans, and various property settings.
-3. `@ComponentScan`: Tells Spring to look for other components, configurations, and
-services in the package, allowing it to find the controllers.
-
-This is very useful for our multi-module project, 
-as it allows us to define the main application class in one module 
-and have it automatically discover and configure beans from other modules.
+|===
+| Flag | Effect | Default 
+| `-Dintegration.tests.skip=true` | Skips Failsafe integration tests | `true` 
+| `-Ddocker.skip.tests=true` | Skips starting/stopping the Traccar Docker container | Tied to above 
+| `-Dopenapi.skip=true` | Skips OpenAPI client code generation | `false` 
+| `-Dasciidoc.process.skip=true` | Skips AsciiDoc → HTML compilation | `true` 
+|===
 
 
-=== `bm` library as of `v.1.1.25`
+=== root project
 
-On the other hand you run into design problems, if you have multiple `@SpringBootApplication` classes in your project,
-If one `@SpringBootApplication` class is in a module that is not a dependency of the main application module, 
-then Spring Boot will not be able to discover and configure beans from that module.
+The Maven Bill of Materials (BOM) is collected the root `pom.xml` file, i.e. _aggregator POM_ 
+that defines common dependencies, versions, properties and other dependent Maven Projects.
+It is considered good development practice to run `mvn clean install` 
+in the repository root directory in order to create all artifacts in the local `.m2/repository`.
+This substitutes a Nexus Server usually providing released artifacts. 
+After that the developer can exclusively focus on the project s/he is assigned to. 
 
-As the `traccar-realtime-client` module is a dependency of the `traccar-realtime-app` module,
-a `@SpringBootApplication` class in the `traccar-realtime-client` module 
-would be discovered and configured by Spring Boot when the `traccar-realtime-app` module is run.
+see 
+link:https://docs.microfocus.com/doc/205/saas/bestpracticesmavenprojects[structuring Maven projects and modules]
 
-**Why this is problematic:**
-
-1. When `traccar-realtime-app` imports this as a library, it gets:
-   - Duplicate component scanning (both apps scan `bm.traccar` package)
-   - Potential bean conflicts
-   - Unnecessary application context overhead
-2. The `@SpringBootApplication` in a library forces component scanning on consumers
-3. Cannot control which components are loaded when used as dependency
-
-Therefore the mixed  pattern of the `@SpringBootApplication` annotation causing component scanning conflicts  
-was removed from the `traccar-realtime-client` module in `v.1.1.25`.
-All projects should be usable as library for higher level projects.
-
-The standard pattern to separate @SpringBootApplication from libraries is:
-
-Libraries should:
-
-    •  Use @Configuration + @ComponentScan instead of @SpringBootApplication
-    •  NOT have spring-boot-maven-plugin in pom.xml
-    •  Provide explicit configuration classes that applications import
-    •  Use @Component/@Service/@Repository for beans
-
-Applications should:
-
-    •  Have @SpringBootApplication
-    •  Use @Import(LibraryConfig.class) to explicitly include library components
-    •  Have spring-boot-maven-plugin configured with mainClass
-    •  Control what gets scanned and loaded
+For team development you should work with the `-SNAPSHOT` tag and a central (Nexus) Server 
+over your personal `.m2` repo.
+This way all team members are accessing the same (continuously changeing) artifact 
+and the complete build process can be reduced to the module and artifact in focus.
 
 
-==== Dual Purpose
+==== <modules>
 
-The `gps-osmand-tracker` application module is a dual purpose module, 
-which can be used as a standalone application or as a library for other applications.
+This approach reduces duplication and allows to share configurations between modules.
+Practically the parent pom can be seen as the cover sheet with project information
+and most important - the list of submodules.
 
-*Pattern* +
-Library with optional standalone application
-
-*Structure*
+compare to 
+link:https://github.com/kbeigl/jeets/blob/master/pom.xml[JeeTS repository]
 
 [source,xml]
 ----
-    src/main/java/bm/gps/tracker/
-    ├── TrackerOsmandConfig.java          (@Configuration, @ComponentScan)
-    ├── TrackerApplication.java           (@SpringBootApplication)
-    ├── TrackerOsmand.java                (@Component)
-    └── TrackerRegistration.java          (@Component)
+    <modules>
+        <module>bm-parent</module>
+        <module>bm-tracker</module>
+        <module>bm-traccar</module>
+                ...
+    </modules
 ----
 
 
-*Separate Configuration*
+=== parent module
 
-[source,java]
-----
-    @Configuration
-    @ComponentScan(basePackages = "bm.gps.tracker")
-    public class TrackerOsmandConfig {
-        // This config lives in main sources so other modules 
-        // can import it without depending on the test-jar.
-    }
-----
+The `bm-parent/pom.xml` acts as the **bill of materials** for the entire project:
 
-*Standalone Application:*
-
-[source,java]
-----
-    @SpringBootApplication
-    public class TrackerApplication {
-        public static void main(String[] args) {
-            SpringApplication.run(TrackerApplication.class, args);
-        }
-    }
-----
-
-*Advantages*
-
-    ✅ Library provides configuration
-    ✅ Application can optionally use library components
-    ✅ Can have both library and standalone app in same module
+- Declares all dependency and plugin **version properties** centrally
+- Imports the Spring Boot and Apache Camel Spring Boot BOMs into `dependencyManagement`
+- Configures shared build plugins applied to **all** child modules:
+  - `fmt-maven-plugin` (Spotify) — enforces consistent Google Java code formatting
+  - `maven-source-plugin` — attaches source JARs
+  - `maven-javadoc-plugin` — attaches Javadoc JARs
+  - `asciidoctor-maven-plugin` — compiles `.adoc` → `.html` (with Mermaid/Kroki diagrams)
+  - `docker-maven-plugin` (Fabric8) — manages a Traccar Docker container for integration tests
+  - `maven-surefire-plugin` / `maven-failsafe-plugin` — unit and integration test runners, +
+  	 both configured with the Mockito Java agent for Java 21 compatibility
 
 
-=== `@ComponentScan` and `@Import`
+==== OS detection
 
-We have changed the `traccar-realtime-client` module to use `@Configuration` and `@ComponentScan` + 
-instead of `@SpringBootApplication`:
-
-[source,java]
-----
-    @Configuration
-    @ComponentScan(basePackages = {"bm.traccar", "bm.traccar.rt", "bm.traccar.ws"})
-    @Import({ApiConfig.class, ScenarioConfig.class}) // Import dependency configs
-    public class RealTimeConfig {}
-----
-
-Generally you can create your own @SpringBootApplication class in your application module + 
-and import the library configuration classes as needed.
-
-[source,java]
-----
-    @SpringBootApplication
-    @Import(RealTimeConfig.class)  // Import library configuration listed above
-    public class MyApplication {
-        
-        public static void main(String[] args) {
-            SpringApplication.run(MyApplication.class, args);
-        }
-    }
-----
+[IMPORTANT]
+====
+In the course of updating from Maven 3 to Maven 4 (`v1.1.23`) the `os-maven-plugin` +
+was removed and may be replaced by a different plugin in the future.
+====
 
 
-=== modified Tests
+The parent project is the first module called in the build process. +
+It starts by running the `os-maven-plugin` (actually a Maven `<extension>`)
 
-As a workaround you _can create a @SpringBootApplication_ for a testing environment
-and provide `bm` classes as required:
+[source,text]
+-----------------
+    [INFO] Scanning for projects...
+    [INFO] ---------------------------------------------------
+    [INFO] Detecting the operating system and CPU architecture
+    [INFO] ---------------------------------------------------
+    [INFO] os.detected.name: linux
+    [INFO] os.detected.arch: x86_64
+    [INFO] os.detected.bitness: 64
+    [INFO] os.detected.version: 6.11
+    [INFO] os.detected.version.major: 6
+    [INFO] os.detected.version.minor: 11
+    [INFO] os.detected.release: tuxedo
+    [INFO] os.detected.release.version: 22.04
+    [INFO] os.detected.release.like.tuxedo: true
+    [INFO] os.detected.release.like.ubuntu: true
+    [INFO] os.detected.release.like.debian: true
+    [INFO] os.detected.classifier: linux-x86_64
+-----------------
 
-```java
-    @SpringBootTest
-    @ContextConfiguration(classes = {
-        ApiService.class, ApiConfig.class, 
-        ScenarioLoader.class, ScenarioConfig.class,
-        RealTimeManager.class  // Manually specify components
-    })
-    public abstract class BaseRealTimeTest {
-```
+which provides Maven parameters, like `${os.detected.name}`, +
+to direct the build lifecycle as required for your targeted system.
+
+And it helps to detect and identify problems in different environments. +
+For exmple the build on github actions is running on `ubuntu-latest` and +  
+the build on the local machine (above) is running on `ubuntu 22.04`. +
+If you look at the build on 
+https://github.com/kbeigl/bm/actions[github actions]
+you can locate differences in the `build-and-release` workflow
+
+[source,text]
+-----------------
+  [INFO] os.detected.version: 6.14
+  [INFO] os.detected.release: ubuntu
+  [INFO] os.detected.release.version: 24.04
+-----------------
+
+[CAUTION]
+====
+Subtle differences can raise subtle problems!
+====
 
 
-- `BaseRealTimeClientTest.java` + 
-    Changed `@SpringBootTest(classes = RealTimeClient.class)` → `RealTimeConfig.class`
-- `BaseRealTimeTest.java` + 
-    Changed from `RealTimeConfig.class` to specific components to avoid loading full infrastructure
-- `RealTimeAppTest.java`: Added `@ActiveProfiles("test")` to skip runner execution in tests
+==== <properties>
+
+The properties of the parent project are applied to the full repo.
+Here the main parameters for Java, JDK, Maven with components and plugins,
+the driving Camel version in conjunction with spring boot.
 
 
-=== @Deprecated stand alone
+==== <dependencyMgm> 
 
-The classes RealTimeClient and RealTimeClientRunner are deprecated.
+The repository versioning of Java archives is defined by the top level BOMs
 
-TODO +
-review/ rewrite quickstarts 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-spring-boot-bom</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
+It is recommended to import Camel Spring Boot BOM before Spring Boot BOM
+to ensure Camel dependencies are using supported JARs from the release.
 
+compare to 
+https://github.com/kbeigl/jeets/blob/master/jeets-parent/pom.xml[JeeTS repository]
+  
+       <groupId>org.apache.camel.springboot</groupId>
+    <artifactId>camel-spring-boot-dependencies</artifactId>
 
-
-
-
+ 

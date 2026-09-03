@@ -1,10 +1,12 @@
 :toc: left
+:toclevels: 4
 
 = Global Positioning
 
 This `bm-tracker` branch is used to develop GPS Tracker Simulators,
-which can track things by sending their positions frequently.
-These Devices are completly independant of any Tracking System and should adhere to standard protocols.
+which can track things by sending their positions frequently as they move.
+These Devices are completly independant of any Tracking System,
+yet should adhere to standard protocols to be compatible with any Tracking System.
 
 The `bm-traccar` branch serves as the development environment for integrating specifically with the _Traccar GTS_. 
 A `traccar-realtime-client` will be used to observe one or many devices on the Tracking System.
@@ -12,7 +14,7 @@ A `traccar-realtime-client` will be used to observe one or many devices on the T
 [NOTE]
 ====
 Note that we are citing original texts from  
-link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[The RealObject Application Framework]
+https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java/dp/1138413747[The RealObject Application Framework]
 ====
 
 [quote, The RealObject Application Framework, Part II - Global Positioning]
@@ -31,7 +33,9 @@ object motion in space and time.
 
 The ROAF vision described in the book is based on simple and platonic rules. +
 In order to simulate things, events and interactions of the real world, +
-we will need _a grid for space and time_.
+we will need _a grid for space and time_. +
+With respect to the blue marble we might speak of _Globe Positioning_.
+
 
 === simulation environment
 
@@ -41,7 +45,7 @@ Our *Space* is the surface of the big blue marble,
 which is completly defined with only two spatial coordinates _latitude_ and _longitude_
 in only one projection, the World Geodetic System from 1984 - *WGS84*.
 Sometimes we will use the altitude as a third dimension, but it is less reliable in a geodetic system
-and usually provided by a barometer. +
+and should be provided by a barometer. +
 *Time* is defined in Universal Time Coordinate *UTC* as the world time. +
 ====
 
@@ -51,23 +55,16 @@ And that is all we need!
 === physical metrics
 
 _It is vital_ (for simplicity, usability, rapid development and more) that physical events 
-must be describable in a *cartesian coordinate system*.
+must be describable +
+in a *cartesian coordinate system*.
 i.e. *units in meters* for x, y and z coordinates on *orthogonal axes*.
 
 To integrate with this `bm` software you don't need to worry about geodesy, spherical calculations etc. 
-The transformation to and from WGS84 is a complicated and expensive mathematical transformation 
+The transformation to and from WGS84 is a complicated and expensive trigonomic transformation 
 and should be centralized and standardized. 
-This also will allow to define a granularity of a scenario as an important scaling factor!
 
+This will allow to define a granularity for a scenario as an important scaling factor!
 
-=== global metrics
-
-We will use the *GeoTools* library for framwork geodetics. +
-As example, the built-in `GeodeticCalculator`
-provides our standard distances between geographic coordinates.
-
-It is also useful to know that every GPS Unit automatically provides UTC times, +
-since this is the prerequisite to calculate locations with fast orbiting satelites.
 
 === mission
 
@@ -77,37 +74,224 @@ system to enable electronic receivers to determine their current longitude,
 latitude, and elevation information. Part of our task is to create a GPS
 receiver for the software world, a GPS unit.
 
-_So we need a device to send the minimum GPS information
-being latitude, longitude and fixtime as UTC timestamp_. +
-By combining consecutive GPS infos we can calculate telemetry data
-like speed being the ratio of space & time.
 
-With this simple tool (a tiny `jar`) we can switch from geodesy, cartography and navigation +
+== Geo Coordinates
+
+We will use the 
+https://geotools.org/about.html[*GeoTools* library]
+for the framworks geodetics. 
+
+[quote, geotools.org, The Open Source Geospatial Foundation www.osgeo.org]
+GeoTools is an open source (LGPL) Java code library 
+which provides standards compliant methods for the manipulation of geospatial data, 
+for example to implement Geographic Information Systems (GIS). 
+
+We get the artifacts we need from the OSGeo Maven Repository:
+
+        <repository>
+              <id>osgeo</id>
+            <name>OSGeo Repository</name>
+             <url>https://repo.osgeo.org/repository/release/</url>
+
+For Global Positioning will use the GeoTools library
+as our interface to process _GPS Positions_,
+for dealing with _GPS Tracks, Digital Maps_ and _Geographic Information Systems_ - GIS.
+This way the Software is compatible to almost any geoengineering tool
+and to components like an embedded `h2GIS` server. 
+Or you can setup Traccar with a PostGIS database to store the positions 
+and use the GeoTools library to analyze them.
+
+Yet, in geographic processing the most important _performance_ aspect is _mathematical_. +
+Imagine you need to _compare_ thousands of distances to operate in a scenario. +
+To calculate the exact `distance` on the globe _we have to_ use a projection system. +
+We will look at the performances differences by comparing the formulas
+for a geographical versus a cartesian `distance` below.
+
+The GeoTools library is tightly coupled with the 
+https://locationtech.github.io/jts/jts-features.html[Java Topology Suite (JTS) library]. 
+The `Coordinate` is a core class from the GeoTools / JTS library, 
+which is the standard geometry model GeoTools is built on.
+Note that the Java Topology Suite is actually not working with geocoordinates
+and optimized for trigonometric performance. 
+
+[quote,JTS Coordinate javadoc]   
+Coordinate is distinct from Point, which is a subclass of Geometry. 
+Unlike objects of type Point (which contain additional information 
+such as an envelope, a precision model, and spatial reference system information), 
+a Coordinate only contains ordinate values and accessor methods.
+
+Since cartesian math is much faster we (sometimes) want to be able to ignore projection systems. +
+Therefore we are using the 
+https://locationtech.github.io/jts/javadoc/index.html?org/locationtech/jts/geom/Coordinate.html[Coordinate] 
+to store the `latitude, longitude` and `altitude` with `double` precision. +
+It has many useful features like the usage 2d or 3d coordinate:
+
+    // 2D Koordinate (JTS)
+    Coordinate coord2D = new Coordinate(10.0, 20.0);        // x, y
+    Coordinate coord3D = new Coordinate(10.0, 20.0, 500.0); // x, y, z
+
+The `GeneralDirectPosition` is constructed the same way
+
+    // GeoTools Position (3D)
+    GeneralDirectPosition pos3D = new GeneralDirectPosition(10.0, 20.0, 500.0);
+
+but belongs to the more complex GeoTools Referencing-Framework
+and carries metadata of coordinate systems etc.
+
+We can always transform the JTS coordinates to geocoordinates - at a cost.
+With the GeoTools library you can tune the `PrecisionModel` 
+and the built-in `GeodeticCalculator` does not require geodetic expertise.
+
+At this point it doesn't seam like a big deal, 
+because we simply storing three double values in one Coordinate. +
+Let's have a look at the formulas to get a sense when to use which.
+
+
+=== Haversine Distance
+:stem: latexmath
+
+The geographically calculation has to consider the globe's radius, the curvature etc. +
+The *Haversine Formula* determines the great-circle distance between two points on a sphere:
+
+[stem]
+++++
+a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1) \cdot \cos(\phi_2) \cdot \sin^2\left(\frac{\Delta\lambda}{2}\right)
+++++
+
+[stem]
+++++
+c = 2 \cdot \operatorname{atan2}\left(\sqrt{a}, \sqrt{1-a}\right)
+++++
+
+[stem]
+++++
+d = R \cdot c
+++++
+
+* _d_ is the distance between the two points.
+* stem:[\phi] is latitude, stem:[\lambda] is longitude.
+* stem:[\Delta\phi = \phi_2 - \phi_1]
+* stem:[\Delta\lambda = \lambda_2 - \lambda_1]
+* stem:[R] is the radius of the sphere (Earth's mean radius is approx. 6.371 km).
+
+[TIP]
+====
+Most programming languages provide trigonometric functions that require input in radians. + 
+To convert degrees to radians, use the formula: radians = degrees * pi /180.
+====
+
+
+When _comparing_ distances their precise value does not matter, only relativity counts. +
+To calculate a distance in a cartesian plane we can also apply Pythagoras:
+
+=== Pythagorean Distance
+
+The Pythagorean Theorem is a fundamental principle in Euclidean geometry relating the three sides of a right triangle. 
+The theorem states that in a right-angled triangle, the area of the square whose side is 
+the hypotenuse (the side opposite the right angle) is equal to the sum of the areas of the squares on the other two sides.
+
+[stem]
+++++
+a^2 + b^2 = c^2
+++++
+
+Or simply speaking `a` and `b` are the orthogonal deltas of `lat` and `lon` and `c` is the distance,
+i.e. length of the hypotenuse.
+Calculating a comparable distance `c` is as simple as
+
+[stem]
+++++
+distance = \sqrt{\Delta lat^2 + \Delta lon^2}
+++++
+
+By simply comparing this with the *Haversine Formula* you can sense the differences in performance.
+While the distance is simply calculating a length the real number crunching takes place
+when overlapping Geofences come into play. Note that geofence has many edges and 
+each one has to be taken into account, yet should not slow down the real time scenario.
+
+
+=== The `bm` Geodesy Standard 
+
+We don't want to be distracted by reference systems.
+
+[quote, docs.geotools.org/latest/userguide/library/referencing/crs.html]   
+The most conservative way to deal with the definition of a CoordinateReferenceSystem is not to. +
+Instead make use of an authority that provides complete definitions defined by a simple code.
+
+Throughout this `bm` repository we will use identical geodetic formulas. +
+Then the distances from `location 1` to `location 2` +
+and from `location 2` to `location 1` are guaranteed to be identical. +
+This is very important for synchronicity.
+
+Check out the 
+https://locationtech.github.io/jts/jts-features.html[JTS feature list]
+to get an idea of geometric operations.
+
+
+==== Distance Example
+
+With the GeoTools GeodeticCalculator we calculate the geodesic distance in meters 
+between two `(lat,lon)` GPS points in the standard WGS84 (EPSG:4326) system: 
+
+[source,java]
+----
+  CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");     // <1>
+
+  GeodeticCalculator calculator = new GeodeticCalculator(wgs84); // <2>
+
+  calculator.setStartingGeographicPoint   (lon1, lat1);          // <3>
+  calculator.setDestinationGeographicPoint(lon2, lat2);
+
+  return calculator.getOrthodromicDistance();                    // <4>
+----
+
+<1> Define the Coordinate Reference System 
+
+<2> Initialize the Geodetic Calculator
+
+<3> Set start- and end coordinates 
+
+<4> Get the orthodromic distance (distance along the ellipsoid surface)
+
+
+== Trackers
+
+So we need a device to send the minimum GPS information. +
+Trackers represent the 'sender' side of our repo - not really a client. +
+
+With a tiny `tracker.jar` as a simple tool we can switch from geodesy, cartography and navigation +
 to physical laws described in the language of mathematics. And vice versa.
 
 
-== gps tracking
-
 There are countless ways to implement a - Simulation of a - GPS Tracker hardware. +
-In the end its just another IoT Device sending information 
-via some internet protocol, often proprietary. +
+In the end its just another IoT Device sending information via some protocol, often proprietary. +
+Mostly the sending takes place via a SIM card over a GSM network to the internet with a TCP or UDP connection. +
 And it turns out that a GPS server is only a specialized IoT server.
 
-On the receiving side the GTS has a counter part for each Tracker model/type
-to extract, transform and load it to the system.
-This software is called the _Device Communication Server, DCS_. +
-In Traccar all DCS are implemented with https://netty.io/[Netty]
+On the receiving side the GTS has a counter part for each Tracker model/type +
+to extract, transform and load (ETL processing) it to the system. +
+This software component is called the _Device Communication Server, DCS_. +
+In Traccar all DCSs are implemented with https://netty.io/[Netty]
 
 [quote, netty.io]
 Netty is an asynchronous non blocking event-driven network application framework +
 for rapid development of maintainable high performance protocol servers & clients. 
 
 
-=== The `JeeTS Tracker`
+=== The JeeTS Tracker
+
+If the Traccar Trackers don't fit your business the 
+https://www.amazon.com/GPS-Tracking-Java-Components-Challenges/dp/1138313823[JeeTS Book] +
+// link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book] +
+demonstrates how to create Protocols with Message Catalogs to fit your business, +
+how to integrate your own Tracker with the Traccar platform and your _Business Model_.
+
+https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/README.adoc[check out the JeeTS Tracker ...] +
+
 
 Traccar was thoroughly analyzed in the
 link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book]. 
-Let's have a little excursion. +
+Let's take a little excursion. +
 Section I, _Data Formats and Relations_ describes the complete process
 from Tracker to network to Traccar in detail.
 You can read how to create Protocols 
@@ -137,7 +321,7 @@ At the end a DCS is developed to match the protocol. +
 By adding it to Traccar the protocol seamlessly works with the GTS.
 
 
-==== On Board Diagnostic Data
+=== On Board Diagnostic Data
 
 To get an idea of regular telematic data amounts in your car 
 have a look at 
@@ -152,7 +336,8 @@ Therefor a Scenario always represents a perspective of a part of reality.
 OBD data does not take a primary role, since it is more about the inside of a vehicle. 
 For Connected Car Applications different parameters and especially variables are relevant.
 
-==== Big Data
+
+=== Big Data
 
 And to get an idea how much data a modern vehicle produces 
 you can check out some Data Brick specifications, like for example the 
@@ -164,7 +349,7 @@ and recording tasks for driver assistance systems (ADAS) +
 or automated and autonomous driving.
 
 
-==== disclaimer
+=== disclaimer
 
 In the end each scenario requires different measurements, sensor data etc. +
 The JeeTS Tracker can open a lot of oportunities, +
@@ -173,21 +358,41 @@ but the ROAF is not created for autonomous driving nor its data load.
 
 === Traccar Trackers
 
-This project has a different, almost opposite paradigm. +
-_The idea is not to create a proprietary Protocol and DCS._ 
+This project has a different, almost opposite paradigm than the JeeTS Tracker. +
+_The idea is *not* to create a proprietary Protocol and DCS._ 
 
-Vice versa we want to be able to create scenarios with any or all 
-https://www.traccar.org/devices/[implemented devices] and
-https://www.traccar.org/protocols/[protocols]. +
+In the long run we want to be able to create scenarios with any +
+or all 1.500+
+https://www.traccar.org/devices/[devices] and 1.000+
+https://www.traccar.org/protocols/[protocols] implemented in traccar. 
+
+Or more precisely, we want to be able +
+_to create scenarios with any attributes provided by hardware devices and their protocols_. + 
+For a complex car simulation 
+we might need to integrate with the OBD2 interface and CANBUS data.
+
 You can find all Traccar DCS implementations in the 
 https://github.com/traccar/traccar/tree/master/src/main/java/org/traccar/protocol[`org.traccar.protocol`]
 package with
 https://github.com/traccar/traccar/tree/master/src/test/java/org/traccar/protocol[tests]. +
 Each DCS is designed with Netty Pipelines and has `Decoder` and `Encoder` classes.
 
-For the ROAF development we want to start bottom up. +
-*All Devices provide GPS coordinates _(lat,lon,fix)_* and that's all we want for a common basis. +
-(TODO `roaf.gps package` and `GPSinfo interface`) +
+For ROAF development we want to start bottom up.
+[IMPORTANT]
+====
+All Devices in the ROAF must provide +
+*GPS coordinates _(lat,lon,fix) for space & time_*
+====
+as a common basis for Framework development. 
+By combining consecutive GPS infos we can calculate telemetry data
+like speed being the ratio of space & time.
+
+[TIP]
+====
+The `fixtime` can always be replaced or filled in +
+with `now` to send the device simulators current time.
+====
+
 In the long run the Trackers get more dedicated to a scenario, +
 cars sending CANBUS info to enrich road infos for a traffic scenario.
 
@@ -197,20 +402,9 @@ https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/model/P
 The Position object is the result of every DCS / ETL for every Device. +
 At the top of the class you can get find an impressive list of `KEY_`  and `ALARM_` events.
 
+The `bm-tracker` branch contains 
+the `gps-osmand-tracker` and `gps-osmand-player` projects. +
+Follow the development of Trackers and Helpers on the 
+xref:../bm.adoc#_bm_tracker[cover page].
 
-=== `gps-osmand-tracker`
-
-We want to keep it simple and chose the `OsmAnd Protocol` via `http`
-to implement a simple Tracker prototype:
-
-xref:../bm-parent/multi-module.adoc[multi-module] build.
-
-The `bm-tracker` project is a sub-project of `bm-parent` and contains 
-the `gps-osmand-tracker` and `gps-osmand-player` projects.
-
-xref:gps-osmand-tracker/gps-osmand-tracker.adoc[gps-osmand-tracker]
-
-xref:gps-osmand-player/gps-osmand-player.adoc[gps-osmand-player]
-
-(`GPSinfo interface` can be extracted later for a general Tracker concept in the 1 to n move ;)
 

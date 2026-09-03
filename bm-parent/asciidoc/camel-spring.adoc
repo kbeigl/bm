@@ -1,0 +1,277 @@
+:toc: left
+:toclevels: 3
+:doctype: book
+
+=== technology stack
+
+Technology Stack as of `v1.1.24`:
+
+|=== 
+| Layer | Technology | Version
+
+| Language | Java | 21 (LTS)
+| Build | Maven | ≥ 4.0.0-rc-5
+| App Framework | Spring Boot 4 | 4.0.5
+| Integration / Routing | Apache Camel 4 | 4.20.0
+| Unit Testing | JUnit 5 (and Camel testing) | 5.20.0
+| Integration Test Infrastructure | Docker via Fabric8 plugin | 0.48.1
+| GPS Tracking System | Traccar | 6.14.2
+| OpenAPI Generator	| generate REST client from `openapi.yaml` | maven-plugin 7.25.0
+| GeoTools + JTS | Geospatial calculations | x.y
+| Code Formatting | Spotify fmt-maven-plugin | 2.29
+| Documentation | AsciiDoctor / Mermaid / Kroki | — 
+|===
+
+
+=== Camel Integration 
+
+Apache Camel has a very powerful bean injection framework 
+to allow developers _to focus on solving business problems_. 
+At its core, Apache Camel is an integration engine, which can be used 
+to facilitate 
+interactions between a wide and varied array of technologies. 
+These bridges between service- and technology _Endpoints_, 
+the _Routes_ are implemented on an engine - the _CamelContext_,  
+and they communicate with _Exchange Messages_.
+
+In this repository Camel is used to glue independantly developed Units together.
+
+
+==== Camel Endpoints
+
+The table below lists the common Camel (`camel-version: 4.20.0`) endpoint URI patterns used across the projects, +
+the Camel component artifact, and the underlying library version.
+
+|===
+| Camel Component| Endpoint String | Underlying Component
+
+| `camel-file`
+| `file:...` (e.g. `file:input?noop=true`) 
+| Camel core
+
+| `seda`
+| `seda:<queueName>` 
+| Camel core
+
+| `camel-quartz`
+| `quartz://<group>/<job>?cron=...` 
+| Quartz Scheduler 2.5.2
+
+| `camel-http` 
+| `http://...` or `https://...` +
+  producer / consumer  
+| Apache HttpClient
+
+| `camel-vertx-websocket` 
+| `vertx-websocket://` 
+| Eclipse Vert.x 4.5.26
+
+| `camel-jackson` 
+| `jackson` +
+   dataformat / marshalling 
+| Jackson Databind 2.21.2
+
+|===
+
+
+=== Camel & Spring
+
+*Camel* allows you to define your data flow as a declarative route 
+for complex integration and routing work,
+and then handing off the final business logic
+to standard *Spring* components like Controllers or Services.
+While *Spring Boot* handles the lifecycle and dependency injection 
+in the Spring context, dependency injection, and application startup.
+
+[NOTE]
+====
+ Spring Boot will auto-configure Camel for you.
+====
+ 
+check out 
+https://camel.apache.org/camel-spring-boot/spring-boot.html[camel-spring-boot]
+
+Spring Boot component provides auto-configuration for Apache Camel. 
+Our opinionated auto-configuration of the Camel context 
+auto-detects Camel routes available in the Spring context 
+and registers the key Camel utilities 
+(like `producer` and `consumer` templates, type converters etc.) as `@Bean`.
+
+
+=== @SpringBoot
+
+// and `@CamelSpringBootApplication`
+
+We are building a multi-module project from multiple Spring projects. + 
+Each project has its own technology stack and can be used independently
+or as a part of the whole system.
+
+The `@SpringBootApplication` annotation is a convenience annotation that adds all of the following: 
+
+1. `@Configuration`: Tags the class as a source of bean definitions for the application context.
+2. `@EnableAutoConfiguration`: Tells Spring Boot to start adding beans based on class
+path settings, other beans, and various property settings.
+3. `@ComponentScan`: Tells Spring to look for other components, configurations, and
+services in the package, allowing it to find the controllers.
+
+This is very useful for our multi-module project, 
+as it allows us to define the main application class in one module 
+and have it automatically discover and configure beans from other modules.
+
+
+==== application vs library
+
+On the other hand you run into design problems, if you have multiple `@SpringBootApplication` classes in your project,
+If one `@SpringBootApplication` class is in a module that is not a dependency of the main application module, 
+then Spring Boot will not be able to discover and configure beans from that module.
+
+As the `traccar-realtime-client` module is a dependency of the `traccar-realtime-app` module,
+a `@SpringBootApplication` class in the `traccar-realtime-client` module 
+would be discovered and configured by Spring Boot when the `traccar-realtime-app` module is run.
+
+**Why this is problematic:**
+
+1. When `traccar-realtime-app` imports this as a library, it gets:
+   - Duplicate component scanning (both apps scan `bm.traccar` package)
+   - Potential bean conflicts
+   - Unnecessary application context overhead
+2. The `@SpringBootApplication` in a library forces component scanning on consumers
+3. Cannot control which components are loaded when used as dependency
+
+Therefore the mixed  pattern of the `@SpringBootApplication` annotation causing component scanning conflicts  
+was removed from the `traccar-realtime-client` module in `v.1.1.25`.
+All projects should be usable as library for higher level projects.
+
+The standard pattern to separate @SpringBootApplication from libraries is:
+
+Libraries should:
+
+    •  Use @Configuration + @ComponentScan instead of @SpringBootApplication
+    •  NOT have spring-boot-maven-plugin in pom.xml
+    •  Provide explicit configuration classes that applications import
+    •  Use @Component/@Service/@Repository for beans
+
+Applications should:
+
+    •  Have @SpringBootApplication
+    •  Use @Import(LibraryConfig.class) to explicitly include library components
+    •  Have spring-boot-maven-plugin configured with mainClass
+    •  Control what gets scanned and loaded
+
+
+==== Dual Purpose
+
+The `gps-osmand-tracker` application module is a dual purpose module, 
+which can be used as a standalone application or as a library for other applications.
+
+*Pattern* +
+Library with optional standalone application
+
+*Structure*
+
+[source,xml]
+----
+    src/main/java/bm/gps/tracker/
+    ├── TrackerOsmandConfig.java          (@Configuration, @ComponentScan)
+    ├── TrackerApplication.java           (@SpringBootApplication)
+    ├── TrackerOsmand.java                (@Component)
+    └── TrackerRegistration.java          (@Component)
+----
+
+
+*Separate Configuration*
+
+[source,java]
+----
+    @Configuration
+    @ComponentScan(basePackages = "bm.gps.tracker")
+    public class TrackerOsmandConfig {
+        // This config lives in main sources so other modules 
+        // can import it without depending on the test-jar.
+    }
+----
+
+*Standalone Application:*
+
+[source,java]
+----
+    @SpringBootApplication
+    public class TrackerApplication {
+        public static void main(String[] args) {
+            SpringApplication.run(TrackerApplication.class, args);
+        }
+    }
+----
+
+*Advantages*
+
+    ✅ Library provides configuration
+    ✅ Application can optionally use library components
+    ✅ Can have both library and standalone app in same module
+
+
+==== @ComponentScan
+
+We have changed the `traccar-realtime-client` module 
+to use `@Configuration`, `@ComponentScan` and `@Import`  
+instead of `@SpringBootApplication`:
+
+[source,java]
+----
+    @Configuration
+    @ComponentScan(basePackages = {"bm.traccar", "bm.traccar.rt", "bm.traccar.ws"})
+    @Import({ApiConfig.class, ScenarioConfig.class}) // Import dependency configs
+    public class RealTimeConfig {}
+----
+
+Generally you can create your own @SpringBootApplication class in your application module + 
+and import the library configuration classes as needed.
+
+[source,java]
+----
+    @SpringBootApplication
+    @Import(RealTimeConfig.class)  // Import library configuration listed above
+    public class MyApplication {
+        
+        public static void main(String[] args) {
+            SpringApplication.run(MyApplication.class, args);
+        }
+    }
+----
+
+
+==== modified Tests
+
+As a workaround you _can create a @SpringBootApplication_ for a testing environment
+and provide `bm` classes as required:
+
+```java
+    @SpringBootTest
+    @ContextConfiguration(classes = {
+        ApiService.class, ApiConfig.class, 
+        ScenarioLoader.class, ScenarioConfig.class,
+        RealTimeManager.class  // Manually specify components
+    })
+    public abstract class BaseRealTimeTest {
+```
+
+
+- `BaseRealTimeClientTest.java` + 
+    Changed `@SpringBootTest(classes = RealTimeClient.class)` → `RealTimeConfig.class`
+- `BaseRealTimeTest.java` + 
+    Changed from `RealTimeConfig.class` to specific components to avoid loading full infrastructure
+- `RealTimeAppTest.java`: Added `@ActiveProfiles("test")` to skip runner execution in tests
+
+
+==== @Deprecated stand alone
+
+The classes RealTimeClient and RealTimeClientRunner are deprecated.
+
+TODO +
+review/ rewrite quickstarts 
+
+
+
+
+
+

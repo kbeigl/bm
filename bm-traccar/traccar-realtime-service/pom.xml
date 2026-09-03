@@ -25,13 +25,13 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.26</version>
+        <version>1.1.27</version>
     </parent>
 
     <artifactId>traccar-realtime-service</artifactId>
     <version>${traccar.version}-${project.parent.version}</version>
 
-    <name>..... traccar-realtime-service</name>
+    <name>...... traccar-realtime-service</name>
     <description>traccar-realtime-service</description>
 
     <dependencies>

@@ -4,262 +4,95 @@
 
 This repository serves as development environment + 
 for the  
-link:https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java-ebook/dp/B00OD4AUQ8[`The RealObject Application Framework`]
+https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java/dp/1138413747[The RealObject Application Framework] +
+described in the book
 
+// .Programming GPS and OpenStreetMap Applications with Java + The RealObject Application Framework
+image::Programming-GPS-OpenStreetMap-Applications.jpg[The RealObject Application Framework,link=https://www.amazon.com/Programming-GPS-OpenStreetMap-Applications-Java/dp/1138413747]
+// align=center,
+
+click image to get more details
 
 == intro
 
-Blue Marble Simulations (bm) is a Java-based multi-module Maven project focused on GPS tracking simulations. 
+Blue Marble Simulations `bm-sim` is a Java-based multi-module Maven project focused on GPS tracking simulations. 
 It provides client-side tooling around Traccar, integrating it with Spring Boot and Apache Camel 
-to simulate and process real-time location data. 
+to simulate and process location data in real-time. 
 
 
-== latest versions
+=== latest versions
 
-[source,text]
------------------
-	[INFO] === blue marble simulations               === 1.1.26 
-	[INFO] --- blue marble BOM                       --- 1.1.26 
-	[INFO] ---- GPS Trackers                         --- 1.1.26 
-	[INFO] ..... gps-osmand-tracker                      1.1.26 
-	[INFO] ..... gps-osmand-player                       1.1.26 
-	[INFO] ---- Traccar 6.14.2 Clients               --- 1.1.26 
-	[INFO] ..... traccar-openapitools-client      6.14.2 
-	[INFO] ..... traccar-api-client               6.14.2-1.1.26 
-	[INFO] ..... traccar-realtime-client          6.14.2-1.1.26 
-	[INFO] ..... traccar-realtime-service         6.14.2-1.1.26 
-	[INFO] --- blue marble docs aggregator           --- 1.1.26 
------------------
+include::releases.adoc[lines=2..12]
 
 For earlier versions check the 
 xref:releases.adoc[version history] 
 
-== ci/cd workflows
 
-// We are using the standard Maven release process, 
-// which is based on the `mvn release:prepare` and `mvn release:perform` goals.
+=== Quickstarts
 
-We are using GitHub as our version control system and GitHub Actions for our CI/CD pipeline. +
-You can find the workflows in the `.github/workflows/` files of this repo.
+The page you are reading is a description 
+of the project structure and the development process. 
 
-// === github pages / documentation
-//     redefine names? "pages build and deployment"
+include::./quickstarts/bm-quickstarts.adoc[lines=5..8]
 
-// add workflows that CAN be launched manually, like build with docker and ITs
+If you are looking for a quickstart to get started with each project, 
+xref:./quickstarts/bm-quickstarts.adoc[goto quickstarts ...]
 
 
-=== builds
+== `/workflows` 
 
-If you have problems with a local Maven build you can always check 
-the building and testing logs for every push to the repository.
+include::workflows.adoc[lines=5..6]
 
-[TIP]
-====
-If you clone and build the project locally and run into problems +
-please check the  
-https://github.com/kbeigl/bm/actions[latest builds on GitHub].
-====
-
-=== releases
-
-A GitHub release is essentially just a Git tag with some release notes and attached binary files (called "assets").
-Because it's agnostic to the Maven build tool, GitHub is used to run a Maven build 
-and then attach the generated JAR files as assets to the release.
-
-A Maven multi-module project is made for development in different teams, but it can be released as a single unit. 
-Anyhow every module can be released independently, which is a great advantage for the development process.
-Also a good architecture provides individual modules for different layers, 
-which can be released and used independently.
-
-For example the `traccar-openapitools-client` can be used independently in any Java project, 
-without the need to use the `traccar-api-client` or `traccar-realtime-client` and
-without any strings attached to the rest of this project.
-
-The `release.yml` workflow will perform the following steps:
-
-    1. Check out the repository's code.
-    2. Set up a Java environment.
-    3. Build the project using Maven, which will generate the necessary JAR files.
-    4. Create a new GitHub release associated with the tag.
-    5. Upload the JAR files as assets to the newly created release.
-
-The Release process is triggered by pushing a new Git tag to the repository, 
-which can be done manually or through the GitHub UI when creating a release.
-
-Note that 'GitHub Pages' is also a build-release mechanism.
-
-[TIP]
-====
-If you hesitate to clone and build the project locally 
-and rather would like to have some demo JAR files to play with,
-you should check the latest 
-https://github.com/kbeigl/bm/releases[release on GitHub]
-====
-
-More information about each module, library, CLI can be found 
-in the sections marked with *Download* or *Quickstart*.
+xref:workflows.adoc[read on ...]
 
 
-== technology stack
+== `/bm-parent`
 
-Technology Stack as of `v1.1.24`:
+include::bm-parent/bm-parent.adoc[lines=7..19]
 
-|=== 
-| Layer | Technology | Version
-
-| Language | Java | 21 (LTS)
-
-| Build | Maven | ≥ 4.0.0-rc-5
-
-| App Framework | Spring Boot | 4.0.5
-
-| Integration / Routing | Apache Camel | 4.20.0
-
-| Unit Testing | JUnit 5 (and Camel testing) | 5.20.0
-
-| Integration Test Infrastructure | Docker via Fabric8 plugin | 0.48.1
-
-| GPS Server | Traccar | 6.14.2
-
-| Code Formatting | Spotify fmt-maven-plugin | 2.29
-
-| Documentation | AsciiDoc / AsciidoctorJ / Kroki / Mermaid | — 
-
-|===
+xref:bm-parent/bm-parent.adoc[read on ...]
 
 
-=== Camel Endpoints
+== `/bm-tracker`
 
-The table below lists the common Camel (`camel-version: 4.20.0`) endpoint URI patterns used across the projects, +
-the Camel component artifact, and the underlying library version.
+include::bm-tracker/bm-tracker.adoc[lines=6..12]
 
-|===
-| Camel Component| Endpoint String | Underlying Component
-
-| `camel-file`
-| `file:...` (e.g. `file:input?noop=true`) 
-| Camel core
-
-| `seda`
-| `seda:<queueName>` 
-| Camel core
-
-| `camel-quartz`
-| `quartz://<group>/<job>?cron=...` 
-| Quartz Scheduler 2.5.2
-
-| `camel-http` 
-| `http://...` or `https://...` +
-  producer / consumer  
-| Apache HttpClient
-
-| `camel-vertx-websocket` 
-| `vertx-websocket://` 
-| Eclipse Vert.x 4.5.26
-
-| `camel-jackson` 
-| `jackson` +
-   dataformat / marshalling 
-| Jackson Databind 2.21.2
-
-|===
-
-
-== `/bm-parent` - Maven Multi Module
-
-This `bm-sim` repository is a *Maven Multi Module* project with multi-tier hierarchy.
-The Maven Reactor mechanism makes sure to collect all modules 
-and assert correct build order with every `mvn` command executed. 
-It assures that any project is build as required by another. 
-
-The Parent POM defines all dependency versions, plugin config, 
-Docker setup for Traccar, and AsciiDoc doc generation and 
-acts as the BOM (bill of materials) for all sub-modules.
-
-If you are not sure about your Maven Version it is highly recommended to use the 
-xref:bm-parent/maven-maintenance.adoc#_maven_wrapper[Maven Wrapper]   
-in the root directory! +
-If you modify the versioning make sure the build order matches the listing above.
-Otherwise the Maven Reactor has detected inconsistencies.
-
-xref:bm-parent/bm-parent.adoc[bm-parent details ...]
-
-
-== `/bm-tracker` - GPS Tracker Simulators
-
-This `bm-tracker` branch is used to develop _virtual GPS Tracker Simulators_ +
-which can track real things by sending their positions frequently.
-
-Trackers represent the 'sender' side.
-
-For the ROAF development we want to start bottom up.
-[IMPORTANT]
-====
-All Devices in the ROAF must provide +
-*GPS coordinates _(lat,lon,fix) for space & time_*
-====
-as a common basis for Framework development. 
-
-[TIP]
-====
-The `fixtime` can always be replaced or filled in +
-with `now` to send the device simulators current time.
-====
-
-The ROAF vision described in the book is based on simple and platonic rules. +
-In order to simulate things, events and interactions of the real world, +
-we will need _a grid for space and time_. +
-With respect to the blue marble we might speak of _Globe Positioning_.
-
-
-=== Traccar Trackers
-
-In the long run we want to be able to create scenarios with any +
-or all 1.500+
-https://www.traccar.org/devices/[devices] and 1.000+
-https://www.traccar.org/protocols/[protocols] implemented in traccar. 
-
-=== The JeeTS Tracker
-
-If the Traccar Trackers don't fit your business the 
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book]
-demonstrates how to create Protocols with Message Catalogs to fit your business, 
-how to integrate your own Tracker with the Traccar platform and your business model.
-
-https://github.com/kbeigl/jeets/blob/master/jeets-clients/jeets-device/README.adoc[check out the JeeTS Tracker ...] +
-xref:./bm-tracker/bm-tracker.adoc[more about GPS and Tracking ...]
+xref:./bm-tracker/bm-tracker.adoc[Global Positioning in Space & Time ...]
 
 
 === `gps-osmand-tracker`
 
-The first ROAF GPS Tracker will serve as a placeholder for more customized trackers.
-We will look at the standard components of a Tracking Device 
-and implement the most simple Tracker by using the public `OsmAnd` protocol.
-You can find the protocol specs  
-link:https://www.traccar.org/osmand/[here], 
-xref:OsmAndProtocolSpecification.adoc[here] and elsewhere.
+// content file
+include::bm-tracker/gps-osmand-tracker/gps-tracker.adoc[lines=5..17]
 
-The implemetation is using a SEDA queue as an async ingress with retry/backoff,
-as a solid pattern for resilient message delivery.
-
-xref:./bm-tracker/gps-osmand-tracker/gps-osmand-tracker.adoc[goto gps-osmand-tracker project]
+// index file
+xref:./bm-tracker/gps-osmand-tracker/gps-osmand-tracker.adoc[read on ...]
 
 
 === `gps-osmand-player`
 
-After prototyping the `gps-tracker` we want to create a helper for further development,
-which has proven to be very helpful during 
-https://github.com/kbeigl/jeets/tree/master/jeets-clients/jeets-player[JeeTS]
-development.
-With a player software you can chose of thousands of available tracks and replay them. 
-Beyond that a number of simulations can be used to replay complex traffic situations. 
-Besides supporting tracker development the player component can be 
-the base of a Navigation Device which can support a Driver Assistence System.
+include::bm-tracker/gps-osmand-player/gps-osmand-player.adoc[lines=14..21]
 
-xref:./bm-tracker/gps-osmand-player/gps-osmand-player.adoc[goto gps-osmand-player project]
+xref:./bm-tracker/gps-osmand-player/gps-osmand-player.adoc[read on ...]
 
 
-== `/bm-traccar` - Remote Access to Traccar GTS
+== Integrated Development
+
+The GPS Tracker and Player were developed as client senders for the Traccar GTS.
+Each project test is running standalone for each Unit.
+For a _full integrated development cycle_ we run the Traccar Server in a Docker container 
+and look into the server state with the Traccar REST API and websocket interface.
+This development is done in the `bm-traccar` branch.
+The `traccar-realtime-client` is an important milestone as it allows 
+a _full roundtrip engineering_ in an integrated development cycle.
+
+Therefor the longterm Tracker and Player development happen in the `traccar-realtime-client` project.
+
+xref:./bm-traccar/traccar-realtime-client/integrated-dev-cycle.adoc#_integrated_tracker_development[read about the Integrated Development Cycle]
+
+
+
+== `/bm-traccar` - GTS Remote Access
 
 The `bm-traccar` aggregator POM is the development environment 
 to code against the link:https://www.traccar.org/[Traccar GPS Tracking Platform].
@@ -331,18 +164,10 @@ is invoked with Maven and there are no manual changes.
 
 [TIP]
 ====
-Therefor you can also download the released `jar` for your own purposes. +
-See next section *Download*. 
+Therefor you can also download the released `jar` for your own purposes. 
 ====
 
 xref:./bm-traccar/traccar-openapitools-client/openapitools.adoc[details ...]
-
-
-=== *Download*
-
-This project is fully automated and always reflects the Traccar version. +
-You can pick up your download in the 
-https://github.com/kbeigl/bm/releases[Releases] section.
 
 
 === `traccar-api-client`
@@ -369,28 +194,9 @@ for multi-map atomic writes) always assures a stable realtime state.
 xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client.adoc[details ...]
 
 
-=== *Quickstart*
+=== `traccar-realtime-service`
 
-The `traccar-rt-client` implies the other artifacts of the `/bm-traccar` branch 
-as required layers and can well serve as a Quickstart 
-(and later as a useful supporting component) for Traccar Client development.
-Also the `traccar-realtime-client` is a Spring Boot application, 
-which means that it can be run as a standalone application.
-
-The real time client can easily be integrated into your Spring Boot applications.
-You can use the `RealTimeManager` as a bean in your application context and
-add a little ETL logic to process the Traccar Entities as you like.
-
-Please check the
-xref:./bm-traccar/traccar-realtime-client/traccar-rt-quickstart.adoc[Quickstart]
-to get started with the `traccar-realtime-client` and 
-find out how it can be used to connect to a Traccar server and 
-receive real-time data from it.
-
-
-=== `traccar-realtime-app`
-
-The `traccar-realtime-app` is a Java Client Software 
+The `traccar-realtime-service` is a Java Client Software 
 to provide full (remote) control over and interact 
 via live surveillance of your Traccar Server Scenario. 
 
@@ -404,6 +210,13 @@ A customized model can help to improve your business by observing and controllin
 xref:./bm-traccar/traccar-realtime-app/traccar-realtime-app.adoc[details ...]
 
 
+== `/bm-docs`
+
+include::bm-docs/ascii-doctor.adoc[lines=1..10]
+
+xref:bm-docs/ascii-doctor.adoc[read on ...]
+
+
 == gps2gts2realtime *Milestone*
 
 The `v1.1.x` prototyping of the two branches `/bm-tracker` and `/bm-traccar` is concluded with the `traccar-realtime-client`.
@@ -414,7 +227,7 @@ These ground layers of the ROAF are now in place and we can start building on to
 Or they can be used as a solid basis for your own projects. 
 
 Make sure to execute the 
-xref:./bm-traccar/traccar-realtime-client/traccar-rt-quickstart.adoc[Quickstart]
+xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[Quickstart]
 of the `traccar-realtime-client` to setup your development environment.
 
 Then you can go into details and use a blueprint

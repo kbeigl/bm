@@ -24,25 +24,27 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.26</version>
+        <version>1.1.27</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-docs</artifactId>
     <packaging>pom</packaging>
 
-    <name>--- blue marble docs aggregator           ---</name>
+    <name>---- blue marble docs aggregator          ---</name>
     <description>
         Aggregates AsciiDoc sources from sibling modules, unpacks their published
         documentation resources, and renders the combined documentation set.
     </description>
 
     <properties>
-        <maven-dependency-plugin-version>3.11.0</maven-dependency-plugin-version>
+        <!-- <maven-dependency-plugin-version>3.11.0</maven-dependency-plugin-version> -->
         <maven-antrun-plugin-version>3.2.0</maven-antrun-plugin-version>
+        <kroki.mermaid.version>0.27.0</kroki.mermaid.version>
     </properties>
 
     <dependencies>
+    <!-- only software artifacts, not branches -->
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-tracker</artifactId>
@@ -93,6 +95,18 @@
                                     <directory>${maven.multiModuleProjectDirectory}/asciidoc</directory>
                                     <includes>
                                         <include>**/*.adoc</include>
+                                    </includes>
+                                </resource>
+                                <!-- images go to diagrams/ to match the global imagesdir attribute -->
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}/asciidoc</directory>
+                                    <targetPath>diagrams</targetPath>
+                                    <includes>
+                                        <include>**/*.jpg</include>
+                                        <include>**/*.jpeg</include>
+                                        <include>**/*.png</include>
+                                        <include>**/*.svg</include>
+                                        <include>**/*.gif</include>
                                     </includes>
                                 </resource>
                                 <resource>
@@ -376,8 +390,10 @@
                                 <bm-parent-docs>${project.build.directory}/generated-docs/bm-parent</bm-parent-docs>
                                 <bm-tracker-docs>${project.build.directory}/generated-docs/bm-tracker</bm-tracker-docs>
                                 <bm-traccar-docs>${project.build.directory}/generated-docs/bm-traccar</bm-traccar-docs>
+
                                 <gps-osmand-tracker-docs>${project.build.directory}/generated-docs/bm-tracker/gps-osmand-tracker</gps-osmand-tracker-docs>
                                 <gps-osmand-player-docs>${project.build.directory}/generated-docs/bm-tracker/gps-osmand-player</gps-osmand-player-docs>
+
                                 <traccar-openapitools-client-docs>${project.build.directory}/generated-docs/bm-traccar/traccar-openapitools-client</traccar-openapitools-client-docs>
                                 <traccar-api-client-docs>${project.build.directory}/generated-docs/bm-traccar/traccar-api-client</traccar-api-client-docs>
                                 <traccar-realtime-service-docs>${project.build.directory}/generated-docs/bm-traccar/traccar-realtime-service</traccar-realtime-service-docs>
@@ -387,6 +403,50 @@
                                 <sourceDocumentExtension>adoc</sourceDocumentExtension>
                             </sourceDocumentExtensions>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <skip>${asciidoc.process.skip}</skip>
+                    <images combine.self="override">
+                        <image>
+                            <alias>kroki-mermaid</alias>
+                            <name>yuzutech/kroki-mermaid:${kroki.mermaid.version}</name>
+                            <run>
+                                <containerNamePattern>kroki-mermaid</containerNamePattern>
+                                <memory>2147483648</memory>
+                                <shmSize>1073741824</shmSize>
+                                <ports>
+                                    <port>8002:8002</port>
+                                </ports>
+                                <wait>
+                                    <http>
+                                        <url>http://localhost:8002</url>
+                                        <status>200..499</status>
+                                    </http>
+                                    <time>30000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions combine.self="override">
+                    <execution>
+                        <id>start</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

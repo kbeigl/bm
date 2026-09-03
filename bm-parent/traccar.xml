@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<properties>
+
+    <entry key='database.driver'>org.h2.Driver</entry>
+    <entry key='database.url'>jdbc:h2:./data/database</entry>
+    <entry key='database.user'>sa</entry>
+    <entry key='database.password'></entry>
+
+	<!-- important for GPX Player test
+	Tells Traccar not to immediately ignore data from unknown devices. -->    
+    <entry key='database.ignoreUnknown'>false</entry>
+	<!-- Turns on the auto-registration feature. -->
+    <entry key='database.registerUnknown'>true</entry>
+	<!-- Automatically register unknown devices with regex filter. -->
+	<entry key='database.registerUnknown.regex'>^.*0[78](0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01]).*$</entry>
+	<!-- Sets the default group ID assigned to new auto-registered devices 
+		(use a valid group ID from your database, or 0/omit for none). -->
+    <entry key='database.registerUnknown.defaultGroupId'>0</entry>
+	<!-- : Sets an optional default device category/icon type
+	<entry key='database.registerUnknown.defaultCategory'>Default</entry> -->
+
+    <entry key='logger.level'>info</entry>
+    <entry key='web.address'>0.0.0.0</entry>
+    <entry key='web.sameSiteCookie'>None</entry>
+
+    <entry key='web.serviceAccountToken'>VIRTUAL_ADMIN_ACCESS</entry>
+
+    <entry key='geocoder.enable'>false</entry>
+
+</properties>

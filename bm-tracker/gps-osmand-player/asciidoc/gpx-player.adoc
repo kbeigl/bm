@@ -1,0 +1,272 @@
+:imagesdir: diagrams
+:toc: left
+:toclevels: 5
+:doctype: book
+
+
+= The GPX Player
+
+While most modules are designed to be used as libraries, they can also be used as standalone applications. +
+The `gpx-player.jar` is a standalone application that can be run from the command line. +
+It can be used to play GPX tracks and send them to a Traccar server or other endpoints 
+and can be helpful for testing and debugging. 
+
+[TIP]
+====
+If you want to use the GPX Player to playback your own GPX tracks, 
+you can head on over +
+to the 
+xref:./gpx-player-qs.adoc[Quick Start]
+guide for instructions on how to get started.
+====
+
+
+== player layers
+
+In the course of development, the gps-osmand-player was split into the two layers for *gpx* loading and *gps* playing.
+
+     bm.gps.player           bm.gps.gpx
+            PlayerOsmAnd            Gpx2OsmandLoader
+            PlayerTimerRoute        Gpx2OsmandParser
+            QuartzSchedulerBean
+            --
+            PlayerApplication
+
+=== player 
+
+The `player` layer accepts a message list and plays them back to the Tracking System. +
+This player is part of the framework and can be used in other modules as well. 
+
+=== gpx
+
+The `gpx` layer is responsible for loading GPX files and converting them into a message list. +
+This must not be part of the framework, as it is only needed to access external data sources. +
+It can be disabled by setting the property `gps.player.loader-enabled=false` in the `app.props`. +
+
+
+== player application
+
+The `PlayerApplication` class is not part of the framework, 
+but serves as the entry point for the GPX Player application. 
+The `spring-boot-maven-plugin` with `mainClass=bm.gps.player.PlayerApplication`
+creates a runnable `gpx-player.jar` with all dependencies included. 
+The resulting jar can be run on command line, while the plain jar remains a library for other modules.
+You can see by the size of the jars that the `gpx-player.jar` is a fat jar with all dependencies included:
+
+          59.702 gps-osmand-tracker-1.1.27.jar
+       1.020.846 gps-osmand-player-1.1.27.jar
+      40.752.680 gpx-player-1.1.27.jar
+                   =
+
+== logging
+
+The GPX Player comes with a default logging configuration that logs to the console and to a log file. + 
+You can copy the file out of the jar next to the `gpx-player.jar` and edit it to your needs. 
+
+Different log settings can provide different levels of detail for different aspects. +
+We will show some examples of log output for different log levels. +
+These are very useful introspection infos for debugging and testing. +
+For example you can see the `[thread]s` working in parallel.
+
+=== start application
+
+ [main] bm.gps.player.PlayerApplication          : Starting PlayerApplication ..
+ [main] bm.gps.gpx.Gpx2OsmandLoader              : GPX loader polling send directory ..
+ [main] o.a.c.impl.engine.AbstractCamelContext   : Apache Camel 4.21.0 (camel-1) is starting
+ [main] c.s.b.CamelSpringBootApplicationListener : Starting CamelMainRunController ..
+ [CamelMainRunController] org.apache.camel.main.MainSupport
+
+=== load and start playback
+
+ [Camel (camel-1) thread #1 - file: .. /send]    : Parsed 6 track points ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Registered TrackerRoutes ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Loaded player 'SE-080607' ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Apache Camel 4.21.0 (camel-7) is starting
+ [Camel (camel-1) thread #1 - file: .. /send]    : ..ensure QuartzScheduler(s) ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Job osmandTrackGroup-SE-080607 ..
+ [Camel (camel-1) thread #1 - file: .. /send]    :     Started osmand-track-playback-SE-080607 ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Apache Camel 4.21.0 (camel-7) started in 7ms ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Starting Quartz scheduler: ..
+ [Camel (camel-1) thread #1 - file: .. /send]    : Started playback for player 'SE-080607'
+
+=== Quartz schedulers
+
+ [DefaultQuartzScheduler-camel-6_Worker-9] ..    : player N-070717  sending msg #10 / 448  
+ [DefaultQuartzScheduler-camel-2_Worker-9] ..    : player NE-070604 sending msg #20 / 643 
+ [DefaultQuartzScheduler-camel-5_Worker-9] ..    : player N-070618  sending msg #10 / 359  
+ 
+=== server dis- / reconnections
+
+Another interesting aspect is the server disconnection and reconnection. +
+You can start the player with a running server, then stop the server +
+and see how the player's `seda://send-osmand-RGB-BUELL-SE-080607` endpoint reacts:
+
+ [Camel (camel-1) thread #5 - seda://send-osmand-RGB-BUELL-SE-080607] 
+ 	Failed delivery for (MessageId: A2672A1BFCA98BA-0000000000000004 
+ 	                 on ExchangeId: A2672A1BFCA98BA-0000000000000004). 
+    On delivery attempt: 0 caught: HttpHostConnectException: 
+ 	Connect to http://localhost:5055 failed: Connection refused (connect failed)
+ 	   :
+    On delivery attempt: 1 caught: .. 
+    On delivery attempt: 2 caught: ..
+    
+and now quartz scheduler sends the next message `..0006` on `thread #3`
+
+ [Camel (camel-1) thread #3 - seda://send-osmand-RGB-BUELL-SE-080607]
+                         == 
+    Failed delivery for (MessageId: A2672A1BFCA98BA-0000000000000006
+                                                                ====
+
+and now the endpoint starts retrying the message delivery 
+
+ [Camel (camel-1) thread #3 - seda://send-osmand-RGB-BUELL-SE-080607] 
+    HttpRequestRetryExec       : ex-0000000006 
+    recoverable I/O exception (java.net.SocketException) caught 
+    when sending request to http://localhost:5055;
+    request will be automatically re-executed in 0 MILLISECONDS (exec count 2)
+
+- [ ] In a testing scenario, exponential backoff can be annoying
+  because you have to wait longer and longer for the "reconnect" to happen.
+  For local testing, keep the multiplier low or stick to linear delays
+  before testing production-like stability.
+
+and now you can stop the player (Ctrl-C) and look at pending messages and inflight exchanges. +
+Then restart the server and the player reconnects and continues sending messages:
+
+ Waiting as there are still 1 inflight and pending exchanges to complete, timeout in 43 seconds.
+ Inflights per route: [seda-send-osmand-route-SE-080607 = 1] 
+
+=== end playback and cleanup
+
+ [player-cleanup-SE-080607]    : Apache Camel 4.21.0 (camel-7) is shutting down (timeout:45s)
+ [Camel (camel-7) thread #26 - ShutdownTask] QuartzEndpoint    : Pausing trigger ..
+ [player-cleanup-SE-080607]    : Deleting job osmandTrackGroup-SE-080607.dynamicTrackJob-SE-080607
+ [player-cleanup-SE-080607]    : Routes stopped (total:1)
+ [player-cleanup-SE-080607]    :     Stopped osmand-track-playback-SE-080607 ..
+ [player-cleanup-SE-080607]    : Shutting down Quartz scheduler ..
+ [player-cleanup-SE-080607]    : Apache Camel 4.21.0 (camel-7) shutdown in 504ms
+ [player-cleanup-SE-080607]    :  Stopped seda-send-osmand-route-SE-080607 
+ [player-cleanup-SE-080607]    : Shutdown seda-send-osmand-route-SE-080607 
+ [player-cleanup-SE-080607]    : player SE-080607 has finished playing and is removed. 
+                                 5 remaining.
+                                 
+=== end player and shutdown
+
+ [player-cleanup-NE-070604]       : all players have finished playing. 
+                                    Waiting for next gpx file
+ --                                   
+ [SpringApplicationShutdownHook]  : Apache Camel 4.21.0 (camel-1) is shutting down
+ [SpringApplicationShutdownHook]  : Routes stopped (total:7)
+ [SpringApplicationShutdownHook]  :     Stopped direct-send-osmand-route-SE-080607
+                                  :      :
+ [SpringApplicationShutdownHook]  :     Stopped gpx-osmand-loader 
+ [SpringApplicationShutdownHook]  : Apache Camel 4.21.0 (camel-1) shutdown in 6ms (uptime:2h2m)
+
+=== TODO message content
+
+By default logging of single messages is disabled, 
+    but can be enabled by setting the property `gps.player.log-messages=true` in the `app.props`. 
+    
+Use maven property `-Dgps.player.log-messages=true` to enable logging of messages for a single run.
+
+=== server logs
+
+    document console output, log file and traccar server.log !! 
+    startup one player with routes ..
+    play route
+    restart same player
+      
+    show
+    tracker sending url message id=NW-36-070531&l ...
+    tracker sending url message ( 50 / 160) (time past and to go?) id=NW-36-070531&l ...
+    Note ID is in the message, but could be shown
+    tracker NW-36-070531 sending url message id=NW-36-070531&l ...
+
+
+== gpx resources
+
+    - where to publish buell traces on github +
+    - stats: x positions in x minutes > pentesting with minimum time delay between msgs  
+
+    [x] regex
+        now change database.registerUnknown.regex to accept devices
+        with a valid 6 digit date YYMMDD in its deviceId where YY is 07 or 08
+
+        <entry key='database.registerUnknown.regex'>
+        	^.*0[78](0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01]).*$
+        </entry>
+
+        This regular expression matches:
+        •  YY: 0[78] (2007 or 2008)
+        •  MM: (0[1-9]|1[0-2]) (valid months 01–12)
+        •  DD: (0[1-9]|[12][0-9]|3[01]) (valid days 01–31)
+
+ database.registerUnknown.*
+ Automatically created devices do not automatically show up under a standard user's view until linked.
+ If you cannot see them, you must assign them or link them via admin permissions.
+
+
+== *Quick Start* 
+
+
+
+
+
+
+
+
+== TODO rt-client logs
+
+=== sendMessagesWithDevices() 
+
+ [           main] bm.gps.tracker.TrackerOsmAnd             : tracker-10 sending message
+
+ [/send-osmand-10] seda-send-osmand-route-10                : Sender: sent message to http://localhost:5055 via seda-send-osmand-route-10
+ [worker-thread-1] process-websocket-message-route          : Process WebSocket json message: {devices=[{id=385, attributes={}, groupId=0, calendarId=0, name=Kristof Mobile, uniqueId=574322, status=online, lastUpdate=2026-02-18T14:23:09.447+00:00, positionId=0, phone=null, model=Samsung A52, contact=null, category=null, disabled=false, expirationTime=null}]}
+ [worker-thread-1] process-websocket-message-route          : devices message received: {devices=[{id=385, attributes={}, groupId=0, calendarId=0, name=Kristof Mobile, uniqueId=574322, status=online, lastUpdate=2026-02-18T14:23:09.447+00:00, positionId=0, phone=null, model=Samsung A52, contact=null, category=null, disabled=false, expirationTime=null}]}
+ [worker-thread-1] bm.traccar.ws.WebSocketRoute             : TODO update Devices from WebSocket message: [{id=385, attributes={}, groupId=0, calendarId=0, name=Kristof Mobile, uniqueId=574322, status=online, lastUpdate=2026-02-18T14:23:09.447+00:00, positionId=0, phone=null, model=Samsung A52, contact=null, category=null, disabled=false, expirationTime=null}]
+ [worker-thread-6] process-websocket-message-route          : Process WebSocket json message: {positions=[{id=110, attributes={distance=0.0, totalDistance=0.0, motion=true}, deviceId=386, protocol=osmand, serverTime=2026-02-18T14:23:09.444+00:00, deviceTime=2026-02-18T14:23:09.000+00:00, fixTime=2026-02-18T14:23:09.000+00:00, valid=true, latitude=52.0, longitude=13.0, altitude=30.0, speed=10.0, course=20.0, address=null, accuracy=0.0, network=null, geofenceIds=null}]}
+ [worker-thread-6] process-websocket-message-route          : Unknown or unimplemented WebSocket message ignored: {positions=[{id=110, attributes={distance=0.0, totalDistance=0.0, motion=true}, deviceId=386, protocol=osmand, serverTime=2026-02-18T14:23:09.444+00:00, deviceTime=2026-02-18T14:23:09.000+00:00, fixTime=2026-02-18T14:23:09.000+00:00, valid=true, latitude=52.0, longitude=13.0, altitude=30.0, speed=10.0, course=20.0, address=null, accuracy=0.0, network=null, geofenceIds=null}]}
+
+ [           main] o.a.c.impl.engine.AbstractCamelContext   : Stopped  seda-send-osmand-route-574322 (seda://send-osmand-574322)
+ [           main] o.a.c.impl.engine.AbstractCamelContext   : Shutdown seda-send-osmand-route-574322 (seda://send-osmand-574322)
+ [           main] bm.gps.tracker.TrackerOsmAnd             : Stopped and removed tracker route seda-send-osmand-route-574322
+ [           main] bm.gps.tracker.TrackerRegistration       : Invoked destroyRoutes on tracker-574322 before singleton destroy
+ [           main] bm.gps.tracker.TrackerRegistration       : Destroyed tracker singleton tracker-574322
+ [           main] bm.gps.tracker.TrackerRegistration       : Removed bean definition tracker-574322
+
+
+=== Camel processing: send routes, processing route, worker-thread ..
+
+        [traccar-rt-client] [/send-osmand-10] seda-send-osmand-route-10
+        [traccar-rt-client] [/send-osmand-11] seda-send-osmand-route-11
+        [traccar-rt-client] [d-osmand-574322] seda-send-osmand-route-574322
+        [traccar-rt-client] [/send-osmand-12] seda-send-osmand-route-12
+
+        [traccar-rt-client] [worker-thread-1] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-2] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-1] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-2] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-3] process-websocket-message-route
+
+        [traccar-rt-client] [worker-thread-1] bm.traccar.ws.WebSocketRoute
+        [traccar-rt-client] [worker-thread-2] bm.traccar.ws.WebSocketRoute
+
+        [traccar-rt-client] [worker-thread-4] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-3] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-4] process-websocket-message-route
+
+        [traccar-rt-client] [worker-thread-3] bm.traccar.ws.WebSocketRoute
+        [traccar-rt-client] [worker-thread-4] bm.traccar.ws.WebSocketRoute
+
+        [traccar-rt-client] [worker-thread-6] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-5] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-8] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-7] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-6] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-8] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-5] process-websocket-message-route
+        [traccar-rt-client] [worker-thread-7] process-websocket-message-route
+
+
+goto gpx-player quickstart[Quick Start]

@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.gps.player;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +60,11 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
     assertNotNull(pos, "Position not available in controller after GPX sample processing");
     assertThat(pos.getDeviceId()).isEqualTo(deviceId);
     assertThat(pos.getId()).as("Latest position should have a persisted id").isGreaterThan(0L);
+
+    // only in dev mode - MUST comment before building for production!
+    // put sleep to 10 minutes or more to observe scenario (in Tracking System Frontend).
+    sleep(5 * 1000);
+    // sleep(10 * 60 * 1000);
   }
 
   @Test
@@ -68,7 +89,8 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
     }
 
     // put sleep to 10 minutes or more to observe scenario (in Tracking System Frontend).
-    sleep(10);
+    sleep(5 * 1000);
+    // sleep(10 * 60 * 1000);
 
     // rest is verification and assertions ----------------
     //    for (PlayerOsmAnd player : allPlayers) {

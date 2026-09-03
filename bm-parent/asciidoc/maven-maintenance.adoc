@@ -1,11 +1,9 @@
 :toc: left
 
-= Maven maintenance
-
-    
-== upgrades and updates
+== Maven maintenance
 
 The following steps cover the vital coordinates. 
+
 
 === step 1 - Maven versions
 

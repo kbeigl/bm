@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.gps.tracker;
 
 import bm.gps.MessageOsmand;
@@ -37,6 +53,7 @@ public class TrackerSender extends RouteBuilder {
     // TODO: use parameters for  Error Handling Policy (app.props)
     // catch connection issues and HTTP errors (like 503 Service Unavailable)
     // Narrow exception handling to IO and HTTP operation failures instead of all Exceptions
+
     // Some RouteBuilder variants require a single exception class per onException call,
     // so register two handlers with the same retry policy.
     onException(IOException.class)

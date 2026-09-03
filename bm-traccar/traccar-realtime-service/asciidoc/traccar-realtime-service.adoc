@@ -2,7 +2,7 @@
 :toclevels: 4
 :doctype: book
 
-= GTS Real Time Application
+= GTS Real Time Service
 
 After developing several independent components we can put them all together 
 to compile a Real Time Application with them.
@@ -29,7 +29,7 @@ The following figure focuses on the projects and some major classes of the comin
 
 // actually this diagram should be changed to TB for better readability
 
-[mermaid, target="traccar-realtime-app", title="Real Time Application projects", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}']
+[mermaid, target="traccar-realtime-service", title="Real Time Application projects", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}']
 ....
 graph BT
  

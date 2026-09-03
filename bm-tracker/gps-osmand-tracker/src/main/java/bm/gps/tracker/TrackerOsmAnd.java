@@ -1,3 +1,19 @@
+/*
+ * (C) Copyright 2026 Kristof Beiglböck
+ *               kbeigl.github.io/bm
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package bm.gps.tracker;
 
 import bm.gps.GeoTools;
@@ -13,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * OsmAndTracker is a client @Component that sends GPS messages to the OsmAnd server. We are using
- * the Device (i.e. OsmAnd model) as the tracker status at any given time.
+ * OsmAndTracker is a client @Component that sends GPS messages to an OsmAnd DCS. We are using the
+ * Device (i.e. OsmAnd model) as the tracker status at any given time.
  *
  * <p>Usage example:
  *
@@ -28,7 +44,7 @@ import org.springframework.stereotype.Component;
  * status.setAltitude(34.5);
  * status.setSpeed(25.0);
  * status.setBearing(180.0);
- * status.setBattery(85.0);
+ * status.setBattery(bat--);
  * status.setFixTime(OffsetDateTime.now());
  *
  * // Send the current status as a message
@@ -44,16 +60,18 @@ public class TrackerOsmAnd {
    * A fixed host to send messages to and the device this tracker is associated with. Can only be
    * set with constructor and uniqueId is used for all messages.
    */
-  // final for runtime ?
+  // final ?
   private String osmandHost, uniqueId;
 
-  // Route-id sanitization: safeId uses replacement of non-alphanumeric chars with '_'
-  // to make route ids/endpoints safe.
+  /**
+   * Route-id sanitization: safeId uses replacement of non-alphanumeric chars with '_' // to make
+   * route ids/endpoints safe.
+   */
   private String safeId;
 
   /**
    * Public inner class to encapsulate tracker status attributes. This approach provides flexibility
-   * for mathematical functions of motion and physical laws.
+   * for mathematical functions of motion and laws of classical physics.
    */
   public static class TrackerStatus {
     private double latitude = Double.NaN;
@@ -235,7 +253,10 @@ public class TrackerOsmAnd {
             + (safeId == null
                 ? (uniqueId == null ? "" : uniqueId.replaceAll("[^A-Za-z0-9_-]", "_"))
                 : safeId);
-    logger.info("tracker sending url message {}", msg); // safeId ?
+
+    // =============================================
+    // logger.info("{} sending: {}", uniqueId, msg);
+    // =============================================
     tracker.sendBody(endpoint, msg);
     // tracker.asyncSendBody("direct:send-osmand", msg);
   }

@@ -1,10 +1,26 @@
 :toc: left
-:toclevels: 3
+:toclevels: 2
 :doctype: book
 
-include::multi-module.adoc[]
+== Multi Module Repository
 
-include::root-parent.adoc[]
+This `bm-sim` repository is a 
+link:https://maven.apache.org/guides/mini/guide-multiple-modules.html[Maven Multiple Module] 
+project with multi-tier hierarchy.
+The Maven Reactor mechanism makes sure to collect all modules 
+and assert correct build order with every `mvn` command executed. 
+It assures that any project is build as required by another.
+
+We use the Maven multi-module project approach for managing distributed applications 
+where different components need to be developed, versioned, and deployed _independently_ 
+while maintaining coherent dependencies centralized.
+This simplifies and standardizes a consistent build process 
+and scaling with a clear separation of concerns.
+
+
+include::camel-spring.adoc[]
+
+include::multi-module.adoc[]
 
 include::maven-plugins.adoc[]
 

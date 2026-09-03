@@ -1,0 +1,153 @@
+:toc: left
+
+= repo Quick Starts
+
+A well structured architecture should allow the usage 
+of components in different contexts or even standalone.
+Every submodule has its own Quickstart guide to demonstrate 
+how to use the compiled artifacts in an isolated manner.
+
+
+== traccar server
+
+This repo is all about Tracking Components, 
+but does not include a GPS Tracking System.
+
+We are developing against the Traccar Server, 
+which is a free and open source GTS.
+For developing, testing and running we have integrated the Traccar Server
+as a docker container in the `bm-traccar` module.
+
+These Quickstarts are focused on the usage of the Traccar Client components 
+independently of the repository structure and the build system. 
+For example, you can use the `gps-osmand-player` to play your GPX tracks 
+and feed them into any GTS (or DCS) that supports the OsmAnd Protocol.
+
+In concclusion you should be familiar with the Traccar Server 
+and its configuration. +
+For exploring and testing it is recommended to setup 
+a Traccar Server full system access. 
+For simple testing you can use a Traccar Demo Server, 
+which naturally has limited access.
+It is easy to setup a user account and a device on the demo server, 
+in order to send your GPS data to it.
+But many components require admin access to the server  
+to create users, devices and more.
+
+
+=== prerequisites
+
+All you need is 
+
+* a Java runtime and online access to the Traccar Server
+* a *Traccar Server Address* to connect to +
+  i.e. `https://demo.traccar.org` or `http://localhost:8082`
+
+* and a *User Account* +
+  Many features depend on its permissions.
+* a *Device* on a traccar server to connect to.
+
+
+=== releases
+
+You can pick up the latest release from the 
+https://github.com/kbeigl/bm[repo home],
+go the Release section and click on *latest* label. +
+Or look at all 
+https://github.com/kbeigl/bm/releases[releases] 
+and pick a version.
+
+Download the jar in any folder +
+`repackaged` with the `spring-boot-maven-plugin` +
+includes Spring Boot dependencies and the `application.properties` file. 
+
+
+=== provide credentials 
+
+After downloading the jar you need to provide 
+the credentials and server address to connect to. +
+The recommended way is to create a `application.properties` file 
+in the same folder as the jar. +
+The easiest way is to extract the `application.properties` 
+from the jar and copy it to the same folder as the jar.
+
+
+Extract the `application.properties` from the jar and copy it to the same folder as the jar:
+
+    $ cd /any/folder
+    $ jar xf traccar-rt-client-6.10.0-RC.jar application.properties
+
+Or create a new `application.properties` file in the same folder +
+and provide the necessary credentials and server address. +
+For example:
+
+[source,xml]
+----
+    traccar.host=https://demo3.traccar.org
+    traccar.name=acount name
+    traccar.password=secret
+    traccar.email=my@mail.com
+----
+
+
+=== prepare tracking
+
+Login to the traccar server with the provided credentials to verify. +
+Create a device, if the quickstart requires one.
+
+
+=== run the client
+
+First make the jar executable:
+
+    $ chmod 777 traccar-realtime-client-6.12.2-1.1.20-RC.jar
+    
+Then execute the jar:
+
+    $ java -jar traccar-realtime-client-6.12.2-1.1.20-RC.jar
+
+Note that some clients remain running until manually shutdown gracefully with `Ctrl+C`.
+
+
+=== console 
+
+After starting the client you will see the console output, like
+
+[source,xml]
+----
+    Starting RealTimeClient using Java 21.0.10 with PID 704815
+    Apache Camel 4.18.0 (camel-1) is starting
+    Routes startup (total:2)
+    Started RealTimeClient in 3.519 seconds (process running for 4.207)
+----
+
+
+// == `gps-osmand-tracker`
+
+== `gpx-player`
+
+include::../bm-tracker/gps-osmand-player/gpx-player-qs.adoc[lines=9..11]
+
+xref:../bm-tracker/gps-osmand-player/gpx-player-qs.adoc[read on ...]
+
+
+== traccar clients
+
+== `-openapitools-client`
+
+This project is fully automated and always reflects the Traccar version. +
+You can pick up your download in the 
+https://github.com/kbeigl/bm/releases[Releases] section.
+
+
+== `-api-client`
+
+== `-realtime-client`
+
+include::../bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[lines=5..6]
+
+xref:../bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[read on ...]
+
+
+== `-realtime-service`
+

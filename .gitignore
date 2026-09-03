@@ -5,6 +5,8 @@
 .factorypath
 target/
 
+bm-tracker/gps-osmand-player/src/test/resources/gpx/
+
 .asciidoctorconfig.adoc
 
 # review some time

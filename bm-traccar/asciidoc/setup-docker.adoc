@@ -3,14 +3,16 @@
 
 The Traccar Client Software is developed with Integration Tests against a Docker Traccar Server.
 
-== build and run Traccar Docker Container
+== Traccar Docker Container
 
 The traccar project at Github provides instructions to fetch and install the Traccar
 https://hub.docker.com/r/traccar/traccar[DockerHub image].
 This Maven Module leverages the
 https://github.com/fabric8io/docker-maven-plugin/blob/master/README.md[`fabric8io docker-maven-plugin`] 
-to control the Docker container phases to manage a dockerized Traccar server 
-for integration testing. 
+to control the Docker container phases to manage a dockerized Traccar server for integration testing. 
+Integration tests automatically start a Traccar Docker container before tests run and stop it after. 
+This allows the `bm-traccar` clients to be tested against a real Traccar server instance. 
+Integration tests are **skipped by default** and can be enabled explicitly.
 
 To avoid the `sudo` command you can create a docker group to enable non-root user access:
 
@@ -21,6 +23,7 @@ To avoid the `sudo` command you can create a docker group to enable non-root use
     newgrp docker
     groups
 -----------------
+
 
 == `docker-maven-plugin`
 
@@ -136,7 +139,7 @@ Next you should check the parameters of the `<run>` section for your personal pr
             <volumes>
                 <bind>
                     <volume>/opt/traccar/logs:/opt/traccar/logs:rw</volume>
-                    <volume>/opt/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
+                    <volume>${maven.multiModuleProjectDirectory}/bm-parent/traccar.xml:/opt/traccar/conf/traccar.xml:ro</volume>
                     <volume>/opt/traccar/data:/opt/traccar/data:rw</volume>
                 </bind>
             </volumes>

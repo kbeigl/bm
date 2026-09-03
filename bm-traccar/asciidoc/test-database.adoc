@@ -30,11 +30,8 @@ The H2 database is locked
 as long the traccar container is working for its simplicity. +
 Developers can debug `*IT` tests running against the traccar container +
 and exit the test after a scenario has been setup. +
-Then the docker container must be stopped in order to use the h2 shell.
+Then the docker container must be stopped in order to use the h2 shell !
 ====
-
-https://www.baeldung.com/java-h2-db-execute-sql-file[h2 access]
-    
 
 
 == `h2.tools.Shell`
@@ -65,13 +62,51 @@ and start querying
   sql> select id, name, email, hashedpassword, salt from tc_users;
 
   ID | NAME    | EMAIL  | HASHEDPASSWORD                                   | SALT
-  1  | admin   | admin  | 44e0c0902fd515f49884c4fd9b78cbabfc7237586a7bc921 | a9d60a6a1734e06c5d76294404e536e8713369d877423d8e
+  1  | admin   | admin  | 44e0c0902fd515f49884c4fd9b78cbabfc7237586a7bc921 | a9d60a6a1734e06c5d ...
   2  | newUser | email  | null                                             | null
-  7  | user2   | email2 | 53e175f9ded19f065d7e483f44f540f7f8ca9c4026dd69dd | 72e2e2555df4a62c2d8ccb8fb295f7d19dc9373cfdf51772
+  7  | user2   | email2 | 53e175f9ded19f065d7e483f44f540f7f8ca9c4026dd69dd | 72e2e2555df4a62c2d ...
+
+With `show database;` or `show tables;` you can list all Traccar, i.e. `TC_` tables.
+
+
+        TC_ACTIONS                   TC_KEYSTORE            
+        TC_ATTRIBUTES                TC_MAINTENANCES        
+        TC_CALENDARS                 TC_NOTIFICATIONS       
+        TC_COMMANDS                  TC_ORDERS              
+        TC_COMMANDS_QUEUE            TC_POSITIONS           
+        TC_DRIVERS                   TC_REPORTS                                                             
+        TC_EVENTS                    TC_SERVERS             
+        TC_GEOFENCES                 TC_STATISTICS          
+
+        TC_USERS                     TC_DEVICES                    TC_GROUPS                     
+        TC_USER_ATTRIBUTE            TC_DEVICE_ATTRIBUTE           TC_GROUP_ATTRIBUTE            
+        TC_USER_COMMAND              TC_DEVICE_COMMAND             TC_GROUP_COMMAND              
+        TC_USER_DRIVER               TC_DEVICE_DRIVER              TC_GROUP_DRIVER               
+        TC_USER_GEOFENCE             TC_DEVICE_GEOFENCE            TC_GROUP_GEOFENCE             
+        TC_USER_MAINTENANCE          TC_DEVICE_MAINTENANCE         TC_GROUP_MAINTENANCE          
+        TC_USER_NOTIFICATION         TC_DEVICE_NOTIFICATION        TC_GROUP_NOTIFICATION         
+        TC_USER_ORDER                TC_DEVICE_ORDER               TC_GROUP_ORDER                
+        TC_USER_REPORT               TC_DEVICE_REPORT              TC_GROUP_REPORT               
+        TC_USER_GROUP                                              
+        TC_USER_USER                                              
+        TC_USER_CALENDAR                                                                    
+        TC_USER_DEVICE                                                                     
+
+You can check user-device relations
+	
+	sql> select * from TC_USER_DEVICE;
+	USERID | DEVICEID
+	1      | 1
+	1      | 2
+	1      | 3
+	1      | 4
+
 
 
 == `h2.tools.RunScript`
 
+https://www.baeldung.com/java-h2-db-execute-sql-file[run a script from a file for H2 databases]
+    
     java -cp /path/to/h2/jar/h2-version.jar org.h2.tools.RunScript
          -url jdbc:h2:db/server/url
          -user sa -password password
@@ -87,7 +122,7 @@ You can run a console, which pops up a database query tool in your browser
 
 == database available / locked
 
-  docker:run
+  $ ./mvnw docker:run
 
   $ java -cp /opt/traccar/h2/bin/h2-2.3.232.jar org.h2.tools.Shell 
          -url jdbc:h2:/opt/traccar/data/database 
@@ -95,19 +130,22 @@ You can run a console, which pops up a database query tool in your browser
          
   Exception in thread "main" org.h2.jdbc.JdbcSQLNonTransientConnectionException:
     Database may be already in use: "/opt/traccar/data/database.mv.db".
+    --------                ------
     Possible solutions: close all other connection(s); use the server mode [90020-232]
-  Caused by: org.h2.mvstore.MVStoreException:
+    Caused by: org.h2.mvstore.MVStoreException:
     The file is locked: /opt/traccar/data/database.mv.db [2.3.232/7]
+        --------------
 
-     stop container
+  $ ./mvnw docker:stop
 
   sql> delete from tc_users where id=2;
   Error: org.h2.jdbc.JdbcSQLNonTransientException:
   The database is read only; SQL statement: delete from tc_users [90097-232]
+      ---------------------
 
-    -> change access to database* files
-    $ sudo chmod 777 database*
-    => works :)
+change access to database* files
+
+  $ sudo chmod 777 database*
 
 
 == hashing the password

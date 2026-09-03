@@ -16,11 +16,11 @@ can be fully managed at runtime.
 
 We register the tracker as a `GenericBeanDefinition`
 so Spring automatically wires lifecycle and destruction callbacks.
-`TrackerRegistration` registers a GenericBeanDefinition (constructor arguments `uniqueId, osmandHost`)
+`TrackerRegistration` registers a GenericBeanDefinition (`uniqueId, osmandHost`)
 with `DefaultListableBeanFactory` and then pulls the fully-initialized bean from the context.
 
 This makes Spring handle `@PostConstruct` and `@PreDestroy` automatically.
-(Calling `destroySingleton(beanName)` removes the instance but the bean definition remains.) 
+Calling `destroySingleton(beanName)` removes the instance but the bean definition remains.  
 On subsequent register attempts the code will see the existing bean definition and try to return/get the bean.
 Removing the bean definition after destroying the singleton fully clears Spring’s state
 for that bean name so registerTracker can create/register the bean again without conflicts.
@@ -30,15 +30,16 @@ register a new bean instance at runtime and then start its associated Camel rout
 This is achieved using the `ApplicationContextAware interface` to handle the dynamic creation 
 and registration of a fully managed component. 
 With `AutowireCapableBeanFactory` the bean is created manually,
-allowing Spring to handle all the necessary autowiring (like the ProducerTemplate and CamelContext).
+allowing Spring to handle all the necessary autowiring, i.e. `ProducerTemplate`, `CamelContext` etc.
 
-And here is how to use the `gps-osmand-tracker-1.1.x.jar` in your code:
+And here is how to use the `gps-osmand-tracker-x.y.z.jar` in your code:
 
 
 == send GPS messages to Traccar
 
 The tracker is designed to be used in a simple way, just create the Tracker and send messages.
-With the `tracker.send()` method the message is sent to Traccar and then the application can forget about it.
+With the `tracker.sendMessage(MessageOsmand msg)` method the message is sent to Traccar 
+and then the application can forget about it.
 
 [source,java]
 ----
@@ -53,7 +54,7 @@ With the `tracker.send()` method the message is sent to Traccar and then the app
     MessageOsmand msg = 
     MessageOsmand.now(uniqueId, 52.0, 13.0, 10.0, 20.0, 30.0, null, null);  <3>
 
-    tracker.send(msg);                                                      <4>
+    tracker.sendMessage(msg);                                               <4>
 
     registrationService.unregisterTracker(uniqueId);                        <5>
 
@@ -76,20 +77,29 @@ https://de.wikipedia.org/wiki/International_Mobile_Equipment_Identity[IMEI]
 should be used for any hardware Tracker,
 since it marks the unique hardware piece.
 
+[NOTE]
+====
 If you don't want to use `MessageOsmand.now`, 
 you can create your own message class 
-and still use the `Tracker.send(Object message)` method.
-
+and still use the `Tracker.sendMessage(MessageOsmand message)` method. 
 Then you should be aware that Traccer will show the location on the map,
 but the message time will not be 'now' and you are responsible 
 for setting plausible `fixtimes`.
 
+This a helpful method at dev time, but might be removed in future versions of the Tracker! +
+====
+
 
 == tracking with Traccar
 
-Tracking is more than just sending isolated messages.
-It means updating one `TrackerStatus` instance over time and sending the current state
-whenever the motion is ongoing.
+Tracking is more than just sending isolated messages. +
+Imagine a race car with changing parameters in milliseconds.
+Then you do not want to send a message for every single change, 
+but rather send a message every second or so.
+
+We want to decouple engine telemetry from the tracker and send messages at any chosen frequency.
+This leads to the concept of a `TrackerStatus` object that is updated over time 
+and sent to Traccar whenever feasible.
 
 The tracker exposes the status object directly via `getTrackerStatus()`.
 You can either modify that object in place or create your own `TrackerStatus`
@@ -97,7 +107,6 @@ and copy it into the tracker with `setTrackerStatus(...)`.
 
 [source,java]
 ----
-
   @Autowired TrackerRegistration registrationService;                       <1>
 
   void trackMotion(String uniqueId) throws Exception {
@@ -139,4 +148,23 @@ Note that `sendTrackerStatus()` creates the outgoing message from the current
 status values. If no explicit `fixTime` is set, the message will use "now" as
 the timestamp. With consecutive updates you can use the geo helpers to derive
 (artificial) speed and bearing between the previous and the current track point.
+
+
+=== CircleSimulatorTest
+
+This is a simple test that simulates a circular motion 
+over the race track Hockenheim Ring and sends the location to Traccar.
+Always off track as you can see on the map `;)` 
+
+It has a threshold for the minimum distance between two messages 
+as a preimplementation of a real tracker. 
+As of now we don't need sender thresholds at this point.
+We _will_ implement a more sophisticated sender with thresholds and message queues,
+when we progress to the `RealObject` and its `.move` method.
+
+
+
+
+
+
 

@@ -1,0 +1,35 @@
+:imagesdir: diagrams
+:toc: left
+:toclevels: 5
+:doctype: book
+
+
+= The gpx Player Quickstart
+
+If you are not interested in the details of development 
+and just want to use the GPX Player to play your `*.gpx` tracks 
+this page describes the steps to do this in a few minutes.
+
+
+=== application.properties
+
+
+The `PlayerApplication` can run springboot via command line 
+
+	java -jar gps-osmand-player-1.1.27-exec.jar
+
+
+== Prerequisites 
+
+You can get the jar from the releases page + 
+OR + 
+build it yourself with `mvn clean package` in the `gps-osmand-player` module.
+
+
+see traccar-realtime-client/asciidoc/traccar-realtime-client-qs.adoc
+
+https://github.com/kbeigl/bm/releases
+
+goto Collection of gpx files
+
+

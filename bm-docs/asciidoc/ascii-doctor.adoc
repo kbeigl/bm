@@ -2,13 +2,13 @@
 :toc: left
 :toclevels: 3
 
-= Asciidoctor 
+== Asciidoc Aggregator
 
 We are using Asciidoctor to create technical documentation for the entire project, i.e. repo.
-The idea is to have a _single_ source of truth for the documentation and to generate different output formats from it.
+The idea is to have a _single_ source for the documentation and to generate different output formats from it.
 It is available for static site generators, IDEs, git tools and services, CI/CD systems, and other software.
 
-== update as of `v1.1.24`
+=== update as of `v1.1.24`
 
 Up to `v1.1.23` we have documentet the software development process in local `*.adoc` files 
 and have used the `asciidoctor-maven-plugin` to generate each project's documentation.
@@ -19,13 +19,22 @@ The previous documentation setup, as of version `v1.1.23`, can be found
 link:https://github.com/kbeigl/bm/blob/v1.1.23/bm-parent/src/asciidoc/ascii-doctor.adoc[here]. 
 
 
-== `bm-docs/` project
+=== `bm-docs/` project
 
 The main goal is to have a simple folder structure with cross links 
 between the documentation files and to generate a single output for the whole project.
-We have created a new project `bm-docs` that will be the aggregator for all the documentation.
+We have created a new project `bm-docs` that will be _the Aggregator_ for all the documentation.
 For a clearer structure we have moved the `asciidoctor-maven-plugin` configuration 
 to the `bm-docs` project and removed it from the parent.
+It should be run after all projects with an `asciidoc` folder have been built 
+and the documentation files are gathered and available in the target directory.
+
+This is how the `bm-docs` project works:
+
+	•  copy local src/asciidoc content from the sibling POM modules
+	•  unpack AsciiDoc (and image) resources from the JAR-producing modules
+	•  run asciidoctor-maven-plugin on the combined tree
+	•  then an actual process-resources run that converted the combined docs.
 
 
 === website structure
@@ -284,8 +293,6 @@ The generated documentation will be available at:
     bm-docs/target/generated-docs/bm.html
 
 All 39 AsciiDoc files are converted to HTML with working navigation between pages.
-    
-
 
 
 === `<attributes>`

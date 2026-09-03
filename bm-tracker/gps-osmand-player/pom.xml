@@ -25,12 +25,12 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-tracker</artifactId>
-        <version>1.1.26</version>
+        <version>1.1.27</version>
     </parent>
 
     <artifactId>gps-osmand-player</artifactId>
 
-    <name>..... gps-osmand-player</name>
+    <name>...... gps-osmand-player</name>
     <description>gps-osmand-player</description>
 
     <dependencies>
@@ -74,6 +74,11 @@
 
     <build>
         <resources>
+            <!-- explicit resources override the Maven default,
+                 so src/main/resources must be declared again -->
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
             <resource>
                 <directory>asciidoc</directory>
                 <targetPath>asciidoc</targetPath>
@@ -87,6 +92,41 @@
                 </excludes>
             </resource>
         </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>bm.gps.player.PlayerApplication</mainClass>
+                    <classifier>exec</classifier>
+                    <!-- exec jar is renamed to gpx-player-<version>.jar below,
+                         so it must not be attached for install/deploy -->
+                    <attach>false</attach>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- spring-boot:repackage always names the jar after the artifact,
+                     so rename the executable jar to gpx-player-<version>.jar -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>rename-exec-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <move
+                                    file="${project.build.directory}/${project.build.finalName}-exec.jar"
+                                    tofile="${project.build.directory}/gpx-player-${project.version}.jar" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 
 </project>
