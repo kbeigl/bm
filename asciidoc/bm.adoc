@@ -18,17 +18,17 @@ to simulate and process real-time location data.
 
 [source,text]
 -----------------
-    [INFO] === blue marble simulations               === 1.1.25 
-    [INFO] --- blue marble BOM                       --- 1.1.25 
-    [INFO] ---- GPS Trackers                         --- 1.1.25 
-    [INFO] ..... gps-osmand-tracker                      1.1.25 
-    [INFO] ..... gps-osmand-player                       1.1.25 
-    [INFO] ---- Traccar 6.14.2 Clients               --- 1.1.25 
-    [INFO] ..... traccar-openapitools-client      6.14.2 
-    [INFO] ..... traccar-api-client               6.14.2-1.1.25 
-    [INFO] ..... traccar-realtime-client          6.14.2-1.1.25 
-    [INFO] ..... traccar-realtime-app      *NEW*  6.14.2-1.1.25-beta 
-    [INFO] --- blue marble docs aggregator           --- 1.1.25 
+	[INFO] === blue marble simulations               === 1.1.26 
+	[INFO] --- blue marble BOM                       --- 1.1.26 
+	[INFO] ---- GPS Trackers                         --- 1.1.26 
+	[INFO] ..... gps-osmand-tracker                      1.1.26 
+	[INFO] ..... gps-osmand-player                       1.1.26 
+	[INFO] ---- Traccar 6.14.2 Clients               --- 1.1.26 
+	[INFO] ..... traccar-openapitools-client      6.14.2 
+	[INFO] ..... traccar-api-client               6.14.2-1.1.26 
+	[INFO] ..... traccar-realtime-client          6.14.2-1.1.26 
+	[INFO] ..... traccar-realtime-service         6.14.2-1.1.26 
+	[INFO] --- blue marble docs aggregator           --- 1.1.26 
 -----------------
 
 For earlier versions check the 
