@@ -35,41 +35,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Start Kroki Mermaid
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker rm -f kroki-mermaid >/dev/null 2>&1 || true
-          docker run -d --name kroki-mermaid \
-            -p 8002:8002 \
-            --memory=2g \
-            --shm-size=1g \
-            yuzutech/kroki-mermaid:0.27.0
-
-      - name: Wait for Kroki health
-        shell: bash
-        run: |
-          set -euo pipefail
-          for i in {1..90}; do
-            code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8002/health || true)"
-            if [ "$code" = "200" ]; then
-              echo "Kroki is healthy."
-              # Give Kroki extra time to fully stabilize before processing diagrams
-              echo "Waiting 5 seconds for Kroki to fully stabilize..."
-              sleep 5
-              exit 0
-            fi
-            echo "[$i/90] waiting for Kroki health endpoint (got: ${code:-none})..."
-            sleep 2
-          done
-
-          echo "::error::Kroki did not become healthy in time"
-          echo "==== docker ps ===="
-          docker ps -a || true
-          echo "==== kroki-mermaid logs ===="
-          docker logs kroki-mermaid || true
-          exit 1
-
       - name: Build project and generate documentation
         run: |
           ./mvnw -B -ntp install \
@@ -77,8 +42,7 @@ jobs:
             -Dintegration.tests.skip=true \
             -Ddocker.skip.tests=true \
             -Dopenapi.skip=false \
-            -Dasciidoc.process.skip=false \
-            -Dasciidoctor.attributes="kroki-server-url=http://127.0.0.1:8002"
+            -Dasciidoc.process.skip=false
 
       - name: Prepare documentation for upload
         run: |
@@ -151,10 +115,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
-
-      - name: Stop Kroki
-        if: always()
-        run: docker rm -f kroki-mermaid || true
 
   deploy:
     environment:
