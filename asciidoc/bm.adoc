@@ -71,7 +71,7 @@ xref:./bm-tracker/gps-osmand-tracker/gps-osmand-tracker.adoc[read on ...]
 
 === `gps-osmand-player`
 
-include::bm-tracker/gps-osmand-player/gps-osmand-player.adoc[lines=14..21]
+include::bm-tracker/gps-osmand-player/gps-osmand-player.adoc[lines=14..24]
 
 xref:./bm-tracker/gps-osmand-player/gps-osmand-player.adoc[read on ...]
 
@@ -207,12 +207,12 @@ which can be used to create a customized scenario, like a vehicle fleet.
 A customized model can help to improve your business by observing and controlling your vehicles.
 
 
-xref:./bm-traccar/traccar-realtime-app/traccar-realtime-app.adoc[details ...]
+xref:./bm-traccar/traccar-realtime-service/traccar-realtime-service.adoc[details ...]
 
 
 == `/bm-docs`
 
-include::bm-docs/ascii-doctor.adoc[lines=1..10]
+include::bm-docs/ascii-doctor.adoc[lines=5..10]
 
 xref:bm-docs/ascii-doctor.adoc[read on ...]
 
