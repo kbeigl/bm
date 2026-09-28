@@ -21,8 +21,10 @@ import bm.traccar.api.ApiHelper;
 import bm.traccar.generated.api.DevicesApi;
 import bm.traccar.generated.model.dto.Device;
 import java.util.List;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientResponseException;
 
+@Component
 public class DevicesImpl implements Api.Devices {
   private final DevicesApi devicesApi;
 

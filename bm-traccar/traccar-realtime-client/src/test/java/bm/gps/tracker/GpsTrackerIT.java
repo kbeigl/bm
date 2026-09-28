@@ -88,7 +88,7 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
         }
         logger.info("DeviceStatus: {}", getDeviceStatus(device));
         controller
-            .getLatestPositionForDevice(device.getId())
+            .getLatestPositionForDevice(device.getUniqueId())
             .ifPresent(
                 pos ->
                     logger.info(
@@ -179,7 +179,7 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
 
     // === receive Position ===============================
     // await position processor to receive and update position (local test ~ 3-4s)
-    Position pos = awaitPositionForDevice(sendingDevice.getId(), 5000L);
+    Position pos = awaitPositionForDevice(uniqueId, 5000L);
     assertNotNull(pos, "Position not available in controller after processing message");
     logger.info("Fetched RTM Position: {}", pos);
 
@@ -218,16 +218,9 @@ public class GpsTrackerIT extends BaseGpsTrackerIT {
     logger.info(" Status after  update: {}", getDeviceStatus(sendingDevice));
   }
 
-  // controller candidate: onPositionUpdate(deviceId) ? rather not !
-  private Position awaitPositionForDevice(long deviceId, long timeoutMs)
+  private Position awaitPositionForDevice(String uniqueId, long timeoutMs)
       throws InterruptedException {
-    long start = System.currentTimeMillis();
-    while ((System.currentTimeMillis() - start) < timeoutMs) {
-      Optional<Position> posOpt = controller.getLatestPositionForDevice(deviceId);
-      if (posOpt.isPresent()) return posOpt.get();
-      Thread.sleep(100L);
-    }
-    return null;
+    return controller.awaitPositionForDevice(uniqueId, timeoutMs);
   }
 
   private String getDeviceStatus(Device device) {

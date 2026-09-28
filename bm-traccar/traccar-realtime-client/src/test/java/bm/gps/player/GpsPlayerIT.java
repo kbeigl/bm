@@ -42,8 +42,8 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
     logger.info("\t********** loadSingleGpxAndSendWithSingleTracker() **********");
 
     // for remote verification
+    String uniqueId = runnerTracker.getUniqueId();
     Device device = lookupDevice(runnerTracker);
-    long deviceId = device.getId();
 
     PlayerOsmAnd player = createPlayer(runnerTracker, "gpx/RGB-BUELL-SE-080607.gpx");
     // should be set automatically
@@ -56,9 +56,9 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
     // But position is not showing until second message arrives two minutes later. !?
 
     // send single message and end test
-    Position pos = awaitPositionForDevice(deviceId, 8000L);
+    Position pos = awaitPositionForDevice(uniqueId, 8000L);
     assertNotNull(pos, "Position not available in controller after GPX sample processing");
-    assertThat(pos.getDeviceId()).isEqualTo(deviceId);
+    assertThat(pos.getDeviceId()).isEqualTo(device.getId());
     assertThat(pos.getId()).as("Latest position should have a persisted id").isGreaterThan(0L);
 
     // only in dev mode - MUST comment before building for production!
@@ -96,15 +96,14 @@ class GpsPlayerIT extends BaseGpsPlayerIT {
     //    for (PlayerOsmAnd player : allPlayers) {
 
     //      Device device = lookupDevice(player.getTracker());
-    //      long deviceId = device.getId();
     //      // player.setLastSentPositionId(device.getPositionId());
     //
-    //      Position pos = awaitPositionForDevice(deviceId, 12000L);
+    //      Position pos = awaitPositionForDevice(player.getUniqueId(), 12000L);
     //      assertNotNull(
     //          pos,
     //          "Position not available in controller after GPX processing for uniqueId "
     //              + player.getUniqueId());
-    //      assertThat(pos.getDeviceId()).isEqualTo(deviceId);
+    //      assertThat(pos.getDeviceId()).isEqualTo(device.getId());
     //      assertThat(pos.getId())
     //         .as("Latest position should have a persisted id").isGreaterThan(0L);
 

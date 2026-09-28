@@ -23,6 +23,7 @@ import bm.traccar.generated.model.dto.User;
 import bm.traccar.invoke.ApiClient;
 import bm.traccar.rt.RealTimeController;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,12 +35,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest(
     classes = RealTimeApp.class,
     properties = "logging.config=classpath:logback-test.xml")
 @ContextConfiguration(initializers = {BaseRealTimeAppTest.Initializer.class})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseRealTimeAppTest {
   private static final Logger logger = LoggerFactory.getLogger(BaseRealTimeAppTest.class);
@@ -106,6 +109,23 @@ public abstract class BaseRealTimeAppTest {
 
         // SkIPPING implemented API and calling the generated API directly
         UsersApi usersApi = new UsersApi(apiClient);
+
+        // Clean up any pre-existing admin from previous interrupted test runs
+        try {
+          List<User> existingUsers = usersApi.usersGet(null, null, null, null);
+          if (existingUsers != null) {
+            for (User u : existingUsers) {
+              if (adminEmail.equalsIgnoreCase(u.getEmail())) {
+                initLogger.info(
+                    "Cleaning up pre-existing admin user: {}.id{}", u.getName(), u.getId());
+                usersApi.usersIdDelete(u.getId().intValue());
+              }
+            }
+          }
+        } catch (Exception e) {
+          initLogger.warn("Could not check/clean existing users: {}", e.getMessage());
+        }
+
         adminCreatedBeforeSpring = usersApi.usersPost(newAdmin);
 
         initLogger.info(
@@ -153,6 +173,8 @@ public abstract class BaseRealTimeAppTest {
       Users userApi = api.getUsersApi();
       userApi.deleteUser(admin.getId());
       logger.info("Deleted User.id{}: {}", admin.getId(), admin.getName());
+      admin = null;
+      adminCreatedBeforeSpring = null;
     }
   }
 }

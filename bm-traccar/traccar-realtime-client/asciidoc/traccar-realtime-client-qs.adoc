@@ -1,10 +1,11 @@
 :toc: left
 
 
-= Quickstart: Real Time Console
+== to be reviewed: Quickstart: Real Time Console
 
 The three layers around the `ApiClient`, `Api interface` and `RealTimeManager` +
 are combined in the `@SpringBootApplication  RealTimeClient`.
+
 
 == todo: merge into doc
 
@@ -18,11 +19,11 @@ The real time client can easily be integrated into your Spring Boot applications
 You can use the `RealTimeManager` as a bean in your application context and
 add a little ETL logic to process the Traccar Entities as you like.
 
-Please check the
-xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[Quickstart]
-to get started with the `traccar-realtime-client` and 
-find out how it can be used to connect to a Traccar server and 
-receive real-time data from it.
+// Please check the
+// xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[Quickstart]
+// to get started with the `traccar-realtime-client` and 
+// find out how it can be used to connect to a Traccar server and receive real-time data from it.
+
 
 == `traccar-rt-client` *Release*
 
@@ -41,6 +42,7 @@ with _one_ device on the server.
 Logon to the traccar server to witness the motion of your devices on the map +
 and open the console to see the real time updates as they come in.
 ====
+
 
 === download release
 

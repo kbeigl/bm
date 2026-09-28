@@ -1,0 +1,178 @@
+:toc: left
+:toclevels: 3
+:doctype: book
+
+== Creating a Realtime Application
+
+At this point we have established the Realtime Service and formed the idea of a Realtime Scenario. +
+Next we will go through the steps how to create a Realtime Application. +
+We are moving down in the 
+xref:realtime-architecture.adoc[Realtime Service Diagram] +
+and focus on creating a Realtime Application in the bottom layer:
+
+[mermaid, target="traccar-realtime-app", title="Real Time App Environment", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}', align=center]
+....
+graph BT
+ 
+    subgraph RS [realtime-app] 
+        subgraph RA [Scenario]
+            Scenario[Application <br> Entities] 
+        end
+    end 
+    style RA fill:#bcd6f6
+
+    subgraph RT [realtime-service] 
+        subgraph RC [realtime-client <br> Entity Relational Model]
+            API[api-client <br> Entities] 
+            RealTime[RealTime <br> Controller] 
+        end 
+        Tracker[gps-osmand-trackers] 
+    end 
+    style RC fill:#bcd6f6
+    
+    Scenario <--> API
+    Scenario <--> RealTime
+    Scenario <--> Tracker
+....
+
+
+=== Running the Realtime Application
+
+The `traccar-realtime-service` comes with a `RealTimeApp` class 
+that _can be used_ to run the Realtime Service as a standalone Spring Boot application. 
+If you have your own Realtime Application, you can use the `RealTimeRunner` class 
+to run your application as a Spring Boot application.
+
+As a quickstart, you can place the `jar` file in any directory and +
+run the `traccar-realtime-service` as a standalone application using the following command:
+
+	$/bm/bm-traccar/traccar-realtime-service$ 
+		java -jar target/traccar-realtime-service-6.14.2-1.1.28-exec.jar 
+
+or as long as you are inside the repository, you can run it using Maven:
+	
+	$/bm/bm-traccar/traccar-realtime-service$ mvn spring-boot:run
+
+The service will start and attempt to login to the Traccar server 
+using the default credentials of the `application.properties` file. 
+
+Make sure the credentials are correct and the Traccar server is running before starting the Realtime Service.
+
+If the login is successful, you will see a message indicating that the Realtime Service has started successfully.
+
+ RealTimeApp        - Starting RealTimeApp using Java 25.0.4.1 with PID 662128 
+ RealTimeApp        - Started RealTimeApp in 3.704 seconds (process running for 4.369)
+ RealTimeRunner     - Login RealTimeController 
+                      for 'admin@scenario.com' to traccar server 'http://localhost:80` ...
+ RealTimeController - --- Loading initial users from server...   ---
+ RealTimeController - --- Loading initial devices from server... ---
+ RealTimeController - User logged in: admin
+ RealTimeRunner     - RealTimeController started and logged in successfully.
+ RealTimeRunner     - RealTimeService running ...
+
+If the login fails, you will see an error message in the console output:
+
+ ERROR RealTimeController - Login failed: Unauthorized: check credentials!
+ ERROR RealTimeRunner - Bad credentials - cannot run RealTimeService without valid admin/host
+ INFO  RealTimeRunner - Initiating graceful shutdown of RealTimeService...
+
+The output depends on the users and devices that are configured for the admin. +
+In this case the admin has no devices and users configured.
+
+In order to populate the Realtime Service with users and devices,
+we'll go directly to Integration Test Environment.
+
+
+include::realtime-app-it.adoc[]
+
+// include::realtime-app-it.adoc[lines=5..13]
+// xref:realtime-app-it.adoc[goto Realtime Integration Testing ...]
+
+
+Let's go through the 
+xref:realtime-architecture.adoc#_realtime_architecture[Realtime Architecture]
+step by step.
+
+
+=== Realtime *Service* 
+
+The next `RealTimeServiceIT` test demonstrates the usage of the Realtime Service 
+to create a device with a tracker and assign it to a user. 
+Generally, the Realtime Service is about API, User & Permission ops
+and additional tests can be added continously to cover more scenarios.
+
+By extending the `BaseRealTimeAppTest` we get the complete setup 
+and its methods can be perceived as tiny Real Time Applications 
+with setup and teardown methods.
+
+```java
+	public class RealTimeServiceIT extends BaseRealTimeAppTest {
+	  @Autowired private RealTimeService rtService;
+	  @Test
+	  void testCreateDeviceWithTracker() throws Exception { ..
+```
+and is this test environment we can create a devices, trackers and assign it to users. +
+The registration _controls the population_ of the Scenario and implies the server load.
+
+```java
+    Device device = rtService.createDeviceWithTracker("Test Mobile", uniqueId, "iPhone");
+
+    TrackerOsmAnd tracker = rtService.getOrCreateTracker(uniqueId);
+
+    rtService.deleteDeviceWithTracker(device.getId());
+```
+
+By placing a breakpoint before cleaning up, 
+we can inspect the results in the Traccar Web Interface.
+
+.Scenario Entry Conditions
+[IMPORTANT]
+====
+If you create devices and trackers with the Realtime Service, + 
+they are created in the Traccar Server, +
+but are not yet visible on the traccar-realtime-client side! +
+Only after the tracker has sent a position update, +
+the device and tracker will be visible in the Realtime Client +
+to become actors of the scenario. 
+====
+
+
+=== Realtime *Context*
+
+When building custom scenarios or running external applications, code often executes outside of a Spring application container—for example, in plain Java classes instantiated via a standard `new Scenario()` call. In those situations, Spring dependency injection (`@Autowired`) is not available, and attempting to inject beans directly causes a `NullPointerException`.
+
+At the same time, driving a real-time scenario demands access to multiple cooperating subsystems:
+
+* REST API (`Api`)
+* Realtime Controller (`RealTimeController`)
+* Tracker Registration (`TrackerRegistration`)
+* Realtime Service (`RealTimeService`)
+* Admin Session (`getRealtimeAdmin()`)
+
+The `RealTimeContext` resolves this by serving as a unified facade and single injection point. 
+Instead of passing around individual components or wiring Spring contexts into external modules, 
+callers receive one cohesive context (typically via a `setContext(RealTimeContext)` hook). 
+This gives scenarios the freedom to either leverage the high-level convenience methods of `RealTimeService` 
+or drill down into fine-grained low-level APIs whenever custom behavior is needed.
+
+
+=== Realtime *Runner*
+
+By running the `jar` file or running Integration Tests, +
+we have two entry points to start the Realtime Service. 
+
+[source,text]
+----
+	Spring Boot Startup
+	    └─→ RealTimeRunner (entry point)
+	         ├─→ initialize RealTimeService
+	         └─→ login via Api
+----
+
+You should find log entries of `RealTimeRunner.run(..)` in the console output:
+
+   RealTimeRunner - RealTimeRunner started with arguments: []
+
+
+
+// include::realtime-app-scenarios.adoc[]

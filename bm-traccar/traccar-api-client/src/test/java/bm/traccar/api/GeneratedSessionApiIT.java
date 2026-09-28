@@ -22,12 +22,10 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 /** Simple AttributesApi test with explicit HttpStatusCodeException handling. */
-@Import(ApiAspect.class)
 public class GeneratedSessionApiIT extends BaseIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(GeneratedSessionApiIT.class);
   // explicitly use generated SessionApi

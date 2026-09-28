@@ -38,12 +38,18 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * Integration test that simulates a temporary server disruption to verify that messages are
  * enqueued and later flushed from MessageQueue when the server becomes available again.
+ *
+ * <p>The test runs its own fake OsmAnd server on {@link #PORT}, which deliberately differs from
+ * Traccar's default 5055 so the test can run while a real Traccar instance is up.
  */
-@SpringBootTest
+@SpringBootTest(properties = "osmand.dcs=http://localhost:" + TrackerQueueDisruptionTest.PORT)
 @ComponentScan(basePackages = {"bm.gps.tracker"})
 @ActiveProfiles("test")
 public class TrackerQueueDisruptionTest {
   private static final Logger logger = LoggerFactory.getLogger(TrackerQueueDisruptionTest.class);
+
+  /** Port of the fake server; must not clash with a running Traccar (5055). */
+  static final int PORT = 15055;
 
   @Autowired private TrackerRegistration registrationService;
   //  @Autowired private MessageQueue queue;
@@ -53,7 +59,7 @@ public class TrackerQueueDisruptionTest {
 
   @Test
   void testQueueOnServerDisruption() throws Exception {
-    final int port = 5055; // must match test properties osmand.dcs
+    final int port = PORT;
     requestCount = new AtomicInteger(0);
     available = new AtomicBoolean(true);
 

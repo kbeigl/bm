@@ -1,21 +1,13 @@
-
-= The Traccar OpenAPI Client
-
-The `traccar-api-client` is a Java Client Software 
-to provide full (remote) control over your Traccar Server. 
-
-It can be used to integrate your Tracking with your company systems, 
-like Human Resources-, Sales- and Fleet Management Software.
-Synchronize your employees with their cars and driver information without utilizing the Traccar UI.
-Pull driving reports for your sales team ... and much more ;)
-
+:toc: left
+// :toclevels: 3
+// :doctype: book
 
 [TIP]
 ====
 This page is about architecture and usage of the Traccar OpenAPI Client. +
 If you are looking for the usage of the Traccar API and sub APIs +
 you can go directly to the 
-xref:./api/traccar-api.adoc[Traccar API page].
+xref:./api/sub-api-implementations.adoc[Traccar API page]
 ====
 
 
@@ -24,9 +16,11 @@ xref:./api/traccar-api.adoc[Traccar API page].
 - **Separation of Concerns** +
   The architecture separates generated API code in `traccar-openapitools-client` + 
   from business logic via `Api interface` in  `traccar-api-client`.
+  
 - **Generated API Layer** +
   All REST API models and client classes are generated from the Traccar OpenAPI spec (`yaml`) +
   and maintained in `traccar-openapitools-client`.
+  
 - **Extensible Client** +
   `traccar-api-client` wraps and extends the generated API, + 
   providing a stable interface for application developers.
@@ -122,7 +116,7 @@ public class TraccarUsers {
         user.setEmail("email-1");
         user.setPassword("pw-1");
         
-        User userOnServer = api.users.createUser(user);     // <4>
+        User userOnServer = api.getUsersApi().createUser(user);     // <4>
         
     }
 }
@@ -147,7 +141,7 @@ You can always check your authentication by calling a REST endpoint in your brow
 Note how the Java invokation mimics a REST call
 
     // <server>/api/users?user_Id=11
-    User user = api.users.getUsers(userId);
+    User user = api.getUsersApi().getUsers(userId);
 
 And that is all you need to create users, devices etc.
 and manage them in your code! +
@@ -156,10 +150,10 @@ For more examples check the integration tests, i.e. `UsersIT` and others.
 As you can see the above expression is similar the URL
 
     http://{host}:{port}/api/users/{id}
-    User userOUT =       api.users.createUser(user);
+    User userOUT =       api.getUsersApi().createUser(user);
 
     https://localhost/api/devices?id=3
-    Device[] devices =        api.devices.getById(3);
+    Device[] devices =   api.getDevicesApi().getById(3);
 
 
 === configuration
@@ -200,12 +194,48 @@ by adding the service account token (with its risks):
 ====
 
 
+== Traccar API Identity Model
+
+The `traccar-api-client` is designed for a **single User identity at a time**.
+
+=== Single-Identity Design
+
+Authentication state in `traccar-api-client` is maintained as global mutable state on the shared singleton `ApiClient` instance:
+
+- **Global Scope**: Calling `api.setBasicAuth(...)` or `api.setBearerToken(...)` mutates credentials globally on the underlying singleton `ApiClient`. This affects every caller in the JVM executing subsequent requests, including background tasks and WebSocket routes relying on those credentials.
+- **One `Api` Bean == One Identity**: At any given moment, the injected `Api` bean represents a single authenticated identity. It is **not thread-safe across concurrent identities**.
+- **Multi-Tenant / Concurrent Identities**: If multi-tenant usage or concurrent operations under different identities are required in the future, a per-identity client factory (or thread-local / request-scoped client instances) must be introduced instead of mutating the shared singleton.
+
+[IMPORTANT]
+====
+In a multi-threaded application, do not switch authentication (`setBasicAuth` / `setBearerToken`) concurrently across different threads sharing the same `Api` bean.
+====
+
+
 == Traccar API Interface
 
-If you don't want to use the Traccar `@Service` and rather implement your own,
-you should start with the Traccar `API interface.
-The coding is similar (and using the same implementations) 
+The `ApiService` is the Spring implementation of the `bm.traccar.api.Api` interface.
+Application code should depend on the *interface*, not on the service class,
+so the implementation can be swapped (or mocked) without touching your code.
+The sub-APIs are accessed exclusively via the `get<SubApi>Api()` getters
+which mirror the Traccar REST tags:
 
+[cols="1,2,2"]
+|===
+| REST tag | getter | sub-API
+
+| `/server`      | `api.getServerApi()`      | `Api.Server`
+| `/session`     | `api.getSessionApi()`     | `Api.Session`
+| `/users`       | `api.getUsersApi()`       | `Api.Users`
+| `/devices`     | `api.getDevicesApi()`     | `Api.Devices`
+| `/permissions` | `api.getPermissionsApi()` | `Api.Permissions`
+|===
+
+
+=== Example: Create a User
+
+Here is a simple example code to demo how to add the Traccar API Service 
+and create a new user on your Traccar Server with the `UserApi`. 
 
 [source,java]
 ----
@@ -228,28 +258,46 @@ public class TraccarUsers {
         user.setEmail("email-1");
         user.setPassword("pw-1");
 
-        // ApiService syntax        
-        User userOnServer = api.users.createUser(user);
-        // Api interface syntax             // <4>
-        User userOnServer = api.getUsersApi().createUser(user);
-        
+        User userOnServer = api.getUsersApi().createUser(user);   // <4>
     }
 }
 ----
-<1> this time we are auto wiring the `Api interface`
+<1> auto wire the `Api` interface (the `ApiService` bean is injected)
 
 <2> choose and set your authentication 
 
 <3> create a `new User` (DTO) in your software for your employees 
 
-<4> create a `new User` (Entity) on your Traccar Server
+<4> create a `new User` (Entity) on your Traccar Server via the Users sub-API
 
-By using the `Api interface` you can also get individual
-sub API implementations:
+You can also hold on to an individual sub-API:
 
-    Api.Users users = api.getUsersApi()
+    Api.Users users = api.getUsersApi();
     User newUser = users.createUser(user);
 
-This can be convenient, if you don't want to mess with many APIs
+This is convenient if you don't want to mess with many APIs
 and focus the implementation on User Management, for example.
+
+
+=== summary
+
+The `Api` interface is the sole public contract. +
+It declares one `get<SubApi>Api()` per Traccar REST tag; +
+`ApiService` receives the `Api.*` sub-API components via constructor injection. 
+
+The *core idea* is a single `Api` interface with nested sub-API interfaces (`Api.Users`, ...), + 
+each `*Impl` is a `@Component` wrapping its generated `*Api` bean, +
+the `@Service` `ApiService` aggregates them, +
+and AOP translates all `RestClientException` -> `ApiException`. +
+That is a clean anti-corruption layer over generated code.
+
+Each `*Impl` is a `@Component` with its own constructor injection (`UsersImpl(UsersApi)`) +
+and have `ApiService` inject the `Api.Users, Api.Devices`, …​ beans. + 
+This keeps the constructor manageable and allows consumers to optionally inject `Api.Users` directly.
+
+As the core rule: "a generated *Api must be a Spring bean or the aspect will not fire". +
+Check _Traccar ApiAspect_ section for details. 
+
+
+
 

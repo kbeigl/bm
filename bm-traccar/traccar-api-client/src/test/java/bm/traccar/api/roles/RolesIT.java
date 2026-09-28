@@ -44,31 +44,34 @@ public class RolesIT extends BaseIntegrationTest {
     // no virtualAdmin involved
     api.setBasicAuth(adminMail, adminPassword); // session ----------
     logSessionInfo();
-    logVisibleUsers(api.users.getUsers(null, null, null, null));
+    logVisibleUsers(api.getUsersApi().getUsers(null, null, null, null));
 
     String mgrMail = "scenarioMgr@domain.com", mgrPassword = "scenarioMgr";
     // 4 users, on runner and 1 to 3 chasers
-    User manager = api.users.createManagerWithCredentials("scenarioMgr", mgrPassword, mgrMail, 4);
+    User manager =
+        api.getUsersApi().createManagerWithCredentials("scenarioMgr", mgrPassword, mgrMail, 4);
     logger.info("Created User {} (id={})", manager.getEmail(), manager.getId());
     // now the admin can also see the manager
-    logVisibleUsers(api.users.getUsers(null, null, null, null));
+    logVisibleUsers(api.getUsersApi().getUsers(null, null, null, null));
 
     api.setBasicAuth(mgrMail, mgrPassword); // session ------------------
     logSessionInfo();
     // add role check in createUser.. methods
     User scenarioRunner =
-        api.users.createUserWithCredentials(
-            "scenarioRunner", "scenarioRunner", "scenarioRunner@domain.com", false);
+        api.getUsersApi()
+            .createUserWithCredentials(
+                "scenarioRunner", "scenarioRunner", "scenarioRunner@domain.com");
     User scenarioChaser =
-        api.users.createUserWithCredentials(
-            "scenarioChaser", "scenarioChaser", "scenarioChaser@domain.com", false);
+        api.getUsersApi()
+            .createUserWithCredentials(
+                "scenarioChaser", "scenarioChaser", "scenarioChaser@domain.com");
 
-    logVisibleUsers(api.users.getUsers(null, null, null, null));
+    logVisibleUsers(api.getUsersApi().getUsers(null, null, null, null));
 
     // clean up this test (only)
-    api.users.deleteUser(scenarioChaser.getId());
-    api.users.deleteUser(scenarioRunner.getId());
-    api.users.deleteUser(manager.getId());
+    api.getUsersApi().deleteUser(scenarioChaser.getId());
+    api.getUsersApi().deleteUser(scenarioRunner.getId());
+    api.getUsersApi().deleteUser(manager.getId());
     logger.info("Deleted Test Users");
   }
 
@@ -76,7 +79,7 @@ public class RolesIT extends BaseIntegrationTest {
     if (users != null && !users.isEmpty()) {
       logger.info("Visible users:");
       for (User u : users) {
-        TraccarRole role = api.users.getTraccarRole(u);
+        TraccarRole role = api.getUsersApi().getTraccarRole(u);
         logger.info("  User: {} (id={}) has role {}", u.getEmail(), u.getId(), role);
       }
     } else {
@@ -94,9 +97,9 @@ public class RolesIT extends BaseIntegrationTest {
    */
   private void logSessionInfo() {
     logger.info("Authenticated: {}", api.getAuthentication());
-    User loggedUser = api.session.getCurrentUser();
+    User loggedUser = api.getSessionApi().getSessionUser();
     if (loggedUser != null) {
-      TraccarRole role = api.users.getTraccarRole(loggedUser);
+      TraccarRole role = api.getUsersApi().getTraccarRole(loggedUser);
       logger.info(
           "Current session user: {} (id={}) has role {}",
           loggedUser.getEmail(),

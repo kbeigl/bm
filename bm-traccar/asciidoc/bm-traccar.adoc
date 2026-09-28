@@ -2,14 +2,43 @@
 :toclevels: 2
 :doctype: book
 
-include::traccar-arc.adoc[]
+= Traccar Client Development
 
-include::client-development.adoc[]
+The `bm-traccar` aggregator POM is the development environment 
+to code against the link:https://www.traccar.org/[Traccar GPS Tracking Platform].
+Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
+The System was thoroughly analyzed in the 
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
+and
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book].
 
-include::bm-traccar-arc.adoc[]
+The `bm-traccar` module is a multi-project Maven build that provides client implementations for interacting with a Traccar server, 
+supporting both REST and real-time (WebSocket) communication. +
+The architecture is modular, separating OpenAPI-generated, API interface and real-time logic.
 
-include::setup-docker.adoc[]
+// includes headings
 
-include::test-database.adoc[]
+include::bm-traccar-arc.adoc[lines=5..17]
 
-include::setup-development.adoc[]
+xref:bm-traccar-arc.adoc[read more about the Project Structure]
+
+
+include::traccar-arc.adoc[lines=5..10]
+
+xref:traccar-arc.adoc[read about the Traccar Components and the Integrated Development]
+
+
+include::setup-docker.adoc[lines=5..14]
+
+xref:setup-docker.adoc[setup the Dockerized Traccar Server]
+
+
+include::test-database.adoc[lines=5..11]
+
+xref:test-database.adoc[read on ..]
+
+
+include::setup-development.adoc[lines=5..11]
+
+xref:setup-development.adoc[more about JUnit and Integration Tests]
+

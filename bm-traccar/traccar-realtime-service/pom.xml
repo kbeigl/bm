@@ -25,7 +25,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-traccar</artifactId>
-        <version>1.1.27</version>
+        <version>1.1.28</version>
     </parent>
 
     <artifactId>traccar-realtime-service</artifactId>
@@ -35,35 +35,6 @@
     <description>traccar-realtime-service</description>
 
     <dependencies>
-        <!-- 
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-http-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-vertx-websocket-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-jackson-starter</artifactId>
-        </dependency>
-        <dependency>
-        	<groupId>org.springframework.boot</groupId>
-        	<artifactId>spring-boot-configuration-processor</artifactId>
-        	<optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aspectj</artifactId>
-        </dependency>
-         -->
-        
-        <!-- versioning for bm modules -->
         <dependency>
             <groupId>bm</groupId>
             <artifactId>traccar-realtime-client</artifactId>
@@ -79,7 +50,6 @@
             <groupId>bm</groupId>
             <artifactId>gps-osmand-player</artifactId>
             <version>${project.parent.version}</version>
-            <!-- <scope>test</scope> -->
         </dependency>
     </dependencies>
 

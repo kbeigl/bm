@@ -19,7 +19,9 @@ package bm.traccar.api.impl;
 import bm.traccar.api.Api;
 import bm.traccar.generated.api.ServerApi;
 import bm.traccar.generated.model.dto.Server;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ServerImpl implements Api.Server {
   private final ServerApi serverApi;
 
@@ -28,7 +30,7 @@ public class ServerImpl implements Api.Server {
   }
 
   @Override
-  public Server getServerInfo() {
+  public Server getServer() {
     return serverApi.serverGet();
   }
 

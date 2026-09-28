@@ -24,7 +24,6 @@ import bm.traccar.generated.model.dto.Device;
 import bm.traccar.generated.model.dto.Position;
 import java.io.File;
 import java.net.URL;
-import java.util.Optional;
 
 /**
  * Abstract base class for GPS player integration tests.
@@ -37,22 +36,14 @@ public abstract class BaseGpsPlayerIT extends BaseGpsTrackerIT {
   /**
    * Waits for a position to be available for the specified device.
    *
-   * @param deviceId the ID of the device
+   * @param uniqueId the uniqueId of the device (shared by tracker and server device)
    * @param timeoutMs the timeout in milliseconds
    * @return the latest position for the device, or null if not available within timeout
    * @throws InterruptedException if the thread is interrupted while waiting
    */
-  protected Position awaitPositionForDevice(long deviceId, long timeoutMs)
+  protected Position awaitPositionForDevice(String uniqueId, long timeoutMs)
       throws InterruptedException {
-    long start = System.currentTimeMillis();
-    while ((System.currentTimeMillis() - start) < timeoutMs) {
-      Optional<Position> posOpt = controller.getLatestPositionForDevice(deviceId);
-      if (posOpt.isPresent()) {
-        return posOpt.get();
-      }
-      sleep(100);
-    }
-    return null;
+    return controller.awaitPositionForDevice(uniqueId, timeoutMs);
   }
 
   /**
@@ -80,9 +71,9 @@ public abstract class BaseGpsPlayerIT extends BaseGpsTrackerIT {
   /**
    * Finds the Device associated with a Tracker.
    *
-   * <p>A Player does not need the deviceId to play messages. The deviceId is only needed to verify
-   * the position updates in the controller. This way the Player is decoupled from the internal
-   * database IDs and can work with the semantic uniqueIds that are relevant to the scenario.
+   * <p>Neither the Player nor the verification needs the database deviceId: the Controller resolves
+   * the device and its latest position via the semantic uniqueId shared by tracker and server
+   * device. This keeps the test decoupled from internal database IDs.
    *
    * @param tracker the tracker to look up
    * @return the Device associated with the tracker

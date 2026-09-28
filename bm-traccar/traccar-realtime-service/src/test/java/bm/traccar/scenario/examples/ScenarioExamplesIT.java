@@ -42,7 +42,7 @@ public class ScenarioExamplesIT extends BaseScenarioTest {
     logger.info("SimpleTrackerScenario test completed");
   }
 
-  //  @Test
+  @Test
   void testHideAndSeekScenario() throws Exception {
     logger.info("Starting HideAndSeekScenario test");
     Scenario scenario = new HideAndSeekScenario();
@@ -50,14 +50,14 @@ public class ScenarioExamplesIT extends BaseScenarioTest {
     logger.info("HideAndSeekScenario test completed");
   }
 
-  //  @Test
+  @Test
   void testManualScenarioExecution() throws Exception {
     logger.info("Starting manual scenario execution test");
 
     Scenario scenario = new SimplestTrackerScenario();
 
     // Manual execution with separate phases
-    scenarioRunner.init(scenario, realTimeAppContext);
+    scenarioRunner.init(scenario, realTimeContext);
     logger.info("Scenario initialized, you can now inspect state");
 
     scenarioRunner.run(scenario);

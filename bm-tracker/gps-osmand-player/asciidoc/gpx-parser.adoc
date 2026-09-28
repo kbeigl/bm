@@ -258,7 +258,7 @@ Now we can get back to the `PlayerOsmAnd` class
 and see how the timing of the `playOsmAndTrack()` method is implemented.
 
 
-include::gps-timer.adoc[lines=5..11]
+include::gps-timer.adoc[lines=7..11]
 
 xref:./gps-timer.adoc[goto Timer Implementation ...]
 

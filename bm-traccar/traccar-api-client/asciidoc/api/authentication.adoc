@@ -2,11 +2,13 @@
 :toclevels: 3
 :doctype: book
 
-== API Authentication
+== Traccar Authentication
 
-see `AuthenticationIT`
-
-=== Overview
+Note that the Traccar API requires authentication for all endpoints and sub APIs.
+The authentication is handled by the `TraccarApi` class, 
+which provides methods to set and manage authentication credentials.
+The authentication is _not_ handled by the individual sub APIs, 
+but is a prequisite for using any of the sub APIs.
 
 The Traccar API supports two authentication methods for REST API calls:
 
@@ -18,6 +20,8 @@ The Traccar API supports two authentication methods for REST API calls:
 Traccar accepts **only one authentication method at a time**. +
 When you switch authentication methods, the previous authentication is automatically cleared.
 ====
+
+// see `AuthenticationIT`
 
 === Authentication Methods
 
@@ -52,8 +56,8 @@ The bearer token is often used for a "Virtual Admin" or "Service Account" which 
 api.setBearerToken(virtualAdminToken);
 
 // Can now perform any operation
-List<User> allUsers = api.users.getAllUsers();
-List<Device> allDevices = api.devices.getDevices();
+List<User> allUsers = api.getUsersApi().getUsers(null, null, null, null);
+List<Device> allDevices = api.getDevicesApi().getDevices();
 ----
 
 ==== HTTP Basic Authentication
@@ -70,7 +74,7 @@ api.setBasicAuth("user@domain.com", "userPassword");
 ----
 
 // // Now API calls are made with this user's credentials and permissions
-// User currentUser = api.session.createSession(email, password);
+// User currentUser = api.getSessionApi().createSession(email, password);
 
 
 [NOTE]
@@ -102,15 +106,15 @@ You can switch between authentication methods at any time during program executi
 ----
 // Start with Basic Auth
 api.setBasicAuth("user@domain.com", "password");
-User user = api.users.getUser(123L);
+User user = api.getUsersApi().getUser(123L);
 
 // Switch to Bearer Token for admin operations
 api.setBearerToken(virtualAdminToken);
-List<User> allUsers = api.users.getAllUsers();
+List<User> allUsers = api.getUsersApi().getUsers(null, null, null, null);
 
 // Switch back to Basic Auth with different user
 api.setBasicAuth("admin@domain.com", "adminPassword");
-User newUser = api.users.createUser(user);
+User newUser = api.getUsersApi().createUser(user);
 ----
 
 === Get Current Authentication
@@ -152,7 +156,7 @@ you can't go back to valid host and use api (405 Method Not Allowed)
 ----
 try {
     api.setBasicAuth("user@domain.com", "wrongPassword");
-    User user = api.users.getUser(123L);
+    User user = api.getUsersApi().getUser(123L);
 } catch (ApiException e) {
     if (e.getMessage().contains("401")) {
         logger.error("Authentication failed - invalid credentials");

@@ -1,15 +1,17 @@
 :toc: left
+:toclevels: 4
 
-= Traccar Scenario
+== Traccar Scenario
 
-For Real Time Development it makes sense to precisely define the RT environment to be observed and controlled. 
-In the context of a Tracking System we will simply define the environment as a (fixed) set of devices and call it a _Scenario_.
+For Real Time _Development_ it makes sense to precisely define the RT environment to be observed and controlled. 
+In the context of a Tracking System we will simply define the environment as a (fixed) 
+set of devices (and other Traccar Entities) and call it a _Scenario_.
 These devices will represent `RealObjects` (that we will develop eventually) in the Real World.
 They can be many vehicles, some pedestrians, bicycles - if we think of a Traffic Application.
 
-== Scenario Entities
+=== Scenario Entities
 
-In conjunction with Traccar a scenario is composed of different sets of Traccar Entities.
+In conjunction with Traccar a Scenario is composed of different sets of Traccar Entities.
 
 The `RealTimeModel` (in the `traccar-realtime-client` project) will allow access to Traccar `Users`, `Devices`, 
 `Drivers` etc. to compose any scenario that fits your business.
@@ -18,7 +20,7 @@ of one authenticated Traccar `User` and can only see what he is allowed to see.
 This can be experienced and explored in the Traccar UI - as we proceed.
 
 
-== Scenario Properties
+=== Scenario Properties
 
 For a concrete development approach we will define 
 a _Scenario_ simply as a (fixed) number of devices.
@@ -39,14 +41,15 @@ With `json` you can define a complete relational model to load
 and bigger models could be retrieved from the database itself. 
 For compressed ER models 
 link:https://protobuf.dev/[Googles Protocol Buffers] could do the job,
-as we have already practiced in the JeeTS project.
+as we have already practiced in the 
+https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS project].
 
 At dev time we will use the `scenario.properties` file to explore   
 xref:./permissions.adoc[Traccar's Permission Management].
 
 We'll start with some simple initial rules to setup a Scenario:
 
--  `scenario.properties` _do not_ define any technical details on the Traccar Server. +
+-  `scenario.properties` _do not_ define any _technical_ details on the Traccar Server. +
 These should remain in the `application.properties` 
 and the server should then be prepared to load a Scenario.
 Less technical and more domain-driven.
@@ -78,7 +81,7 @@ This scenario defines one `administrator`, one `manager`, two `users`
 and four `devices` for a start.
 
 
-=== `ScenarioProperties`
+==== `ConfigurationProperties`
 
 Now we can apply Spring Technology to load these properties 
 with the `ScenarioProperties` class
@@ -151,7 +154,7 @@ and creates the Traccar Entities on the server via `api`.
 Functionality and structure are straight forward.
 
 
-=== Scenario Tests
+==== Scenario Tests
 
 Run the tests in test package `bm.traccar.rt.scenario` 
 to go into details and debugging.
@@ -181,6 +184,6 @@ as you can see by the package names, i.e. application layers:
     bm.traccar.ws.TraccarWebSocketRoute
 ----
 
-Note that the `bm.traccar.rt.RealTimeManager` is not a Spring Bean
+Note that the `bm.traccar.rt.RealTimeManager` _is not a Spring Bean_
 and is managed by the `RealTimeContoller`! 
 

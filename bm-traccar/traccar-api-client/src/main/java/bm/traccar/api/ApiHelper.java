@@ -16,6 +16,7 @@
  */
 package bm.traccar.api;
 
+// consider moving into UsersImpl as private static method?
 public class ApiHelper {
 
   /**
@@ -33,6 +34,7 @@ public class ApiHelper {
       integer = Math.toIntExact(longObj); // assert range implicitely
     } catch (ArithmeticException e) {
       throw new ApiException(
+          ApiErrorCode.BAD_REQUEST,
           "IllegalArgument: Value out of range for Integer: "
               + longObj
               + "\nDue to inconsistencies between model and method generation Long objcts "

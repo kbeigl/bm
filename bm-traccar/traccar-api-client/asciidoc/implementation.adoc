@@ -1,6 +1,6 @@
 :toc: left
 
-== Traccar API Implementation
+== API Implementation
 
 This software is based on a generated *Java Spring REST Client* from the Traccar REST specification.
 The single package (`bm.traccar.api`) implementation wraps the Java client in a *Spring* @Service
@@ -9,6 +9,14 @@ inside regular Java methods.
 
 The `traccar-api-client` is basically a single package application or rather _service_. +
 In addition there is a websocket package to receive live information from the Tracking System.
+
+
+[TIP]
+====
+If you are looking for the usage of the Traccar API and sub APIs +
+you can go directly to the 
+xref:./api/sub-api-implementations.adoc[Traccar API page].
+====
 
 
 == openapi-generator
@@ -55,6 +63,7 @@ Therefor you should stick to the `bm.traccar.api.Api interface`
 to connect your program logic!
 ====
 
+
 === Data Transfer Objects - DTOs ...
 
 In addition the `traccar-api-client-6.7` provides *21 Data Transfer Objects* +
@@ -88,7 +97,7 @@ and  then create it on server side and receive a copy:
 
 [source,java]
 ----
-    User userOUT =  api.users.createUser(userIN);
+    User userOUT =  api.getUsersApi().createUser(userIN);
 ----
 
 Note that `userIN` and `userOUT` are different instances,
@@ -97,6 +106,7 @@ The latter provides the `userId` provided by the Traccar Model
 and is vital to use in the client server communication.
 The ID is usually hidden for external users (i.e. in the UI),
 but required for unambiguously user identification!
+
 
 === ... are not System Entities
 
@@ -115,32 +125,7 @@ The DNA (ERM) is part of the _living_ organic System, +
 while the RNA (DTOs) is simply a copy of the DNA from a certain point in time.
 
 
-== Traccar sub Api implementations
-
-This project is part of a larger software and therefor the Traccar Api Endpoints (`operationId`)
-are implemented in the order required by the main application.
-During prototyping you should _avoid_ any bulk implementations.
-Protoyping is modelling and every new cycle, i.e. `x.y.z release` 
-can introduce new sub APIs and endpoints - as the main application progresses.
-This way the implementation for all sub APIs turns into a mature pattern.
-And interdependencies can be implemented with convenient methods combining common actions. 
-
-The most important aspect of this project is its _layer functionality_.
-As the Traccar GTS progresses the REST specification is modified 
-and we want to avoid code changes all over our application.
-In the best case the code changes can be restricted to this project.
-The project can fix and hide specification inconsistencies 
-and should provide consistent Java methods.
-
-[TIP]
-====
-This page is about architecture and usage of the Traccar OpenAPI Client. +
-If you are looking for the usage of the Traccar API and sub APIs +
-you can go directly to the 
-xref:./api/traccar-api.adoc[Traccar API page].
-====
-
-== Traccar `ApiAspect` and `ApiException`
+== Traccar `ApiAspect`
 
 This API client implementation applies _Aspect-Oriented Programming_ (*AOP*) 
 as the technique for handling exceptions in Spring Boot applications. 
@@ -156,16 +141,26 @@ Generally any problem in the client software should through an `ApiException`
 to take over responsibility and to provide useful messages for developers 
 and wrap the cause for deeper analysis.
 
+[IMPORTANT]
+====
+The `ApiAspect` is registered by `ApiConfig` (`@Import(ApiAspect.class)`).
+Importing `ApiConfig` is therefore the complete contract for consumers:
+you get the generated `Api` beans *and* the `ApiException` translation --
+no component scan of `bm.traccar.api` is required.
+
+The generated `*Api` instances must be Spring beans (as declared in `ApiConfig`),
+otherwise Spring AOP cannot proxy them and no `ApiException` is thrown.
+This contract is verified without a Traccar server by `ApiConfigAspectTest`.
+====
+
 As you can see in the `bm.traccar.api.ApiAspect` class 
-the `@Pointcut` includes all `*Api` classes and methods in :
+the `@Around` advice covers all `*Api` classes in the generated package:
 
-      @Pointcut("execution(public * bm.traccar.generated.api.*Api.*(..))")
+      @Around("within(bm.traccar.generated.api.*Api)")
 
-and the `Joinpoint` is defined to only catch `RestClientExceptions`,
-wrap them in an `ApiException` and throw it for the method execution:
-
-  public void afterThrowingApiMethod(JoinPoint joinPoint, RestClientException rcEx)
-      throws ApiException {
+Any `Throwable` raised inside is wrapped in an `ApiException` with a helpful message;
+`RestClientException` subtypes (no connection, 4xx, 5xx) are mapped to the
+`ApiException.APIEX_*` message constants.
 
 Note that the `ApiException` is a `RuntimeException` and 
 the caller is not forced by the compiler to catch it.
@@ -182,4 +177,190 @@ and to ensure that you have a binding communication.
           invoke ApiClient.invokeAPI(..)                 |
         Exception in ApiMethod: **UsersApi.usersPost(..) **
 -----------------
+
+
+== Traccar `ApiException`
+
+The `bm.traccar.api.ApiException` is the central unchecked exception class 
+used throughout the API client. Every raw HTTP error, connection timeout, authentication failure, 
+or unexpected REST exception caught by `ApiAspect` is converted into an `ApiException`.
+
+As a `RuntimeException`, callers are not required by the compiler to catch it with boilerplate code, 
+yet it provides rich structured details for programmatic recovery and diagnostics.
+
+
+=== Properties and Structure
+
+Each `ApiException` carries:
+
+* **`errorCode`** (`ApiErrorCode`): A typed enum value representing the category of failure.
+* **`statusCode`** (`Integer`): The HTTP status code returned by the server (e.g. `400`, `401`, `404`, `500`), or `null` if the error occurred prior to receiving a response (such as connection timeouts).
+* **`message`** (`String`): A developer-friendly description of the error.
+* **`cause`** (`Throwable`): The wrapped underlying exception (such as `ResourceAccessException` or `HttpStatusCodeException`) for root-cause inspection.
+
+
+=== Error Constants 
+
+`ApiException` provides standardized message constants `APIEX_*` for common error scenarios:
+
+[cols="1m,2,2", options="header"]
+|===
+| Constant | Value | Description
+
+| APIEX_NO_CONNECTION
+| `"Cannot connect to server!"`
+| Network or transport failure; indicates that the Traccar server could not be reached.
+
+| APIEX_UNAUTHORIZED
+| `"Unauthorized: check credentials!"`
+| Authentication or authorization failure (HTTP 401 Unauthorized or 403 Forbidden).
+
+| APIEX_BAD_REQUEST
+| `"Request returned error!"`
+| Invalid request payload, constraint violation, or duplicate primary key (HTTP 400 Bad Request).
+
+| APIEX_CLIENT_REST
+| `"Exception with REST client!"`
+| General client-side REST communication or response processing exception.
+|===
+
+
+=== `ApiErrorCode` Enum
+
+To allow type-safe programmatic handling (e.g. initiating server reconnection loops vs. requesting new user credentials), 
+the `ApiErrorCode` enum categorizes the failure:
+
+[cols="1m,1m,3", options="header"]
+|===
+| ApiErrorCode | HTTP Status | Description
+
+| NO_CONNECTION
+| null
+| Transport/network error (connection refused, host unreachable, connection timeout). Used to trigger reconnect intervals.
+
+| UNAUTHORIZED
+| 401 / 403
+| Authentication or permission failure. Token expired or invalid credentials.
+
+| BAD_REQUEST
+| 400
+| Request validation failure, missing mandatory attributes, or constraint violations.
+
+| NOT_FOUND
+| 404
+| The requested resource or endpoint does not exist on the server.
+
+| CLIENT_REST
+| varies
+| Generic REST communication error, unparseable payload, or unknown content type.
+
+| SERVER_ERROR
+| 5xx
+| Server-side internal error occurred in the Traccar backend.
+
+| UNKNOWN
+| null
+| Unclassified or unexpected runtime exception.
+|===
+
+
+=== Exception Mapping in `ApiAspect`
+
+The central `ApiAspect.createApiException(Throwable)` method evaluates intercepted exceptions +
+and maps them to typed `ApiException` instances:
+
+[cols="2m,1m,1m,2", options="header"]
+|===
+| Intercepted Exception | ApiErrorCode | Status Code | Error Message
+
+| ResourceAccessException
+| NO_CONNECTION
+| null
+| `ApiException.APIEX_NO_CONNECTION`
+
+| HttpStatusCodeException (400)
+| BAD_REQUEST
+| 400
+| `ApiException.APIEX_BAD_REQUEST`
+
+| HttpStatusCodeException (401, 403)
+| UNAUTHORIZED
+| 401 / 403
+| `ApiException.APIEX_UNAUTHORIZED`
+
+| HttpStatusCodeException (404)
+| NOT_FOUND
+| 404
+| Original exception message
+
+| HttpStatusCodeException (5xx)
+| SERVER_ERROR
+| 5xx
+| `"Server error: " + sc`
+
+| HttpStatusCodeException (other 4xx)
+| CLIENT_REST
+| 4xx
+| Original exception message
+
+| UnknownContentTypeException
+| CLIENT_REST
+| Status code
+| Original exception message
+
+| RestClientResponseException
+| CLIENT_REST
+| Status code
+| `ApiException.APIEX_CLIENT_REST`
+
+| RestClientException
+| CLIENT_REST
+| null
+| Original exception message
+
+| Other Throwable
+| UNKNOWN
+| null
+| `"An unexpected error occurred: " + thrown.getClass().getName()`
+|===
+
+
+=== Handling `ApiException` 
+
+Client applications can inspect the typed `errorCode` or `statusCode` to decide on appropriate recovery strategies:
+
+[source,java]
+----
+	try {
+	    User createdUser = api.getUsersApi().createUser(user);
+	    logger.info("User created with ID: {}", createdUser.getId());
+	} catch (ApiException ex) {
+	    switch (ex.getErrorCode()) {
+	        case NO_CONNECTION -> {
+	            logger.warn("Traccar server is unreachable. Scheduling reconnect interval...");
+	            reconnectService.scheduleRetry();
+	        }
+	        case UNAUTHORIZED -> {
+	            logger.error("Authentication failed: check bearer token / credentials.");
+	            authService.refreshToken();
+	        }
+	        case BAD_REQUEST -> {
+	            logger.error("Bad request (status {}): {}. 
+	                          Check input parameters or duplicates.",
+	            ex.getStatusCode(), ex.getMessage());
+	        }
+	        case NOT_FOUND -> {
+	            logger.warn("Resource not found: {}", ex.getMessage());
+	        }
+	        case SERVER_ERROR -> {
+	            logger.error("Traccar server error (status {}): {}", 
+	            ex.getStatusCode(), ex.getMessage());
+	        }
+	        default -> {
+	            logger.error("API error [{}]: {}", ex.getErrorCode(), 
+	            ex.getMessage(), ex.getCause());
+	        }
+	    }
+	}
+----
 

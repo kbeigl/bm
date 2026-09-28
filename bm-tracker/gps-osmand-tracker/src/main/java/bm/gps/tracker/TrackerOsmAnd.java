@@ -385,7 +385,7 @@ public class TrackerOsmAnd {
     if (camel == null) {
       return;
     }
-    String directRouteId = getRouteId("send-osmand-route-");
+    String directRouteId = getRouteId("direct-send-osmand-route-");
     String sedaRouteId = getRouteId("seda-send-osmand-route-");
     // redundant code - extract to helper method
     try {

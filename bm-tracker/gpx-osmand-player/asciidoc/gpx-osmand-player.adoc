@@ -1,0 +1,42 @@
+:imagesdir: diagrams
+:toc: left
+:toclevels: 5
+:doctype: book
+
+
+= The GPX OsmAnd Player Application
+
+The `gps-osmand-tracker` and `gps-osmand-player` modules are designed to be used 
+as libraries in the `bm` framework and other applications. 
+These library modules stay free of 
+web, actuator and Hawtio dependencies and can be embedded in other applications. 
+
+The `gpx-osmand-player` module is a (fallout) standalone Spring Boot application 
+that can be used to play back GPX tracks in real-time.
+You can run the application as a standalone jar.
+
+The module packages the 
+xref:../../gps-osmand-player/asciidoc/gps-osmand-player.adoc[`gps-osmand-player`] 
+(with transitive `gps-osmand-tracker` dependency)
+library together with a Spring Boot web stack and the https://hawt.io/[Hawtio] console 
+into the standalone `gpx-player.jar`. 
+
+
+Build the executable jar from the command line:
+
+	cd bm-tracker/gpx-osmand-player
+	mvn clean package
+	java -jar target/gpx-player-1.1.28.jar
+
+
+== *gpx* Player 
+
+include::./gpx-player.adoc[lines=9..13]
+
+xref:./gpx-player.adoc[goto GPX Player Implementation ...]
+
+
+include::./gpx-player-qs.adoc[lines=9..15]
+
+xref:./gpx-player-qs.adoc[goto GPX Player Quickstart ...]
+

@@ -1,23 +1,13 @@
-= /bm-traccar
+:toc: left
+:toclevels: 3
+:doctype: book
 
-// first level heading is used for the document title
-// for bm-traccar documentation
-
-// :toc:
-// :icons: font
-// :sectnums:
-
-// second level heading for first section of bm-traccar documentation
 == Traccar Server Components
-
-=== Overview
 
 We are using the Traccar Server as our GTS and thanks to Open Source we have full insight. +
 Anyhow we have decided to abstract the GTS to its REST API. +
 Here, we want to provide and maintain a brief overview of the Traccar Server Components
 that we are coding against.
-
-=== Traccar Server Components
 
 The Traccar website provides a wide overview on the  
 https://www.traccar.org/architecture/[Traccar Architecture].
@@ -76,6 +66,60 @@ flowchart LR
   %% Notes
   classDef comp fill:#f8f9fa,stroke:#222,stroke-width:1px;
 ....
+
+
+== Integrated Client Development
+
+The `bm-traccar` module, i.e. Maven subbranch, is the development environment 
+for integrating with the  
+link:https://www.traccar.org/[Traccar GPS Tracking Platform].
+Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
+The System was thoroughly analyzed in the 
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
+and
+link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book].
+
+This module provides a development environment with different database setups,
+different server instances: remote, local IDE, local service or 
+dockerized for automated integration testing
+
+// image::svg/bm-traccar-flow.svg[Static]
+
+[mermaid, traccar-client-dev]
+....
+flowchart TD
+    subgraph bm/
+        bm-traccar["/bm-traccar"] 
+        docker-integration["Docker Integration"]
+        testing-setup["IntegrationTest Setup"]
+        database-handling["Database Setup"]
+    end
+    
+    style bm/ fill:#bcd6f6
+  
+    traccar-module["Traccar Module"]
+    traccar-server["Traccar Server"]
+    style traccar-server fill:#ffffde
+
+    bm-traccar --> docker-integration
+    bm-traccar --> testing-setup
+    bm-traccar --> database-handling
+
+    testing-setup <--> traccar-module
+    traccar-module <--> traccar-server
+
+    docker-integration --> traccar-server
+    database-handling -- backdoor <br> validation --> traccar-server
+....
+
+
+=== Dockerized Traccar Server
+
+The Traccar Client Software is developed with Integration Tests against a Docker Traccar Server.
+
+// continue with setup-docker.adoc
+
+
 
 
 

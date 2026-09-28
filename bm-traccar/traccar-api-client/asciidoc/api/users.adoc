@@ -13,7 +13,7 @@ and the `UsersApi` is defined in `bm.traccar.generated.api.UsersApi`.
 
 === Traccar Roles
 
-see `RolesIT`
+// see `RolesIT`
 
 Traccar's User Management distiguishes *three user roles*
 
@@ -59,6 +59,7 @@ and we can login to the server with
 
 to create an Admin User defined in the prop file.
 
+
 ===== browser validation
 
 During testing you can debug the ITests and set a breakpoint 
@@ -94,8 +95,8 @@ Then the initial `admin User` and a `regular User` are created:
   @BeforeAll
   public void setup() throws ApiException {
     api.setBearerToken(virtualAdmin);            <1>
-    User user  = api.users.createUserWithCredentials(usrName, usrPw, usrMail, false);  <2>
-    User admin = api.users.createUserWithCredentials(admName, admPw, admMail, true);   <3>
+    User user  = api.getUsersApi().createUserWithCredentials(usrName, usrPw, usrMail);  <2>
+    User admin = api.getUsersApi().createAdminWithCredentials(admName, admPw, admMail);   <3>
 
     // login as admin for subsequent tests ?
     api.setBasicAuth(adminMail, adminPassword);  <4>
@@ -103,7 +104,7 @@ Then the initial `admin User` and a `regular User` are created:
 ----
 <1> login with the `virtualAdmin` to the fresh Traccar GTS
 <2> create a `regular User` with `createUserWithCredentials`
-<3> create an `admin User` with `createUserWithCredentials`
+<3> create an `admin User` with `createAdminWithCredentials`
 <4> login with the now existing `admin User` for subsequent tests
 
 And we can always counter check the Traccar Database 
@@ -117,7 +118,8 @@ with the `Users` table to see if the Users are created as expected. +
       21    admin   admin@domain.com    TRUE            0   0
 ----
 
-We'll introduce the `createUser..` methods soon, but first we need to understand the Traccar User Roles.
+We'll introduce the `createUser..` methods soon, 
+but first we need to understand the Traccar User Roles.
 
 
 ==== `admin`
@@ -132,7 +134,7 @@ This is the technical service administrator of the Traccar GTS,
 is not part of the scenario and has no restrictions. +
 So we can leave the `virtualAdmin` behind and log in as admin as listed above. +
 We can fetch the password from the user in the prop file,
-since passwords are not transfered from server.
+since passwords are not transfered _from_ server.
 
 
 ==== `manager`
@@ -169,7 +171,7 @@ and not about a role in a scenario we might define for a game.
 
 === Traccar `User`
 
-see `UsersApiIT`
+// see `UsersApiIT`
 
 The Traccar `User` defines the attributes of a Traccar Account. +
 The REST API provides platonic methods to create (`POST`), 
@@ -196,7 +198,8 @@ we want to provide methods to create a User with a specific role.
       :
     User createUser(User user) throws ApiException; // POST
 
-    User createUserWithCredentials   (name, pwd, mail, Bool admin);
+    User createUserWithCredentials   (name, pwd, mail);
+    User createAdminWithCredentials  (name, pwd, mail);
     User createManagerWithCredentials(name, pwd, mail, Int userLimit);
     User createManagerWithCredentials(name, pwd, mail, Int userLimit, Int deviceLimit);
       :
@@ -222,7 +225,7 @@ All Users? +
 Let's have a look at the `getUsersTest()` output in `UsersApiIT`.
 Calling 
 
-    users = api.users.getUsers(null, null, null, null);
+    users = api.getUsersApi().getUsers(null, null, null, null);
         
 with different Authentications we get different results:
 
@@ -232,15 +235,15 @@ UsersApiIT - Authenticated: ApiKey.BearerToken=VIRTUAL_ADMIN_ACCESS
 UsersApiIT - User: admin@domain.com true 0 0 464
 UsersApiIT - User: user@domain.com false 0 0 463
 
-UsersApiIT - Authenticated: BasicAuth=admin@domain.com/admin in ADMIN role
+UsersApiIT - Authenticated: BasicAuth=admin@domain.com/admin     ADMIN role
 UsersApiIT - User: admin@domain.com true 0 0 464
 UsersApiIT - User: user@domain.com false 0 0 463
 
-UsersApiIT - Authenticated: BasicAuth=user@domain.com/user
+UsersApiIT - Authenticated: BasicAuth=user@domain.com/user       REG_USER role
 UsersApiIT - No users found
 
 UsersApiIT - manager user created with id 465
-UsersApiIT - Authenticated: BasicAuth=manager@domain.com/manager in ADMIN role
+UsersApiIT - Authenticated: BasicAuth=manager@domain.com/manager MANAGER role
 UsersApiIT - No users found
 ----
 
@@ -257,12 +260,12 @@ TODO +
     check role - userId - Can only be used by admin or manager users
     clarify managedId lookup
     List<User> getAllUsers(String userId);
-    users = api.users.getUsers(userId, null, null, null);
+    users = api.getUsersApi().getUsers(userId, null, null, null);
 
     List<User> searchAllUsers(String keyword);
-    users = api.users.getUsers(null, null, null, keyword);
+    users = api.getUsersApi().getUsers(null, null, null, keyword);
     List<User> searchAllUsers(String userId, String keyword);
-    users = api.users.getUsers(userId, null, null, keyword);
+    users = api.getUsersApi().getUsers(userId, null, null, keyword);
 
 
 ==== managerUserLimit

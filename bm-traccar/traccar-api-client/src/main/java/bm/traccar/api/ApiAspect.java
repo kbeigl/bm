@@ -24,8 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
@@ -53,102 +51,62 @@ public class ApiAspect {
       logger.debug("ApiAspect invoke {}", signature.toShortString());
       return pjp.proceed();
     } catch (Throwable t) {
-      throw new ApiException(createApiExeptionMessage(t), t);
+      throw createApiException(t);
     }
   }
 
-  /** Evaluate the thrown exception and create helpful Api message. */
-  private String createApiExeptionMessage(Throwable thrown) {
-
-    // assertion (use as parameter later?)
-    if (!(thrown instanceof RestClientException)) {
-      return "An unexpected error occurred: " + thrown.getClass().getName();
-    }
-
-    logger.debug("RestClientException");
-    // RestClientException has three subtypes
-    // I/O errors (e.g., connection refused, timeout)
+  /** Evaluate the thrown exception and create typed ApiException. */
+  public ApiException createApiException(Throwable thrown) {
     if (thrown instanceof ResourceAccessException) {
       logger.debug("ResourceAccessException");
       logger.warn(thrown.getMessage());
-      return ApiException.APIEX_NO_CONNECTION;
+      return new ApiException(
+          ApiErrorCode.NO_CONNECTION, null, ApiException.APIEX_NO_CONNECTION, thrown);
 
-    } else if (thrown instanceof RestClientResponseException) {
-      logger.debug("> RestClientResponseException");
-
-      if (thrown instanceof HttpStatusCodeException) {
-        HttpStatusCodeException hscEx = (HttpStatusCodeException) thrown;
-        logger.debug("  > HttpStatusCodeException");
-        // logger.error("Reason: " + hscEx.getResponseBodyAsString());
-        // logger.error("Response headers: " + hscEx.getResponseHeaders());
-
-        // HttpStatusCodeException has two subtypes client/server
-        if (hscEx instanceof HttpClientErrorException) {
-          logger.debug("    > HttpClientErrorException");
-          return createHttpClientMessage(hscEx);
-
-        } else if (hscEx instanceof HttpServerErrorException) {
-          logger.debug("    > HttpServerErrorException");
-          return createHttpServerMessage(hscEx.getStatusCode());
+    } else if (thrown instanceof HttpStatusCodeException hscEx) {
+      HttpStatusCode sc = hscEx.getStatusCode();
+      int statusCode = sc.value();
+      if (sc.is4xxClientError()) {
+        if (statusCode == 400) {
+          return new ApiException(
+              ApiErrorCode.BAD_REQUEST, statusCode, ApiException.APIEX_BAD_REQUEST, thrown);
+        } else if (statusCode == 401 || statusCode == 403) {
+          return new ApiException(
+              ApiErrorCode.UNAUTHORIZED, statusCode, ApiException.APIEX_UNAUTHORIZED, thrown);
+        } else if (statusCode == 404) {
+          return new ApiException(ApiErrorCode.NOT_FOUND, statusCode, hscEx.getMessage(), thrown);
+        } else {
+          return new ApiException(ApiErrorCode.CLIENT_REST, statusCode, hscEx.getMessage(), thrown);
         }
-
-        // does this ever occur?
-        return hscEx.getMessage();
-        // does this ever occur?
-      } else return ApiException.APIEX_CLIENT_REST;
+      } else if (sc.is5xxServerError()) {
+        return new ApiException(
+            ApiErrorCode.SERVER_ERROR, statusCode, "Server error: " + sc, thrown);
+      } else {
+        return new ApiException(ApiErrorCode.CLIENT_REST, statusCode, hscEx.getMessage(), thrown);
+      }
 
     } else if (thrown instanceof UnknownContentTypeException uctEx) {
       logger.error("UnknownContentTypeException");
-      return uctEx.getMessage();
+      int statusCode = uctEx.getStatusCode().value();
+      return new ApiException(ApiErrorCode.CLIENT_REST, statusCode, uctEx.getMessage(), thrown);
+
+    } else if (thrown instanceof RestClientResponseException rcrEx) {
+      logger.debug("> RestClientResponseException");
+      int statusCode = rcrEx.getStatusCode().value();
+      return new ApiException(
+          ApiErrorCode.CLIENT_REST, statusCode, ApiException.APIEX_CLIENT_REST, thrown);
+
+    } else if (thrown instanceof RestClientException) {
+      logger.debug("RestClientException");
+      return new ApiException(ApiErrorCode.CLIENT_REST, null, thrown.getMessage(), thrown);
+
+    } else {
+      return new ApiException(
+          ApiErrorCode.UNKNOWN,
+          null,
+          "An unexpected error occurred: " + thrown.getClass().getName(),
+          thrown);
     }
-    // should not occur, circular?
-    // if (!(rcEx instanceof ApiException)) {
-    // logger.error("Generic exception {}: ", rcEx.getMessage());
-    return thrown.getMessage();
-  }
-
-  /**
-   * Create a message for HttpClientErrorException with specific status code. Should be in
-   * 4xxClientErrors.
-   */
-  private String createHttpClientMessage(HttpStatusCodeException hscEx) {
-
-    HttpStatusCode sc = hscEx.getStatusCode();
-    logger.debug("HttpClientErrorException: " + sc);
-    // should not occur in Exception environment
-    //	    if (sc.is2xxSuccessful())    return sc.toString();
-    // else if (sc.is1xxInformational()) return "Informational response: " + sc;
-    // else if (sc.is3xxRedirection())   return "Redirection response: " + sc;
-    if (sc.is4xxClientError()) {
-      if (sc.value() == 400) return ApiException.APIEX_BAD_REQUEST;
-      else if (sc.value() == 401) return ApiException.APIEX_UNAUTHORIZED;
-      else if (sc.value() == 403) return ApiException.APIEX_UNAUTHORIZED;
-      // else if (sc.value() == 402) return "Payment Required: " + sc;
-      // else if (sc.value() == 404) return "Not Found: " + sc;
-      // else if (sc.value() == 405) return "Method Not Allowed: " + sc;
-      // else if (sc.value() == 406) return "Not Acceptable: " + sc;
-      // else if (sc.value() == 407) return "Proxy Authentication Required: " + sc;
-      // else if (sc.value() == 408) return "Request Timeout: " + sc;
-      // else if (sc.value() == 409) return "Conflict: " + sc;
-      // else if (sc.value() == 410) return "Gone: " + sc;
-      // else if (sc.value() == 411) return "Length Required: " + sc;
-      // else if (sc.value() == 412) return "Precondition Failed: " + sc;
-      // else if (sc.value() == 413) return "Payload Too Large: " + sc;
-      // else if (sc.value() == 414) return "URI Too Long: " + sc;
-      // else if (sc.value() == 415) return "Unsupported Media Type: " + sc;
-      // else if (sc.value() == 416) return "Range Not Satisfiable: " + sc;
-      // else if (sc.value() == 417) return "Expectation Failed: " + sc;
-      // else if (sc.value() == 422) return "Unprocessable Entity: " + sc; // validation error
-    } // else
-    return hscEx.getMessage(); // use original message
-  }
-
-  private String createHttpServerMessage(HttpStatusCode sc) {
-
-    if (sc.is5xxServerError()) {
-      return "Server error: " + sc;
-    }
-    return "unknown status code; " + sc;
   }
 
   //  add pointcuts for Api!, ApiClient and Service methods ?

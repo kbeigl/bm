@@ -51,13 +51,13 @@ public class ScenarioLoaderIT {
     // move into scenarioSetup and remove api from here?
     // we are admin now
     // verify server settings
-    Server server = api.getServerApi().getServerInfo();
+    Server server = api.getServerApi().getServer();
     // logger.info("Server Info: {}", server);
     assertTrue(server.getRegistration(), "Server registration should be enabled");
 
     // verify users
-    String adminId = scenarioSetup.admin.getId().toString();
-    User serverAdmin = api.getUsersApi().getUserById(adminId);
+    Long adminId = scenarioSetup.admin.getId();
+    User serverAdmin = api.getUsersApi().getUser(adminId);
     logger.info(
         "Found Admin User.id{}: {}/{}",
         serverAdmin.getId(),

@@ -16,16 +16,6 @@
  */
 package bm.traccar.api;
 
-import bm.traccar.api.impl.DevicesImpl;
-import bm.traccar.api.impl.PermissionsImpl;
-import bm.traccar.api.impl.ServerImpl;
-import bm.traccar.api.impl.SessionImpl;
-import bm.traccar.api.impl.UsersImpl;
-import bm.traccar.generated.api.DevicesApi;
-import bm.traccar.generated.api.PermissionsApi;
-import bm.traccar.generated.api.ServerApi;
-import bm.traccar.generated.api.SessionApi;
-import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
 import bm.traccar.invoke.auth.HttpBasicAuth;
 import bm.traccar.invoke.auth.HttpBearerAuth;
@@ -65,11 +55,7 @@ public class ApiService implements Api {
    */
   @Override
   public HttpBasicAuth getBasicAuth() { // getLoginUser()
-    HttpBasicAuth basicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
-    if (basicAuth != null) {
-      return basicAuth;
-    }
-    return null;
+    return (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
   }
 
   /**
@@ -115,35 +101,35 @@ public class ApiService implements Api {
   /* constructor injection makes dependencies explicit and objects immutable. */
   public ApiService(
       ApiClient apiClient,
-      UsersApi usersApi,
-      SessionApi sessionApi,
-      PermissionsApi permissionsApi,
-      DevicesApi devicesApi,
-      ServerApi serverApi) {
-
+      Api.Server server,
+      Api.Session session,
+      Api.Users users,
+      Api.Devices devices,
+      Api.Permissions permissions) {
     this.apiClient = apiClient;
-    // sub interface  = new sub interface implementation (wrapping generated API)
-    this.users = new UsersImpl(usersApi);
-    this.session = new SessionImpl(sessionApi, apiClient);
-    this.permissions = new PermissionsImpl(permissionsApi);
-
-    this.server = new ServerImpl(serverApi);
-    this.devices = new DevicesImpl(devicesApi);
+    this.server = server;
+    this.session = session;
+    this.users = users;
+    this.devices = devices;
+    this.permissions = permissions;
   }
 
-  // currently public for convenience (api.users)
-  // might be privated ..
-  public final Api.Users users;
-  public final Api.Session session;
-  public final Api.Permissions permissions;
+  // sub-APIs are only accessible via the Api getters (single public entry point)
+  private final Api.Server server;
+  private final Api.Session session;
+  private final Api.Users users;
+  private final Api.Devices devices;
+  private final Api.Permissions permissions;
 
-  public final Api.Devices devices;
-  public final Api.Server server;
+  @Override
+  public Api.Server getServerApi() {
+    return server;
+  }
 
-  // consider removing these access methods
-
-  // @Override public Api.Session getSessionApi() { return session; }
-  // @Override public Api.Permissions getPermissionsApi() { return permissions; }
+  @Override
+  public Api.Session getSessionApi() {
+    return session;
+  }
 
   @Override
   public Api.Users getUsersApi() {
@@ -156,7 +142,7 @@ public class ApiService implements Api {
   }
 
   @Override
-  public Api.Server getServerApi() {
-    return server;
+  public Api.Permissions getPermissionsApi() {
+    return permissions;
   }
 }

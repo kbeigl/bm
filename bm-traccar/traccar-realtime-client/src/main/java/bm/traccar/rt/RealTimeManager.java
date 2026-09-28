@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
  * ConcurrentHashMaps to allow safe updates from background webSocket threads.
  */
 @Component
-public class RealTimeManager {
+class RealTimeManager {
   private static final Logger logger = LoggerFactory.getLogger(RealTimeManager.class);
 
   private volatile User currentUser;
@@ -52,20 +52,18 @@ public class RealTimeManager {
   // lock to keep devices and deviceIdByUniqueId consistent
   private final Object deviceMapLock = new Object();
 
-  // visibility (exclusiv to controller?) of RTM and methods
-  // will be assigned with the application usage in mind.
-  // For now, we can keep it package-private and make public if needed.
+  // RTM and its methods are package-private (exclusive to RealTimeController and rt slice tests).
 
   // --- State Modification Methods ---
 
   /** Sets the current user after a successful login. */
-  public void setLoginUser(User user) {
+  void setLoginUser(User user) {
     this.currentUser = user;
     this.isAuthenticated = true;
   }
 
   /** Clears all user data on logout. */
-  public void logoutAndClear() {
+  void logoutAndClear() {
     this.currentUser = null;
     this.isAuthenticated = false;
     this.users.clear();
@@ -87,12 +85,12 @@ public class RealTimeManager {
   }
 
   /** Loads the initial list of users from server. */
-  public void loadInitialUsers(List<User> userList) {
+  void loadInitialUsers(List<User> userList) {
     loadInitialEntities(userList, users, User::getId);
   }
 
   /** Loads the initial list of devices from server. */
-  public void loadInitialDevices(List<Device> deviceList) {
+  void loadInitialDevices(List<Device> deviceList) {
     // populate devices map and deviceIdByUniqueId atomically
     synchronized (deviceMapLock) {
       loadInitialEntities(deviceList, devices, Device::getId);
@@ -108,7 +106,7 @@ public class RealTimeManager {
   // and we only want positions after that time
 
   /** Adds or updates a position and updates associated device's state! */
-  public void addOrUpdatePosition(Position position) {
+  void addOrUpdatePosition(Position position) {
     if (position == null) return;
     logger.debug(
         "addOrUpdate position(id={},deviceId={})", position.getId(), position.getDeviceId());
@@ -132,7 +130,7 @@ public class RealTimeManager {
   }
 
   /** Adds or updates a device (from a WebSocket message). */
-  public void addOrUpdateDevice(Device device) {
+  void addOrUpdateDevice(Device device) {
     if (device == null) return;
     logger.debug("addOrUpdate device(uniqueId={},id={})", device.getUniqueId(), device.getId());
 
@@ -189,49 +187,87 @@ public class RealTimeManager {
    * @param uniqueId
    * @return database deviceId
    */
-  public long getDeviceByUniqueId(String uniqueId) {
+  long getDeviceIdByUniqueId(String uniqueId) {
     if (uniqueId == null) return -1L;
     return deviceIdByUniqueId.getOrDefault(uniqueId, -1L);
   }
 
-  public Optional<User> getCurrentUser() {
+  Optional<User> getCurrentUser() {
     return Optional.ofNullable(currentUser);
   }
 
-  public boolean isAuthenticated() {
+  boolean isAuthenticated() {
     return isAuthenticated;
   }
 
   // TODO make generic to reduce method bloat
-  public Optional<User> getUserById(long id) {
+  Optional<User> getUserById(long id) {
     return Optional.ofNullable(users.get(id));
   }
 
-  public Optional<Device> getDeviceById(long id) {
+  Optional<Device> getDeviceById(long id) {
     return Optional.ofNullable(devices.get(id));
   }
 
-  public Optional<Position> getPositionById(long id) {
+  Optional<Position> getPositionById(long id) {
     return Optional.ofNullable(positions.get(id));
   }
 
   // make generic to reduce method bloat
   /** Returns a copy of the list of all users. */
-  public List<User> getAllUsers() {
+  List<User> getAllUsers() {
     return new ArrayList<>(users.values());
   }
 
   /** Returns a copy of the list of all devices. */
-  public List<Device> getAllDevices() {
+  List<Device> getAllDevices() {
     return new ArrayList<>(devices.values());
   }
 
   /* demo: resolving relationships */
-  public Optional<Position> getLatestPositionForDevice(long deviceId) {
+  Optional<Position> getLatestPositionForDevice(long deviceId) {
     return getDeviceById(deviceId)
         // Get the positionId from device
         .map(Device::getPositionId)
         // Use ID to get Position object
         .flatMap(this::getPositionById);
+  }
+
+  // --- natural key lookups (no database ids required by the caller) ---
+
+  /**
+   * Finds the Device for a given uniqueId.
+   *
+   * @param uniqueId the unique identifier of the device (IMEI or similar)
+   * @return Optional containing Device if present, otherwise empty
+   */
+  Optional<Device> findDeviceByUniqueId(String uniqueId) {
+    long deviceId = getDeviceIdByUniqueId(uniqueId);
+    if (deviceId == -1L) {
+      return Optional.empty();
+    }
+    return getDeviceById(deviceId);
+  }
+
+  /**
+   * Resolves uniqueId -> deviceId -> positionId internally and returns the latest Position for the
+   * device, or empty if the device is unknown or has no position yet.
+   *
+   * @param uniqueId the unique identifier of the device
+   * @return Optional containing the latest Position, otherwise empty
+   */
+  Optional<Position> getLatestPositionForDevice(String uniqueId) {
+    return findDeviceByUniqueId(uniqueId).map(Device::getPositionId).flatMap(this::getPositionById);
+  }
+
+  /**
+   * Finds the User for a given email, which is the natural key of a Traccar user.
+   *
+   * @param email the user's email (login name)
+   * @return Optional containing User if present, otherwise empty
+   */
+  Optional<User> getUserByEmail(String email) {
+    if (email == null) return Optional.empty();
+    return users.values().stream().filter(u -> email.equalsIgnoreCase(u.getEmail())).findFirst();
   }
 }

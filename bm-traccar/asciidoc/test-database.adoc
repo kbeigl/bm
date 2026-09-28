@@ -1,10 +1,14 @@
 :toc: left
+:toclevels: 3
+:doctype: book
 
-= Database Testing
+== Database Testing
 
 After setting up the Traccar Docker Container there are different options to set up the database
 according to your development focus. The Database (ERM) can be perceived as the backdoor
 through which you can peek into the data and analyze the actions of your integration tests.
+The actual data model resides in the database and is reflected in the Traccar Software
+package `model`.
 
 Multiple options for handling the H2 database are scribbled here, 
 including mounting external volumes, direct SQL shell access. 

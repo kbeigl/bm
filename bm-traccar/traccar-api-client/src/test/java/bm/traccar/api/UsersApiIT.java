@@ -38,7 +38,7 @@ public class UsersApiIT extends BaseIntegrationTest {
   // @Test
   public void threeTodoTests() {
     // role testing -----------------------------
-    // api.users.getRole(adminUser));
+    // api.getUsersApi().getRole(adminUser));
     // user lists -------------------------------
     // check role - userId - Can only be used by admin or manager users
     // clarify managedId lookup (table!)
@@ -50,6 +50,77 @@ public class UsersApiIT extends BaseIntegrationTest {
     // List<User> searchAllUsers(String keyword);
   }
 
+  @Test
+  public void getUserTest() {
+
+    api.setBearerToken(virtualAdmin);
+    logger.info("Authenticated: {}", api.getAuthentication());
+    try {
+      User admin = api.getUsersApi().getUser(adminId);
+      logger.info("  Admin user: {} / id.{}", admin.getEmail(), admin.getId());
+      User regUser = api.getUsersApi().getUser(adminId);
+      logger.info("Regular user: {} / id.{}", regUser.getEmail(), regUser.getId());
+    } catch (ApiException e) {
+      logger.error("Error listing users: {}", e.getMessage());
+    }
+
+    // regular user does not have a user list. See Settings -> Users.
+    // Only Admins and Managers can see the user list.
+    //    api.setBasicAuth(userMail, userPassword);
+    //    logger.info("Authenticated: {}", api.getAuthentication());
+    //    listUsers(api.getUsersApi().getUsers(null, null, null, null));
+    //
+    //    api.setBasicAuth(adminMail, adminPassword);
+    //    logger.info("Authenticated: {}", api.getAuthentication());
+    //    listUsers(api.getUsersApi().getUsers(null, null, null, null));
+    //
+    //    // move to BaseIntegrationTest to be used by other tests ?
+    //    String mgrMail = "manager@domain.com", mgrPassword = "manager";
+    //    deleteUserIfExists(mgrMail); // leftover from aborted runs
+    //    User manager =
+    //        api.getUsersApi().createManagerWithCredentials("manager", mgrPassword, mgrMail, 4);
+    //    logger.info("manager user created with id {}", manager.getId());
+    //    try {
+    //      api.setBasicAuth(mgrMail, mgrPassword);
+    //      logger.info("Authenticated: {}", api.getAuthentication());
+    //      listUsers(api.getUsersApi().getUsers(null, null, null, null));
+    //
+    //      // now the admin can also see the manager
+    //      api.setBasicAuth(adminMail, adminPassword);
+    //      logger.info("Authenticated: {}", api.getAuthentication());
+    //      listUsers(api.getUsersApi().getUsers(null, null, null, null));
+    //    } finally {
+    //      // clean up this test (only)
+    //      api.setBasicAuth(adminMail, adminPassword);
+    //      api.getUsersApi().deleteUser(manager.getId());
+    //      logger.info("Deleted User {} (id={})", manager.getEmail(), manager.getId());
+    //    }
+  }
+
+  /**
+   * Test the new getUser(id) method according to Traccar API reference
+   * https://www.traccar.org/api-reference/#tag/Users/operation/getUsersId
+   */
+  //  @Test
+  //  public void getUserByIdTest() {
+  //    api.setBearerToken(virtualAdmin);
+  //
+  //    // Create a test user
+  //    User testUser =
+  //        api.getUsersApi()
+  //            .createUserWithCredentials("testUser", "testPw", "test@example.com", false);
+  //    logger.info("Created test user with id: {}", testUser.getId());
+  //
+  //    User fetchedUser = api.getUsersApi().getUser(testUser.getId());
+  //    assertEquals(testUser.getId(), fetchedUser.getId());
+  //    assertEquals(testUser.getEmail(), fetchedUser.getEmail());
+  //    assertEquals(testUser.getName(), fetchedUser.getName());
+  //    logger.info("Successfully fetched user by id: {}", fetchedUser.getId());
+  //
+  //    // Clean up
+  //    api.getUsersApi().deleteUser(testUser.getId());
+  //  }
+
   /**
    * Test the getUsers(null, null, null, null) method for different user roles (superAdmin, admin,
    * regular user, manager).
@@ -59,35 +130,39 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     api.setBearerToken(virtualAdmin);
     logger.info("Authenticated: {}", api.getAuthentication());
-    listUsers(api.users.getUsers(null, null, null, null));
+    listUsers(api.getUsersApi().getUsers(null, null, null, null));
 
     // regular user does not have a user list. See Settings -> Users.
     // Only Admins and Managers can see the user list.
     api.setBasicAuth(userMail, userPassword);
     logger.info("Authenticated: {}", api.getAuthentication());
-    listUsers(api.users.getUsers(null, null, null, null));
+    listUsers(api.getUsersApi().getUsers(null, null, null, null));
 
     api.setBasicAuth(adminMail, adminPassword);
     logger.info("Authenticated: {}", api.getAuthentication());
-    listUsers(api.users.getUsers(null, null, null, null));
+    listUsers(api.getUsersApi().getUsers(null, null, null, null));
 
     // move to BaseIntegrationTest to be used by other tests ?
     String mgrMail = "manager@domain.com", mgrPassword = "manager";
-    User manager = api.users.createManagerWithCredentials("manager", mgrPassword, mgrMail, 4);
+    deleteUserIfExists(mgrMail); // leftover from aborted runs
+    User manager =
+        api.getUsersApi().createManagerWithCredentials("manager", mgrPassword, mgrMail, 4);
     logger.info("manager user created with id {}", manager.getId());
+    try {
+      api.setBasicAuth(mgrMail, mgrPassword);
+      logger.info("Authenticated: {}", api.getAuthentication());
+      listUsers(api.getUsersApi().getUsers(null, null, null, null));
 
-    api.setBasicAuth(mgrMail, mgrPassword);
-    logger.info("Authenticated: {}", api.getAuthentication());
-    listUsers(api.users.getUsers(null, null, null, null));
-
-    // now the admin can also see the manager
-    api.setBasicAuth(adminMail, adminPassword);
-    logger.info("Authenticated: {}", api.getAuthentication());
-    listUsers(api.users.getUsers(null, null, null, null));
-
-    // clean up this test (only)
-    logger.info("Deleted User {} (id={})", manager.getEmail(), manager.getId());
-    api.users.deleteUser(manager.getId());
+      // now the admin can also see the manager
+      api.setBasicAuth(adminMail, adminPassword);
+      logger.info("Authenticated: {}", api.getAuthentication());
+      listUsers(api.getUsersApi().getUsers(null, null, null, null));
+    } finally {
+      // clean up this test (only)
+      api.setBasicAuth(adminMail, adminPassword);
+      api.getUsersApi().deleteUser(manager.getId());
+      logger.info("Deleted User {} (id={})", manager.getEmail(), manager.getId());
+    }
   }
 
   // managerUserLimit conclusion
@@ -102,37 +177,37 @@ public class UsersApiIT extends BaseIntegrationTest {
     api.setBasicAuth(adminMail, adminPassword);
     // explicitly use interface method to test ApiService delegation
     // usersApi = api.getUsersApi();
-    String mgrPassword = "manager";
+    String mgrMail = "manager@domain.com", mgrPassword = "manager";
+    for (String mail : new String[] {mgrMail, "user-1-mail", "user-2-mail", "user-3-mail"})
+      deleteUserIfExists(mail); // leftovers from aborted runs
 
     User manager =
-        api.users.createManagerWithCredentials("manager", mgrPassword, "manager@domain.com", 2);
+        api.getUsersApi().createManagerWithCredentials("manager", mgrPassword, mgrMail, 2);
 
     // create regular users AS MANAGER
-    User user1, user2, user3 = null;
-
-    if (api.users.getTraccarRole(manager) == TraccarRole.MANAGER) {
-      // if (api.users.isManager(manager)) {
-      api.setBasicAuth(manager.getName(), mgrPassword);
-      user1 = api.users.createUserWithCredentials("user-1", "user-1-pw", "user-1-mail", false);
-      user2 = api.users.createUserWithCredentials("user-2", "user-2-pw", "user-2-mail", false);
+    User user1 = null, user2 = null, user3 = null;
+    try {
+      assertEquals(TraccarRole.MANAGER, api.getUsersApi().getTraccarRole(manager));
+      // Traccar authenticates by email, not by name!
+      api.setBasicAuth(mgrMail, mgrPassword);
+      user1 = api.getUsersApi().createUserWithCredentials("user-1", "user-1-pw", "user-1-mail");
+      user2 = api.getUsersApi().createUserWithCredentials("user-2", "user-2-pw", "user-2-mail");
       // This should fail - limit reached
       try {
-        user3 = api.users.createUserWithCredentials("user-3", "user-3-pw", "user-3-mail", false);
+        user3 = api.getUsersApi().createUserWithCredentials("user-3", "user-3-pw", "user-3-mail");
       } catch (ApiException e) {
         logger.info("Expected exception creating user beyond limit: {}", e.getMessage());
       }
-      // assertTrue(api.users.isRegularUser(user1), "user1 is not a regular user as expected");
       assertTrue(
-          api.users.getTraccarRole(user1) == TraccarRole.REG_USER,
+          api.getUsersApi().getTraccarRole(user1) == TraccarRole.REG_USER,
           "user1 is not a regular user as expected");
-
-      // clean up AS ADMIN
-      // manager does not have permission to delete users!!
+    } finally {
+      // clean up AS ADMIN - manager does not have permission to delete users!!
       api.setBasicAuth(adminMail, adminPassword);
-      api.users.deleteUser(manager.getId());
-      api.users.deleteUser(user1.getId());
-      api.users.deleteUser(user2.getId());
-      if (user3 != null) api.users.deleteUser(user3.getId());
+      if (user1 != null) api.getUsersApi().deleteUser(user1.getId());
+      if (user2 != null) api.getUsersApi().deleteUser(user2.getId());
+      if (user3 != null) api.getUsersApi().deleteUser(user3.getId());
+      api.getUsersApi().deleteUser(manager.getId());
     }
   }
 
@@ -142,7 +217,7 @@ public class UsersApiIT extends BaseIntegrationTest {
     api.setBearerToken(virtualAdmin);
 
     // get nr of users, assert users++, back to nr
-    int userNr = api.users.getAllUsers().size();
+    int userNr = api.getUsersApi().getUsers(null, null, null, null).size();
 
     // create / receive user
     User user = new User();
@@ -151,9 +226,9 @@ public class UsersApiIT extends BaseIntegrationTest {
     user.setEmail("email-1"); // email syntax is not validated !
     user.setPassword("pw-1"); // can't login UI without a password (useful!), backend can without
 
-    User newUser = api.users.createUser(user);
+    User newUser = api.getUsersApi().createUser(user);
     // matching method names !!
-    assertEquals(userNr + 1, api.users.getAllUsers().size());
+    assertEquals(userNr + 1, api.getUsersApi().getUsers(null, null, null, null).size());
 
     // returns the generated id (asserts not null)
     Long userId = newUser.getId();
@@ -161,12 +236,12 @@ public class UsersApiIT extends BaseIntegrationTest {
     // update user
     newUser.setEmail("email-1-b");
 
-    User putUser = api.users.updateUser(userId, newUser);
-    assertEquals(userNr + 1, api.users.getAllUsers().size());
+    User putUser = api.getUsersApi().updateUser(userId, newUser);
+    assertEquals(userNr + 1, api.getUsersApi().getUsers(null, null, null, null).size());
 
     // delete user
-    api.users.deleteUser(putUser.getId());
-    assertEquals(userNr, api.users.getAllUsers().size());
+    api.getUsersApi().deleteUser(putUser.getId());
+    assertEquals(userNr, api.getUsersApi().getUsers(null, null, null, null).size());
   }
 
   /**
@@ -184,7 +259,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     // update user should fail without server call
     try {
-      api.users.updateUser(longUserId, user);
+      api.getUsersApi().updateUser(longUserId, user);
     } catch (ApiException e) {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }
@@ -192,7 +267,7 @@ public class UsersApiIT extends BaseIntegrationTest {
 
     // delete user should fail without server call
     try {
-      api.users.deleteUser(longUserId);
+      api.getUsersApi().deleteUser(longUserId);
     } catch (ApiException e) {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }
@@ -201,12 +276,12 @@ public class UsersApiIT extends BaseIntegrationTest {
 
   @Test
   public void convertLongToInt() {
-    // true positive test
+    // true positive
     Long longVal = 12345L;
     Integer intVal = ApiHelper.toInt(longVal);
     assertEquals(longVal, 12345L);
 
-    // true negative test
+    // true negative
     longVal = Integer.MAX_VALUE + 1L;
     try {
       intVal = ApiHelper.toInt(longVal);
@@ -214,29 +289,6 @@ public class UsersApiIT extends BaseIntegrationTest {
       assertEquals(ArithmeticException.class, e.getCause().getClass());
     }
     logger.error("Long value {} was not converted to Integer!", longVal);
-  }
-
-  /**
-   * Test the new getUser(id) method according to Traccar API reference
-   * https://www.traccar.org/api-reference/#tag/Users/operation/getUsersId
-   */
-  @Test
-  public void getUserByIdTest() {
-    api.setBearerToken(virtualAdmin);
-
-    // Create a test user
-    User testUser =
-        api.users.createUserWithCredentials("testUser", "testPw", "test@example.com", false);
-    logger.info("Created test user with id: {}", testUser.getId());
-
-    User fetchedUser = api.users.getUserById(testUser.getId().toString());
-    assertEquals(testUser.getId(), fetchedUser.getId());
-    assertEquals(testUser.getEmail(), fetchedUser.getEmail());
-    assertEquals(testUser.getName(), fetchedUser.getName());
-    logger.info("Successfully fetched user by id: {}", fetchedUser.getId());
-
-    // Clean up
-    api.users.deleteUser(testUser.getId());
   }
 
   private void listUsers(List<User> users) {

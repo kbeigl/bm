@@ -403,7 +403,8 @@ The Position object is the result of every DCS / ETL for every Device. +
 At the top of the class you can get find an impressive list of `KEY_`  and `ALARM_` events.
 
 The `bm-tracker` branch contains 
-the `gps-osmand-tracker` and `gps-osmand-player` projects. +
+the `gps-osmand-tracker` and `gps-osmand-player` libraries +
+and the standalone `gpx-osmand-player` application. +
 Follow the development of Trackers and Helpers on the 
 xref:../bm.adoc#_bm_tracker[cover page].
 

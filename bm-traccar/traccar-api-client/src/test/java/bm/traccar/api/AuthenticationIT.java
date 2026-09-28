@@ -41,7 +41,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
     api.setBearerToken(virtualAdmin);
     logger.info("Authenticated: {}", api.getAuthentication());
 
-    List<User> allUsers = api.users.getAllUsers();
+    List<User> allUsers = api.getUsersApi().getUsers(null, null, null, null);
     logger.info("Found {} users", allUsers.size());
 
     // 2. Switch to Basic Auth for user-specific operations
@@ -50,23 +50,24 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     // Create a new user as manager
     User newUser =
-        api.users.createUserWithCredentials("employee", "pass123", "employee@domain.com", false);
+        api.getUsersApi().createUserWithCredentials("employee", "pass123", "employee@domain.com");
 
     // 3. Login as the new user
     api.setBasicAuth("employee@domain.com", "pass123");
 
     // Get session for WebSocket connection
-    String jsessionId = api.session.createSessionGetJsessionId("employee@domain.com", "pass123");
+    String jsessionId =
+        api.getSessionApi().createSessionGetJsessionId("employee@domain.com", "pass123");
     logger.info("JSESSIONID for WebSocket: {}", jsessionId);
 
-    // api.session.getSessionGetJsessionId(jsessionId);
+    // api.getSessionApi().getSessionGetJsessionId(jsessionId);
 
-    //    User sessionUser = api.session.getSession(jsessionId);
+    //    User sessionUser = api.getSessionApi().getSession(jsessionId);
     //    logger.info("Authenticated: {}", sessionUser);
 
     // 4. Switch back to service account for cleanup
     api.setBearerToken(virtualAdmin);
-    api.users.deleteUser(newUser.getId());
+    api.getUsersApi().deleteUser(newUser.getId());
   }
 
   @Test
@@ -74,17 +75,17 @@ public class AuthenticationIT extends BaseIntegrationTest {
     // 'login' as mail/pwd
     api.setBasicAuth(adminMail, adminPassword);
     showCredentials();
-    List<User> users = api.users.getAllUsers();
+    List<User> users = api.getUsersApi().getUsers(null, null, null, null);
     logger.info("admin users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
     // delete user as user! suicidal?
-    // api.users.deleteUser(adminId);
+    // api.getUsersApi().deleteUser(adminId);
 
     // change back to SuperUserAccess
     api.setBearerToken(virtualAdmin);
     showCredentials();
-    users = api.users.getAllUsers();
+    users = api.getUsersApi().getUsers(null, null, null, null);
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }
@@ -111,7 +112,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
 
     showCredentials();
 
-    List<User> users = api.users.getAllUsers();
+    List<User> users = api.getUsersApi().getUsers(null, null, null, null);
     logger.info("'user' users: {}", users);
     assertNotNull(users, "nothing returned from server");
 
@@ -120,7 +121,7 @@ public class AuthenticationIT extends BaseIntegrationTest {
     apiClient.setPassword(null);
     apiClient.setBearerToken(virtualAdmin);
 
-    users = api.users.getAllUsers();
+    users = api.getUsersApi().getUsers(null, null, null, null);
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
   }

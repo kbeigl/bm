@@ -1,7 +1,6 @@
-
-= Dockerized Traccar Server
-
-The Traccar Client Software is developed with Integration Tests against a Docker Traccar Server.
+:toc: left
+:toclevels: 3
+:doctype: book
 
 == Traccar Docker Container
 
@@ -449,24 +448,4 @@ curl -XPUT -H "Content-Type: application/json" --data "@daisy.json" http://0.0.0
 
     http://localhost/api/devices?id=1461
     http://localhost/api/devices/1461
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

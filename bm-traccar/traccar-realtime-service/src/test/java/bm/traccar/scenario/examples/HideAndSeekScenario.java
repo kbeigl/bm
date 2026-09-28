@@ -121,6 +121,7 @@ public class HideAndSeekScenario extends Scenario {
     // Delete devices
     for (Device device : createdDevices) {
       try {
+        // use uniqueId to delete device
         context.getApi().getDevicesApi().deleteDevice(device.getId());
         logger.info("Deleted device: {}", device.getName());
       } catch (Exception e) {

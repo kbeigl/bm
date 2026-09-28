@@ -18,7 +18,7 @@ package bm.traccar.scenario;
 
 import bm.traccar.BaseRealTimeAppTest;
 import bm.traccar.RealTimeApp;
-import bm.traccar.rtapp.RealTimeAppContext;
+import bm.traccar.rtapp.RealTimeContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -36,7 +36,7 @@ import org.springframework.test.annotation.DirtiesContext;
  *
  * <ul>
  *   <li>Starts the RealTimeApp with full Spring context
- *   <li>Provides access to RealTimeAppContext and ScenarioRunner
+ *   <li>Provides access to RealTimeContext and ScenarioRunner
  *   <li>Allows manual scenario execution in test methods
  * </ul>
  *
@@ -47,7 +47,7 @@ import org.springframework.test.annotation.DirtiesContext;
  *   {@literal @}Test
  *   void testMyScenario() throws Exception {
  *     Scenario scenario = new MyScenario();
- *     scenarioRunner.execute(scenario, realTimeAppContext);
+ *     scenarioRunner.execute(scenario, realTimeContext);
  *   }
  * }
  * </pre>
@@ -55,7 +55,7 @@ import org.springframework.test.annotation.DirtiesContext;
 @SpringBootTest(
     classes = RealTimeApp.class,
     properties = "logging.config=classpath:logback-test.xml")
-@Import({RealTimeAppContext.class, ScenarioRunner.class})
+@Import({RealTimeContext.class, ScenarioRunner.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BaseScenarioTest extends BaseRealTimeAppTest {
@@ -64,24 +64,29 @@ public abstract class BaseScenarioTest extends BaseRealTimeAppTest {
   /* We don't want to use the ScenarioLoader here.
    * Should be done inside each scenario (init) */
   // @Autowired protected ScenarioLoader scenarioLoader;
-  @Autowired protected RealTimeAppContext realTimeAppContext;
+  @Autowired protected RealTimeContext realTimeContext;
   @Autowired protected ScenarioRunner scenarioRunner;
 
   @BeforeAll
   public void setup() throws Exception {
     super.setup();
+    // is this clean? should be set implicitly with successful login ==
     // setup scenario-specific context
-    logger.info("RealTimeAppContext initialized");
-    logger.debug("  - RealTimeController: {}", realTimeAppContext.getRealTimeController() != null);
-    logger.debug("  - Api: {}", realTimeAppContext.getApi() != null);
-    logger.debug(
-        "  - TrackerRegistration: {}", realTimeAppContext.getTrackerRegistration() != null);
-    logger.debug("  - RealTimeAppService: {}", realTimeAppContext.getAppService() != null);
+    //    if (admin != null) {
+    //      realTimeContext.setRealtimeAdmin(admin);
+    //    }
+    // ==
+    logger.info("RealTimeContext initialized");
+    logger.debug("  - RealTimeController: {}", realTimeContext.getRealTimeController() != null);
+    logger.debug("  - Api: {}", realTimeContext.getApi() != null);
+    logger.debug("  - TrackerRegistration: {}", realTimeContext.getTrackerRegistration() != null);
+    logger.debug("  - RealTimeService: {}", realTimeContext.getService() != null);
   }
 
   @AfterAll
   public void teardown() {
     logger.info("Tearing down BaseScenarioTest");
+    realTimeContext.setRealtimeAdmin(null);
     // handle controller shutdown and admin user cleanup
     super.teardown();
   }
@@ -93,6 +98,6 @@ public abstract class BaseScenarioTest extends BaseRealTimeAppTest {
    * @throws Exception if scenario execution fails
    */
   protected void executeScenario(Scenario scenario) throws Exception {
-    scenarioRunner.execute(scenario, realTimeAppContext);
+    scenarioRunner.execute(scenario, realTimeContext);
   }
 }

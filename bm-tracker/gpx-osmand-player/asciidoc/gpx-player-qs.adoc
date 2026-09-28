@@ -1,0 +1,205 @@
+:imagesdir: diagrams
+:toc: left
+:toclevels: 5
+:doctype: book
+
+
+= The gpx Player Quickstart
+
+If you are not interested in the details of development 
+and just want to use the GPX Player to play your `*.gpx` tracks 
+this page describes the steps to do this in a few minutes. 
+You can also download a collection of gpx files to create a system test.
+And you can turn on Hawtio to observe the internal state of the player and the Traccar client.
+
+
+== Prerequisites 
+
+=== download release
+
+You can get the `gpx-player-1.1.28.jar` from the releases page + 
+OR + 
+build it yourself with `mvn clean package` in the `gpx-osmand-player` module.
+
+
+=== application.properties
+
+The gpx-player is a Spring Boot application and can be configured via the `application.properties` file. 
+The easiest way to get the default `application.properties` is to extract it from the jar file:
+
+	jar xf gpx-player-1.1.28.jar application.properties
+
+Then you can edit the `application.properties` file to set the server URL and other parameters.
+
+
+=== setup traccar  
+
+The gpx-player is a tracker simulation that can send OsmAnd tracker messages to a server.
+It 'knows' nothing about the server, so you can use any server that implements the OsmAnd tracker protocol.
+The repository is developed against the Traccar server, so it is recommended to use Traccar for testing.
+Since we only want to test the gpx-player, you have to set up a Traccar server.
+
+The gpx-player is configured to extract a unique device identifier from the gpx file name.
+The device identifier, the `uniqueId` is used to register the device with the server and to send the tracker messages.
+
+For example, if you have a gpx file named `RGB-BUELL-1234567890.gpx`, the uniqueId will be `RGB-BUELL-1234567890`.
+This device should be registered with the server before the gpx-player can send messages to it.
+Once playing the gpx file, you should see the device on the Traccar map.
+
+
+=== run player
+
+The player can run springboot via command line 
+
+	java -jar gpx-player-1.1.28.jar
+
+and picks up the `application.properties` file from the current working directory. 
+You can also pass parameters to the player via command line, for example:
+
+	java -jar gpx-player-1.1.28.jar --server.url=http://localhost:8082 
+
+Once the player is running, the folders `send/` and `logs/` should appear in the current working directory. +
+Now you can drop your gpx files into the `send/` folder +
+and the player will start sending the tracker messages to the server. +
+You should also see console output and a more detailed log in the `logs/gps-player.log` +
+and keep an eye on the log with tail -f `logs/gps-player.log`.
+
+You can always graciously stop the players with `Ctrl-C`. 
+
+
+== system test
+
+As a standalone test you can run a number of gpx files and closely observe your system.
+
+
+=== gpx file collection
+
+You can download a collection of gpx files from the 
+https://github.com/kbeigl/bm/releases#release-v1.1.26[releases page] 
+for extensive testing.
+
+=== setup traccar
+
+If you have full access to the Traccar server, you can turn on 
+the automatic registration of unknown devices in the `traccar.xml` configuration file.
+
+To automatically register all incoming devices with unique identifiers starting with "RGB-BUELL-" in Traccar, 
+you need to configure your traccar.xml file by setting database.registerUnknown to true 
+and providing a matching regular expression for database.registerUnknown.regex.
+
+Add the following entries to your traccar.xml configuration file:
+
+Tell Traccar not to immediately ignore data from unknown devices.
+    
+    <entry key='database.ignoreUnknown'>false</entry>
+    
+Turn on the auto-registration feature.
+
+    <entry key='database.registerUnknown'>true</entry>
+
+Automatically register unknown devices with regex filter.
+
+	<entry key='database.registerUnknown.regex'
+		>^.*0[78](0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01]).*$</entry>
+
+This regex matches the uniqueId of the gpx files in the test collection, + 
+which include a `YYMMDD` (with `YY = 07 or 08`) date pattern in the `uniqueId`.
+
+Set the default group ID assigned to new auto-registered devices. +
+Use a valid group ID from your database, or 0/omit for none. 
+
+    <entry key='database.registerUnknown.defaultGroupId'>0</entry>
+
+Set an optional default device category/icon type
+
+	<entry key='database.registerUnknown.defaultCategory'>Default</entry> -->
+
+After filling in the traccar.xml file, restart the Traccar server to apply the changes.
+
+
+=== system inspection
+
+Now you can drop all 45 gpx files into the `send/` folder and you might hear the CPU getting really exited.
+The console reports the parsing of the gpx files and the sending of the tracker messages to the server.
+
+To see what is going on inside the player and the Traccar client, 
+you can open the Hawtio console at 
+
+	http://localhost:8082/hawtio 
+	
+to observe the internal state of the player and the Traccar client.
+
+We have added https://hawt.io/[hawtio] to the project with maven and it is automatically started with the player.
+
+[quote, see https://hawt.io]
+____
+hawtio is a modular web console for managing your Java stuff +
+Hawtio has built-in plugins already to make it highly useful out of the box for your JVM application. +
+The plugins include: Apache Camel, Connect, JMX, Logs, Runtime, Quartz, and Spring Boot.
+____
+
+By clicking on the `direct-send..` and  `seda-send..` you can see the internal state of the player and the Traccar client. 
+In this test you will also see the number of `OnExeption` and `redelivery` messages in the route.
+This is expected because the Traccar server is not able to handle the load of 45 gpx files at once.
+And it is also improvable by existing configuration parameters.
+Camel allows to share routees, quartz allows to share threads, and so on.
+
+Anyhow this collection of gpx files is fine for further development of _Scenarios_. +
+And it will take a while, before we will level up for more complex scenarios.
+ 
+
+=== server inspection
+
+While the players are running you should logon to traccar with an admin account and check the device list. +
+The devices should be auto registered, but the map does not show the tracks yet! +
+This is a security precaution of the Traccar server, which does register unknown devices, +
+but does not allow them to send messages to the server until the device is approved by an admin. 
+
+Therefor you have to connect the devices to your account in the `Users` tab. +
+Click on your user and open the `Connections` tab. +
+Open the `Devices` dropdown list and select all devices that you want to connect to your user account. +
+
+Now you should see the tracks of the devices on the map. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

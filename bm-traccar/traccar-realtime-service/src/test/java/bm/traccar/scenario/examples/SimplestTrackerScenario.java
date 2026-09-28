@@ -21,14 +21,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bm.gps.MessageOsmand;
 import bm.gps.player.PlayerOsmAnd;
 import bm.gps.tracker.TrackerOsmAnd;
 import bm.traccar.generated.model.dto.Device;
+import bm.traccar.generated.model.dto.Position;
+import bm.traccar.generated.model.dto.User;
+import bm.traccar.rt.RealTimeController;
 import bm.traccar.scenario.Scenario;
 import java.io.File;
 import java.net.URL;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Most simple scenario demonstrating basic tracker registration and GPS player usage.
@@ -46,6 +54,7 @@ import java.util.List;
 public class SimplestTrackerScenario extends Scenario {
 
   private Device testDevice;
+  //  private PlayerOsmAnd player;
 
   // keep track of all created resources for cleanup
   // TODO app should always keep server and controller Devices in sync
@@ -53,41 +62,45 @@ public class SimplestTrackerScenario extends Scenario {
 
   @Override
   public String getName() {
-    return "Simplest Tracker Scenario";
+    return "Most Simple Tracker Scenario";
   }
 
   @Override
   public void initScenario() throws Exception {
 
+    User realtimeAdmin = context.getRealtimeAdmin();
+    logger.info(
+        "realtimeAdmin: {} / {} / {}",
+        realtimeAdmin.getId(),
+        realtimeAdmin.getName(),
+        realtimeAdmin.getEmail());
+
+    // evaluate Optional as return value, questionable
+    Optional<User> controllerUser = context.getRealTimeController().getCurrentUser();
+    assertTrue(controllerUser.isPresent());
+    assertEquals(realtimeAdmin, controllerUser.get());
+
+    // ----------------------------------------------------
+
     logger.info("Creating test device as {}", context.getApi().getAuthentication());
     testDevice =
-        context
-            .getAppService()
-            .createDeviceWithTracker("test-device", "test-uniqueid", "test-model");
-
-    logger.info("context.getRealtimeAdmin(): {}", context.getRealtimeAdmin());
-    logger.info(
-        "context.getRealTimeController().getCurrentUser(): {}",
-        context.getRealTimeController().getCurrentUser());
+        context.getService().createDeviceWithTracker("test-device", "test-uniqueid", "test-model");
 
     assertNotNull(testDevice);
     assertEquals("test-device", testDevice.getName());
-    assertTrue(context.getAppService().hasTracker("test-uniqueid"));
+    assertTrue(context.getService().hasTracker("test-uniqueid"));
 
     resourcesFromCode.add(testDevice);
     logger.info("Created test device: {} (id={})", testDevice.getName(), testDevice.getId());
     // The tracker is automatically registered by createDeviceWithTracker()
     logger.info("Tracker registered for device: {}", testDevice.getUniqueId());
-
-    logger.info("Scenario initialization complete");
   }
 
   @Override
   public void runScenario() throws Exception {
-    logger.info("Running scenario logic...");
 
     // get tracker of testDevice
-    if (!context.getAppService().hasTracker(testDevice.getUniqueId())) {
+    if (!context.getService().hasTracker(testDevice.getUniqueId())) {
       throw new IllegalStateException(
           "Tracker for device "
               + testDevice.getName()
@@ -98,20 +111,31 @@ public class SimplestTrackerScenario extends Scenario {
 
     TrackerOsmAnd testTracker =
         context.getTrackerRegistration().lookupTracker(testDevice.getUniqueId());
-    PlayerOsmAnd player = createPlayer(testTracker, "gpx/HD-KTM-260725.gpx");
-    assertThat(player.playOsmAndTrack()).isTrue();
 
-    // HD-KTM-260725.gpx
-    // player.sendPosition(latitude, longitude);
+    // Send a position
+    MessageOsmand msg =
+        MessageOsmand.now(testDevice.getUniqueId(), 52.52, 13.40, 10.0, 20.0, 30.0, null, null);
+    logger.info(
+        "Sending test position for device {}: {}",
+        testDevice.getUniqueId(),
+        msg != null ? msg.toString() : "N/A");
+    testTracker.sendMessage(msg);
+    logger.info(
+        "Message timestamp: {}",
+        DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.ofEpochSecond(msg.timestamp())));
 
-    // TODO: Verify position updates via RealTimeController
-    // Example:
-    // Position lastPosition = context.getRealTimeController().getLastPosition(testDevice.getId());
-    // assertNotNull(lastPosition);
+    RealTimeController controller = context.getRealTimeController();
+    controller.awaitPositionForDevice(testDevice.getUniqueId(), 10000);
 
-    // Simulate some delay for real-time processing
-    Thread.sleep(5000);
-    logger.info("Scenario execution complete");
+    Optional<Position> lastPosition =
+        controller.getLatestPositionForDevice(testDevice.getUniqueId());
+    logger.info(
+        "Latest position for device {}: {}",
+        testDevice.getUniqueId(),
+        lastPosition.isPresent() ? lastPosition.get() : "N/A");
+    assertNotNull(lastPosition);
   }
 
   /* snatched from BaseGpsPlayerIT.java */
@@ -142,10 +166,17 @@ public class SimplestTrackerScenario extends Scenario {
   public void shutdownScenario() throws Exception {
     logger.info("Cleaning up scenario resources...");
 
+    // Stop playback first so no further messages are sent to tracker routes
+    //    if (player != null) {
+    //      player.stopOsmAndTrack();
+    //      logger.info(
+    //          "Stopped player for {}", testDevice != null ? testDevice.getName() : "test-device");
+    //    }
+
     // Clean up in reverse order
     if (testDevice != null) {
-      // Use the RealTimeAppService from context to delete device and tracker
-      context.getAppService().deleteDeviceWithTracker(testDevice.getId());
+      // Use the RealTimeService from context to delete device and tracker
+      context.getService().deleteDeviceWithTracker(testDevice.getId());
       logger.info("Deleted test device and tracker: {}", testDevice.getName());
     }
 

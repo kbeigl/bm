@@ -40,8 +40,8 @@ import org.springframework.test.context.TestPropertySource;
  * should be logged in the tests to perform API calls.
  */
 @SpringBootTest(properties = "logging.config=classpath:logback-test.xml")
-// move/add ApiAspect.class from AspectIT and GeneratedSessionApiIT here
 // Tell Spring Boot to create a context containing ONLY these beans.
+// ApiConfig brings the generated *Api beans AND the ApiAspect (ApiException contract).
 @ContextConfiguration(classes = {ApiService.class})
 @Import(ApiConfig.class) // @Configuration class
 @TestPropertySource("classpath:application.properties")
@@ -81,14 +81,34 @@ public abstract class BaseIntegrationTest {
   public void setup() throws ApiException {
     logger.info("--- create Admin and User ---");
     api.setBearerToken(virtualAdmin);
-    User user = api.users.createUserWithCredentials(userName, userPassword, userMail, false);
+    // make the suite idempotent: remove leftovers of aborted earlier runs
+    deleteUserIfExists(userMail);
+    deleteUserIfExists(adminMail);
+    User user = api.getUsersApi().createUserWithCredentials(userName, userPassword, userMail);
     userId = user.getId();
     logger.info("Created User {} (id={})", userMail, userId);
-    User admin = api.users.createUserWithCredentials(adminName, adminPassword, adminMail, true);
+    User admin = api.getUsersApi().createAdminWithCredentials(adminName, adminPassword, adminMail);
     adminId = admin.getId();
     logger.info("Created Admin {} (id={})", adminMail, adminId);
 
     // login as admin for subsequent tests ?
+  }
+
+  /**
+   * Delete the user with the given email if it exists on the server (with the currently active
+   * authentication). Used to make tests idempotent after aborted runs.
+   *
+   * @return true if a user was deleted
+   */
+  protected boolean deleteUserIfExists(String email) {
+    for (User u : api.getUsersApi().getUsers(null, null, null, null)) {
+      if (email.equals(u.getEmail())) {
+        api.getUsersApi().deleteUser(u.getId());
+        logger.warn("Deleted leftover user {} (id={})", email, u.getId());
+        return true;
+      }
+    }
+    return false;
   }
 
   @AfterAll
@@ -97,9 +117,9 @@ public abstract class BaseIntegrationTest {
     api.setBasicAuth(adminMail, adminPassword);
     // catch Execption in case user or admin have been deleted in a test
     // fallback api.setBearerToken(virtualAdmin);
-    api.users.deleteUser(userId);
+    api.getUsersApi().deleteUser(userId);
     logger.info("Deleted User {} (id={})", userMail, userId);
-    api.users.deleteUser(adminId);
+    api.getUsersApi().deleteUser(adminId);
     logger.info("Deleted Admin {} (id={})", adminMail, adminId);
   }
 }

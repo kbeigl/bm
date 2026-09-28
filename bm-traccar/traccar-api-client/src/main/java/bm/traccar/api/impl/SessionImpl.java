@@ -17,6 +17,7 @@
 package bm.traccar.api.impl;
 
 import bm.traccar.api.Api;
+import bm.traccar.api.ApiErrorCode;
 import bm.traccar.api.ApiException;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.model.dto.User;
@@ -27,7 +28,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SessionImpl implements Api.Session {
   private static final Logger logger = LoggerFactory.getLogger(SessionImpl.class);
   private final SessionApi sessionApi;
@@ -60,7 +63,8 @@ public class SessionImpl implements Api.Session {
       return jSessionId;
     } else {
       logger.error("Failed to create session for user: {}", mail);
-      return null;
+      throw new ApiException(
+          ApiErrorCode.UNAUTHORIZED, "Failed to create session for user: " + mail);
     }
   }
 
@@ -80,7 +84,7 @@ public class SessionImpl implements Api.Session {
    * token query parameter or an existing JSESSIONID cookie.
    */
   @Override
-  public User getCurrentUser() {
+  public User getSessionUser() {
     // Check which authentication is active
     HttpBearerAuth apiKey = (HttpBearerAuth) apiClient.getAuthentication("ApiKey");
     HttpBasicAuth basicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
@@ -101,6 +105,7 @@ public class SessionImpl implements Api.Session {
       return sessionApi.sessionPost(username, password);
     } else {
       throw new ApiException(
+          ApiErrorCode.UNAUTHORIZED,
           "No authentication set. Please call setBasicAuth() or setBearerToken() first.");
     }
   }
@@ -117,11 +122,15 @@ public class SessionImpl implements Api.Session {
     if (jSessionId != null) {
       logger.debug("received JSESSIONID: {}", jSessionId);
       return jSessionId;
-    } else return null;
+    } else {
+      logger.error("Failed to get session for token: {}", token);
+      throw new ApiException(ApiErrorCode.NOT_FOUND, "Failed to get session for token: " + token);
+    }
   }
 
   private String extractJsessionId(ResponseEntity<User> response) {
     // if the header is absent > NullPointerException
+    if (response == null || response.getHeaders() == null) return null;
     List<String> cookies = response.getHeaders().get("Set-Cookie");
     if (cookies == null || cookies.isEmpty()) return null;
     String[] parts = cookies.get(0).split(";")[0].split("=", 2);

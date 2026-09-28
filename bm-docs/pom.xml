@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.27</version>
+        <version>1.1.28</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
@@ -53,6 +53,11 @@
         <dependency>
             <groupId>bm</groupId>
             <artifactId>gps-osmand-player</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>bm</groupId>
+            <artifactId>gpx-osmand-player</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -138,6 +143,13 @@
                                     </includes>
                                 </resource>
                                 <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}/bm-tracker/gpx-osmand-player/asciidoc</directory>
+                                    <targetPath>bm-tracker/gpx-osmand-player</targetPath>
+                                    <includes>
+                                        <include>**/*.adoc</include>
+                                    </includes>
+                                </resource>
+                                <resource>
                                     <directory>${maven.multiModuleProjectDirectory}/bm-traccar/asciidoc</directory>
                                     <targetPath>bm-traccar</targetPath>
                                     <includes>
@@ -149,6 +161,13 @@
                                     <targetPath>bm-traccar/traccar-openapitools-client</targetPath>
                                     <includes>
                                         <include>openapitools.adoc</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}/bm-traccar/traccar-api-client/asciidoc</directory>
+                                    <targetPath>bm-traccar/traccar-api-client</targetPath>
+                                    <includes>
+                                        <include>**/*.adoc</include>
                                     </includes>
                                 </resource>
                                 <resource>
@@ -178,126 +197,11 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>${maven-dependency-plugin-version}</version>
-                <executions>
-                    <!-- <execution>
-                        <id>unpack-gps-osmand-tracker</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>bm</groupId>
-                                    <artifactId>gps-osmand-tracker</artifactId>
-                                    <version>${project.version}</version>
-                                    <outputDirectory>${project.build.directory}/combined-asciidoc/bm-tracker/gps-osmand-tracker</outputDirectory>
-                                    <includes>**/asciidoc/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution> -->
-                    <!-- <execution>
-                        <id>unpack-gps-osmand-player</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>bm</groupId>
-                                    <artifactId>gps-osmand-player</artifactId>
-                                    <version>${project.version}</version>
-                                    <outputDirectory>${project.build.directory}/combined-asciidoc/bm-tracker/gps-osmand-player</outputDirectory>
-                                    <includes>**/asciidoc/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution> -->
-                    <execution>
-                        <id>unpack-traccar-openapitools-client</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>bm</groupId>
-                                    <artifactId>traccar-openapitools-client</artifactId>
-                                    <version>${traccar.version}</version>
-                                    <outputDirectory>${project.build.directory}/combined-asciidoc/bm-traccar/traccar-openapitools-client</outputDirectory>
-                                    <includes>**/asciidoc/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>unpack-traccar-api-client</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>bm</groupId>
-                                    <artifactId>traccar-api-client</artifactId>
-                                    <version>${traccar.version}-${project.version}</version>
-                                    <outputDirectory>${project.build.directory}/combined-asciidoc/bm-traccar/traccar-api-client</outputDirectory>
-                                    <includes>**/asciidoc/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>unpack-traccar-realtime-client</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>bm</groupId>
-                                    <artifactId>traccar-realtime-client</artifactId>
-                                    <version>${traccar.version}-${project.version}</version>
-                                    <outputDirectory>${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-client</outputDirectory>
-                                    <includes>**/BOOT-INF/classes/asciidoc/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>unpack-traccar-realtime-service</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>bm</groupId>
-                                    <artifactId>traccar-realtime-service</artifactId>
-                                    <version>${traccar.version}-${project.version}</version>
-                                    <outputDirectory>${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-service</outputDirectory>
-                                    <includes>**/BOOT-INF/classes/asciidoc/**</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>${maven-antrun-plugin-version}</version>
                 <executions>
                     <execution>
-                        <id>flatten-unpacked-asciidoc-folders</id>
+                        <id>copy-diagrams</id>
                         <phase>generate-resources</phase>
                         <goals>
                             <goal>run</goal>
@@ -310,22 +214,9 @@
                                 <copy todir="${project.build.directory}/combined-asciidoc/bm-tracker/gps-osmand-player/diagrams" failonerror="false">
                                     <fileset dir="${maven.multiModuleProjectDirectory}/bm-tracker/gps-osmand-player/asciidoc/diagrams" includes="**/*.png" />
                                 </copy>
-
-                                <move todir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-api-client" overwrite="true" failonerror="false">
-                                    <fileset dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-api-client/asciidoc" includes="**/*.adoc" />
-                                </move>
-                                <move todir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-service" overwrite="true" failonerror="false">
-                                    <fileset dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-service/BOOT-INF/classes/asciidoc" includes="**/*.adoc" />
-                                </move>
-                                <move todir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-client" overwrite="true" failonerror="false">
-                                    <fileset dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-client/BOOT-INF/classes/asciidoc" includes="**/*.adoc" />
-                                </move>
-
-                                <delete dir="${project.build.directory}/combined-asciidoc/bm-tracker/gps-osmand-player/asciidoc" failonerror="false" />
-                                <delete dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-openapitools-client/asciidoc" failonerror="false" />
-                                <delete dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-api-client/asciidoc" failonerror="false" />
-                                <delete dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-service/BOOT-INF" failonerror="false" />
-                                <delete dir="${project.build.directory}/combined-asciidoc/bm-traccar/traccar-realtime-client/BOOT-INF" failonerror="false" />
+                                <copy todir="${project.build.directory}/combined-asciidoc/bm-tracker/gpx-osmand-player/diagrams" failonerror="false">
+                                    <fileset dir="${maven.multiModuleProjectDirectory}/bm-tracker/gpx-osmand-player/asciidoc/diagrams" includes="**/*.png" />
+                                </copy>
                             </target>
                         </configuration>
                     </execution>
@@ -393,6 +284,7 @@
 
                                 <gps-osmand-tracker-docs>${project.build.directory}/generated-docs/bm-tracker/gps-osmand-tracker</gps-osmand-tracker-docs>
                                 <gps-osmand-player-docs>${project.build.directory}/generated-docs/bm-tracker/gps-osmand-player</gps-osmand-player-docs>
+                                <gpx-osmand-player-docs>${project.build.directory}/generated-docs/bm-tracker/gpx-osmand-player</gpx-osmand-player-docs>
 
                                 <traccar-openapitools-client-docs>${project.build.directory}/generated-docs/bm-traccar/traccar-openapitools-client</traccar-openapitools-client-docs>
                                 <traccar-api-client-docs>${project.build.directory}/generated-docs/bm-traccar/traccar-api-client</traccar-api-client-docs>

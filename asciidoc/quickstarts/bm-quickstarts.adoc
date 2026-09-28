@@ -126,9 +126,9 @@ After starting the client you will see the console output, like
 
 == `gpx-player`
 
-include::../bm-tracker/gps-osmand-player/gpx-player-qs.adoc[lines=9..11]
+include::../bm-tracker/gpx-osmand-player/gpx-player-qs.adoc[lines=9..14]
 
-xref:../bm-tracker/gps-osmand-player/gpx-player-qs.adoc[read on ...]
+xref:../bm-tracker/gpx-osmand-player/gpx-player-qs.adoc[read on ...]
 
 
 == traccar clients

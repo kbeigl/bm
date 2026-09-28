@@ -1,24 +1,28 @@
-== bm-traccar architecture
-
-// :toc:
-// :icons: font
-// :sectnums:
-
-== Overview
-
-The `bm-traccar` module is a multi-project Maven build that provides client implementations for interacting with a Traccar server, 
-supporting both REST and real-time (WebSocket) communication. +
-The architecture is modular, separating OpenAPI-generated, API interface and real-time logic.
+:toc: left
+:toclevels: 3
+:doctype: book
 
 == Project Structure
 
-The parent project `bm-traccar` aggregates three submodules: +
+As of `v1.1.x` we are developing the following three cascaded 
+and yet independent artifacts as a _layered architecture_. +
+The separation between 
+
+- `traccar-openapitools-client` (generated)
+- `traccar-api-client` (Java wrapper) 
+- `traccar-realtime-client` (orchestration) 
+
+is deliberate. +
+The Api interface acts as a clean façade hiding all REST complexity. 
+
+The parent project `bm-traccar` aggregates the three submodules: +
 
 - `traccar-openapitools-client`: OpenAPI-based client code for Traccar REST APIs.
 - `traccar-api-client`: Custom API client logic for RESTful communication.
 - `traccar-rt-client`: Real-time and WebSocket-based processing, including session management and event routing.
 
-== Component Interaction
+
+=== Component Interaction
 
 This diagram shows the runtime flow from REST API calls to real-time event processing and WebSocket communication.
 
@@ -72,7 +76,7 @@ the local `RealTimeController`, which is automatically kept
 up to date with the Server Status. This is a clear separation
 of the application from client-server communication.
 
-== bm-traccar packages
+=== bm-traccar packages
 
 bm.traccar @SpringbootApplication will scan all subpackages,
 i.e. the other Maven Projects in the bm-traccar branch.
@@ -91,3 +95,40 @@ custom API client code, real-time processing code.
     bm.traccar.api
     bm.traccar.generated...
 ----
+
+
+=== Traccar Versioning
+
+The `/bm-traccar` branch is developed against _every other_ stable Traccar version. +
+Therefore the Traccar version is always updated for the complete `bm-traccar` branch, 
+
+[source,text]
+-----------------
+    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20
+-----------------
+
+and all three artifacts are released with the same Traccar version in their name, +
+i.e. `${traccar.version}-${bm.version}`. 
+
+[source,text]
+-----------------
+    [INFO] ..... traccar-openapitools-client      6.12.2 ......
+    [INFO] ..... traccar-api-client               6.12.2-1.1.20
+    [INFO] ..... traccar-realtime-client          6.12.2-1.1.20-RC
+-----------------
+
+In the prototyping phase no precautions are taken to ignore subtle differences to keep the code lean. +
+For best experiences you should use a traccer server with the exact version,
+which is the case, +
+if you use the Docker image provided by the `bm-traccar` branch.
+
+On the other hand we are not coding against the traccar implementation, 
+but against the OpenAPI specification, which is more stable 
+and less prone to breaking changes. 
+During prototyping we are only implementing API methods 
+that we need to progress for the main application's use cases.
+
+Traccar REST API versions are always more than simple version bumps. +
+Anyhow not every change is a breaking change due to this defensive approach.
+
+

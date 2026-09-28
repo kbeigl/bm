@@ -60,7 +60,7 @@ class RealTimeManagerIT extends BaseRealTimeTest {
     // 2. INITIAL DATA LOAD (from REST API)
     logger.info("--- Loading initial users from server...   ---");
     List<User> initialUsers = new ArrayList<>();
-    initialUsers = api.getUsersApi().getAllUsers();
+    initialUsers = api.getUsersApi().getUsers(null, null, null, null);
     initialUsers.forEach(u -> logger.info("User.id{}: {}", u.getId(), u.getEmail()));
     stateManager.loadInitialUsers(initialUsers);
     logger.debug("Initial users loaded: " + stateManager.getAllUsers());

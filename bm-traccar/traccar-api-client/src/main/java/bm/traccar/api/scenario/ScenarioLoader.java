@@ -64,9 +64,7 @@ public class ScenarioLoader {
 
     // virtualAdmin creates actual server admin ===========
     ScenarioProperties.User user = props.getUser().get(0);
-    admin =
-        api.getUsersApi()
-            .createUserWithCredentials(user.name, user.password, user.email, user.administrator);
+    admin = api.getUsersApi().createAdminWithCredentials(user.name, user.password, user.email);
     // for test purposes ONLY we set the password for simplicity
     admin.setPassword(user.password);
     logger.debug("Created User.id{}: {}/***", admin.getId(), admin.getName());
@@ -87,8 +85,7 @@ public class ScenarioLoader {
     // start at 1, admin is created separately
     for (int i = 1; i < props.getUser().size(); i++) {
       ScenarioProperties.User u = props.getUser().get(i);
-      User createdUser =
-          api.getUsersApi().createUserWithCredentials(u.name, u.password, u.email, false);
+      User createdUser = api.getUsersApi().createUserWithCredentials(u.name, u.password, u.email);
 
       logger.debug(
           "Created User.id{}: {}/{}", createdUser.getId(), createdUser.getName(), u.password);
@@ -154,7 +151,7 @@ public class ScenarioLoader {
 
   /** This actually does not belong to the scenario itself, it's a prerequisite. */
   private void setupServer() {
-    Server server = api.getServerApi().getServerInfo();
+    Server server = api.getServerApi().getServer();
     if (!server.getRegistration()) {
       server.setRegistration(true);
       api.getServerApi().updateServer(server);
@@ -169,9 +166,9 @@ public class ScenarioLoader {
      * scenario.setup    is called from @BeforeAll
      * scenario.teardown is called from @AfterAll  in BaseScenarioTest
      *
-     * The problem is that after setupScenario this instance is different! Therefor the admin
-     * user is null. So we take the admin credentials from the properties and hope the scenario was
-     * not changed.
+     * The problem is that after setupScenario this instance is different!
+     * Therefor the admin user is null. So we take the admin credentials from the properties
+     * and assume the scenario was not changed.
      */
     // .setBasicAuth(admin.getEmail(), props.getUser().get(0).password);
     api.setBasicAuth(props.getUser().get(0).email, props.getUser().get(0).password);
@@ -198,7 +195,7 @@ public class ScenarioLoader {
       ScenarioProperties.User u = props.getUser().get(i);
       try {
         // Find user by email and delete
-        for (User user : api.getUsersApi().getAllUsers()) {
+        for (User user : api.getUsersApi().getUsers(null, null, null, null)) {
           if (user.getEmail().equals(u.email)) {
             api.getUsersApi().deleteUser(user.getId());
             logger.debug("Deleted User.id{}: {}", user.getId(), user.getEmail());
@@ -212,7 +209,7 @@ public class ScenarioLoader {
     // Remove admin user
     ScenarioProperties.User adminProp = props.getUser().get(0);
     try {
-      for (User user : api.getUsersApi().getAllUsers()) {
+      for (User user : api.getUsersApi().getUsers(null, null, null, null)) {
         if (user.getEmail().equals(adminProp.email)) {
           api.getUsersApi().deleteUser(user.getId());
           logger.debug("Deleted Admin User.id{}: {}", user.getId(), user.getEmail());

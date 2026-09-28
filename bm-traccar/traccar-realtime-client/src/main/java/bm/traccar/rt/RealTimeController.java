@@ -36,12 +36,18 @@ import org.springframework.stereotype.Component;
  * the WebSocket to receive and process live updates, feeding everything into the thread-safe state
  * manager, i.e. the RealTimeModel.
  */
-@Component // or @Service ?
-public class RealTimeController {
+@Component
+public class RealTimeController { // actually more of an authorized Observer !
   private static final Logger logger = LoggerFactory.getLogger(RealTimeController.class);
 
+  /**
+   * The RealTimeController is responsible for managing the connection to the Traccar server,
+   * including authentication, initial data loading, and WebSocket communication. RealTimeController
+   * remains the sole public component for interacting with the client from outside this package.
+   */
   private final RealTimeManager stateManager;
-  private final Api api; // use more convenient ApiService !?
+
+  private final Api api;
   private final WebSocketRoute liveConnection;
 
   public RealTimeController(RealTimeManager stateManager, Api api, WebSocketRoute liveConnection) {
@@ -53,11 +59,14 @@ public class RealTimeController {
   /**
    * Authenticates with the server, loads initial data, and connects to the WebSocket.
    *
+   * <p>Note that the admin user must have the password set and the necessary permissions to access
+   * the required data. If the login fails, the method returns false and no further actions are
+   * taken.
+   *
    * @return true if initialization was successful, false otherwise.
    */
   public boolean loginAndInitialize(User admin) throws Exception { // specify Exception
 
-    // try bad credentials
     api.setBasicAuth(admin.getEmail(), admin.getPassword());
 
     try {
@@ -73,8 +82,21 @@ public class RealTimeController {
     liveConnection.loginAndConnect(admin.getEmail(), admin.getPassword());
 
     // after initialization was successful
-    stateManager.setLoginUser(admin);
-    logger.info(
+    User loggedInUser =
+        stateManager
+            .getUserByEmail(admin.getEmail())
+            .map(
+                u -> {
+                  if (u.getPassword() == null) {
+                    // pw is not returned by the API, but we need it for WebSocket
+                    // reconnections etc. -> store it in the model for future use
+                    u.setPassword(admin.getPassword());
+                  }
+                  return u;
+                })
+            .orElse(admin);
+    stateManager.setLoginUser(loggedInUser); // set
+    logger.info( // get
         "User logged in: {}", stateManager.getCurrentUser().map(User::getName).orElse("N/A"));
 
     return true;
@@ -91,7 +113,7 @@ public class RealTimeController {
 
     List<User> initialUsers = new ArrayList<>();
     // following line should verify that credentials are correct ..
-    initialUsers = api.getUsersApi().getAllUsers();
+    initialUsers = api.getUsersApi().getUsers(null, null, null, null);
     // .. proceed with correct credentials
     logger.info("--- Loading initial users from server...   ---");
     // users from other tests are listed! -> permission management
@@ -123,6 +145,8 @@ public class RealTimeController {
     stateManager.logoutAndClear();
   }
 
+  // longterm: generalize with generic methods ------------
+
   public void addOrUpdatePosition(Position position) {
     stateManager.addOrUpdatePosition(position);
   }
@@ -148,34 +172,63 @@ public class RealTimeController {
     return stateManager.isAuthenticated();
   }
 
-  // generalize with generic methods ? --------------------
+  // longterm: generalize with generic methods ------------
 
-  public Optional<User> getUserById(long id) {
-    return stateManager.getUserById(id);
-  }
-
-  // should not be used in app context, use uniqueid
-  //  public Optional<Device> getDeviceById(long id) {
-  //    return stateManager.getDeviceById(id);
-  //  }
+  // --- natural key access (preferred) -------------------
+  // Application code addresses devices by uniqueId and users by email.
+  // Database ids may appear in returned DTOs but never cross this boundary as parameters.
+  // consider setting DTO ids to null in the controller before returning them to the application.
 
   /**
    * Finds the Device for a given uniqueId, or Optional.empty() if not found.
    *
    * @param uniqueId the unique identifier of the device
    * @return Optional containing Device if present, otherwise empty
-   * @see RealTimeManager#getDeviceByUniqueId(String) for the mapping
+   * @see RealTimeManager#findDeviceByUniqueId(String)
    */
   public Optional<Device> getDeviceByUniqueId(String uniqueId) {
-    long deviceId = stateManager.getDeviceByUniqueId(uniqueId);
-    if (deviceId == -1L) {
-      return Optional.empty();
-    }
-    return stateManager.getDeviceById(deviceId);
+    return stateManager.findDeviceByUniqueId(uniqueId);
   }
 
-  public Optional<Position> getPositionById(long id) {
-    return stateManager.getPositionById(id);
+  /**
+   * Get the latest position for the device identified by uniqueId.
+   *
+   * @param uniqueId the unique identifier of the device
+   * @return Optional containing the latest Position, or empty if device unknown or no position yet
+   */
+  public Optional<Position> getLatestPositionForDevice(String uniqueId) {
+    return stateManager.getLatestPositionForDevice(uniqueId);
+  }
+
+  /**
+   * Waits for a position to be available for the specified device.
+   *
+   * @param uniqueId the unique identifier of the device
+   * @param timeoutMs the timeout in milliseconds
+   * @return the latest position for the device, or null if not available within timeout
+   * @throws InterruptedException if the thread is interrupted while waiting
+   */
+  public Position awaitPositionForDevice(String uniqueId, long timeoutMs)
+      throws InterruptedException {
+    long start = System.currentTimeMillis();
+    while ((System.currentTimeMillis() - start) < timeoutMs) {
+      Optional<Position> posOpt = getLatestPositionForDevice(uniqueId);
+      if (posOpt.isPresent()) {
+        return posOpt.get();
+      }
+      Thread.sleep(100L);
+    }
+    return null;
+  }
+
+  /**
+   * Finds the User for a given email (the natural key of a Traccar user).
+   *
+   * @param email the user's email / login name
+   * @return Optional containing User if present, otherwise empty
+   */
+  public Optional<User> getUserByEmail(String email) {
+    return stateManager.getUserByEmail(email);
   }
 
   /** Returns a copy of the list of all users. */
@@ -186,16 +239,5 @@ public class RealTimeController {
   /** Returns a copy of the list of all devices. */
   public List<Device> getAllDevices() {
     return new ArrayList<>(stateManager.getAllDevices());
-  }
-
-  /** Returns a copy of the list of all Positions. */
-  //  public List<Position> getAllPositions() {
-  //	use postion API to get all positions for a device or time range,
-  //    instead of keeping all positions in memory
-  //  }
-
-  /** Get the latest position for a given device. */
-  public Optional<Position> getLatestPositionForDevice(long deviceId) {
-    return stateManager.getLatestPositionForDevice(deviceId);
   }
 }

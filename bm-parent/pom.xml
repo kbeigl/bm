@@ -24,7 +24,7 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-sim</artifactId>
-        <version>1.1.27</version>
+        <version>1.1.28</version>
     </parent>
 
     <artifactId>bm-parent</artifactId>
@@ -65,6 +65,7 @@
         <camel-version>4.21.0</camel-version>
         <spring-boot-version>4.2.0-M1</spring-boot-version>
         <spring-boot-maven-plugin-version>${spring-boot-version}</spring-boot-maven-plugin-version>
+        <hawtio-version>5.3.0</hawtio-version>
 
         <asciidoctor.maven.version>3.2.0</asciidoctor.maven.version>
         <!-- AsciidoctorJ Diagram for Mermaid support -->
@@ -96,6 +97,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.hawt</groupId>
+                <artifactId>hawtio-bom</artifactId>
+                <version>${hawtio-version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-spring-boot-bom</artifactId>

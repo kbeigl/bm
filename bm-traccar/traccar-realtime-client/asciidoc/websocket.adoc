@@ -1,18 +1,21 @@
+:toc: left
+:toclevels: 4
+:doctype: book
 
 
-= The Traccar WebSocket Client
-
+== Traccar WebSocket Client
 
 The `traccar-api-client` is a Java Client Software to _request_ real time data 
 from your Traccar Server. While the REST API is based on single requests, 
 i.e. REST calls and responses without any session handling, i.e. stateless.
 
-Therefor this *WebSocket Route/Session Manager* can create a Camel channel 
+The *WebSocket Route/Session Manager* can create a Camel channel 
 for each individual registered user to manage WebSocket connections and event routing.
 
 On a higher level different websocket channels can report live events 
-in a given _Scenario_. For example you could direct different vehicles 
-to a rendezvous point and your software can create events as they approach each other.
+from a given _Scenario_. For example you could direct different vehicles 
+to a rendezvous point and your software can create events and send them
+as they approach each other.
 
 
 == The Traccar WebSocket API
@@ -53,9 +56,10 @@ The WebSocket URL would be `ws://your.traccar.server:8082/api/socket`  +
 Traccar's WebSocket API relies solely on a session cookie `JSESSIONID` for authentication. +
 You cannot use Basic Auth or Bearer tokens directly with the WebSocket connection itself. 
 
-In order to create a ws session you need to authenticate (as in `traccar-api-client` or `traccar-api-camel`) 
-with a successful `HTTP POST` request to the Traccar `/api/session` endpoint to log in. +
-Then extract the `JSESSIONID` cookie from the response headers of this login request
+In order to create a `ws://` session you need to authenticate  
+with a successful `HTTP POST` request +
+to the Traccar `/api/session` endpoint to log in. +
+Then extract the `JSESSIONID` cookie from the response headers of this login request +
 and use this `JSESSIONID` cookie when establishing the WebSocket connection.
 
 === WebSocket Component
@@ -107,16 +111,16 @@ while using the http context from Spring Boot for the ws connection.
 
 Note that we will *not* use the `traccar-api-client` for the `http POST`,
 since we clearly want to separate the two clients for API and WebSocket.
-Our architecture does not want any dependencies between them for isolated testing etc.
+Our architecture should not allow any dependencies between them for isolated testing etc.
 Each client represents a software _Unit_ and can be tested, developed and used alone. 
 And like every Unit it should be replaceble.
 
-Anyhow we can combine the two in a higher level `traccar-java-client`.
+Anyhow we combine the two in the higher level `traccar-realtime-client`.
 
 
 == Implementation with Camel Routes 
 
-The core of this `traccar-ws-client` is the TraccarWsClientRoute. +
+The core of this `traccar-ws-client` is the `TraccarWsClientRoute`. +
 Here is a rough outline with three routes:
 
 [source,java]
@@ -183,7 +187,7 @@ public class TraccarWsClientRoute extends RouteBuilder {
   a secrets management solution like Vault or whatever you chose for your software.
  
 
-=== Debugging
+== Debugging
 
 The initial `traccar-ws-client` implementation is kept as simple as it gets. 
 This allows a better understanding and makes it easier to expand the component 
@@ -201,7 +205,8 @@ In addition you should create an account on one of the graciously sponsered
 link:https://www.traccar.org/demo-server/[Traccar Demo Servers] 
 and test with `https` and `email/password`.
 
-==== Step1: http with curl 
+
+=== 1. http with curl 
 
 Compose the command line with `email/password/http|s/port`
 and check the http connection with 
@@ -229,7 +234,7 @@ and hopefully get something like this
 <5> JSON DTO for logged user
 
 
-==== Step2: ws with wscat 
+=== 2. ws with wscat 
 
 Again, adopt your parameters and copy the `JSESSIONID` from the `http POST` above:
 
@@ -240,9 +245,7 @@ Again, adopt your parameters and copy the `JSESSIONID` from the `http POST` abov
     < {}
     
 Here you should get the `Connected` response and see the messages arriving in intervals
-(configured on the server).
-If you want to see actual values you might change something in the Traccar Frontend 
-or register a device or the like.
+(configured on the server) - if you have any devices registered and sending positions. 
 
 Introduce a typo or use a wrong `JSESSIONID` to raise 
 
@@ -262,87 +265,3 @@ you should start here:
 This way you have validated all parameters and are good to go for comparing analyses 
 as you develop.
 
-
-== review traccar-api-client
-
-=== simple example / usage
-
-Here's a simple example code to demo how to add the Traccar API Service 
-to your company software. +
-First you need these prerequesites: 
-
-* Add the `traccar-api-client-x.y.z.jar` to your application. +
-Or add it to your `.m2` repo or nexus server, then to _your_ `pom`.
-
-* Add your Traccar Server URL and credentials to your `application.properties` file. +
-i.e. `host, user.name, user.password, user.email (, accountToken)`. +
-Or provide these values in a way that meets your security strategy (secrets etc.)
-
-and then the coding is straight forward:
-
-[source,java]
-----
-package your.company.app...;
-
-import bm.traccar.api.ApiService            // <1>
-
-public class TraccarUsers {
-
-    @Autowired
-    private ApiService api;                 // <1>
-
-    public static void main(String[] args) { 
-    
-        api.setBasicAuth(mail, password);   // <2>
-//      api.setBearerToken(token);
-        
-        User user = new User();             // <3>
-        user.setName("user-1");
-        user.setEmail("email-1");
-        user.setPassword("pw-1");
-        
-        User userOnServer = api.users.createUser(user);     // <4>
-        
-    }
-}
-----
-<1> add the `ApiService`, being a Spring `@Service class`
-
-<2> choose and set your authentication +
-and can change it any time in the program flow.
-
-<3> create a `new User` (DTO) in your software for your employees 
-
-<4> create a `new User` (Entity) in your Traccar Server +
-The new User (DTO) is returned with a unique ID from the server.  
-
-And that is all you need to create users, devices etc.
-and manage them in your code! +
-For more examples check the integration tests, i.e. UsersIT and others.
-
-=== configuration
-
-For convenience you can use the `application.properties` file 
-and grab the `@Value` in your source code, depending on your security concepts.
-Check the `*.*IT` integration test files for demo code.
-
-==== application.properties
-
-  # traccar server
-  traccar.host=http://localhost
-  traccar.user.name=admin
-  traccar.user.password=admin
-  traccar.user.email=admin@domain.com
-
-your implementation (compare ITests)
-
-  @Value("${traccar.user.name}")     private String name;
-  @Value("${traccar.user.password}") private String password;
-  @Value("${traccar.user.email}")    private String mail;
-
-== usage
-
-After adding the jar to your software or build system 
-the API can easily be added to any Springboot Application as a @Service in your code
-
-      @Autowired private ApiService api;

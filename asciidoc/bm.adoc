@@ -13,11 +13,51 @@ image::Programming-GPS-OpenStreetMap-Applications.jpg[The RealObject Application
 
 click image to get more details
 
+
 == intro
 
 Blue Marble Simulations `bm-sim` is a Java-based multi-module Maven project focused on GPS tracking simulations. 
 It provides client-side tooling around Traccar, integrating it with Spring Boot and Apache Camel 
 to simulate and process location data in real-time. 
+
+
+== overview
+
+The goal is to provide reusable Java clients and tools for 
+
+* Generating a _strongly-typed Java client_ from Traccar's OpenAPI spec 
+* Sending GPS position data to a Traccar/OsmAnd server (as a simulated tracker device)
+* Receiving real-time updates from a Traccar server via REST API and WebSocket
+
+      branch  /bm-tracker                   /bm-traccar
+      . 
+      [gps-osmand-tracker]                     [traccar-realtime-client]
+        TrackerOsmAnd                              RealTimeClient 
+            │ .send()                                      │ live updates 
+            ▼                                              ▼
+        Camel direct/seda route               RealTimeController.loginAndInitialize()
+            │                                              │  [traccar-openapitools-client]
+            ▼                                              ├─ REST API [traccar-api-client]
+        HTTP POST to OsmAnd endpoint                       │    └─ /api/users
+        (Traccar DCS:5055)                                 |       /api/devices
+            │                                              |
+            │                                              └─ WebSocket (vertx-websocket)
+            ▼                                                   └─ /api/socket
+        Traccar Server                                                │
+        stores position                   ▲                           ▼
+        and sends updates                 |                WebSocketRoute (Camel CBR)
+        to [traccar-realtime-client] -----+                 │             <Entity> Processors
+                                                            ├─ devices   →   DeviceProcessor
+                                                            └─ positions → PositionProcessor
+            ▲                                                       │              :    
+            |                                                       ▼
+            | creates, controls,                              RealTimeManager (state)
+            | observes trackers                                     |
+            |                                                       |
+            +-------------- [traccar-realtime-service] -------------+
+            |        combines Tracker, API and RealTimeClient       |
+            |       to a full real-time Application (Boot app)      |
+            +-------------------------------------------------------+
 
 
 === latest versions
@@ -38,6 +78,8 @@ include::./quickstarts/bm-quickstarts.adoc[lines=5..8]
 If you are looking for a quickstart to get started with each project, 
 xref:./quickstarts/bm-quickstarts.adoc[goto quickstarts ...]
 
+// these headings reflect the projects file structure 
+// but are not part of the big repo toc !
 
 == `/workflows` 
 
@@ -51,6 +93,21 @@ xref:workflows.adoc[read on ...]
 include::bm-parent/bm-parent.adoc[lines=7..19]
 
 xref:bm-parent/bm-parent.adoc[read on ...]
+
+
+== Integrated Development
+
+The GPS Tracker and Player were developed as client senders for the Traccar GTS.
+Each project test is running standalone for each Unit.
+For a _full integrated development cycle_ we run the Traccar Server in a Docker container 
+and look into the server state with the Traccar REST API and websocket interface.
+This development is done in the `bm-traccar` branch.
+The `traccar-realtime-client` is an important milestone as it allows 
+a _full roundtrip engineering_ in an integrated development cycle.
+
+Therefor the longterm Tracker and Player development happen in the `traccar-realtime-client` project.
+
+xref:./bm-traccar/traccar-realtime-client/integrated-dev-cycle.adoc#_integrated_tracker_development[read about the Integrated Development Cycle]
 
 
 == `/bm-tracker`
@@ -76,136 +133,44 @@ include::bm-tracker/gps-osmand-player/gps-osmand-player.adoc[lines=14..24]
 xref:./bm-tracker/gps-osmand-player/gps-osmand-player.adoc[read on ...]
 
 
-== Integrated Development
+=== `gpx-osmand-player`
 
-The GPS Tracker and Player were developed as client senders for the Traccar GTS.
-Each project test is running standalone for each Unit.
-For a _full integrated development cycle_ we run the Traccar Server in a Docker container 
-and look into the server state with the Traccar REST API and websocket interface.
-This development is done in the `bm-traccar` branch.
-The `traccar-realtime-client` is an important milestone as it allows 
-a _full roundtrip engineering_ in an integrated development cycle.
+include::bm-tracker/gpx-osmand-player/gpx-osmand-player.adoc[lines=9..22]
 
-Therefor the longterm Tracker and Player development happen in the `traccar-realtime-client` project.
-
-xref:./bm-traccar/traccar-realtime-client/integrated-dev-cycle.adoc#_integrated_tracker_development[read about the Integrated Development Cycle]
+xref:./bm-tracker/gpx-osmand-player/gpx-osmand-player.adoc[read on ...]
 
 
+== `/bm-traccar` 
 
-== `/bm-traccar` - GTS Remote Access
-
-The `bm-traccar` aggregator POM is the development environment 
-to code against the link:https://www.traccar.org/[Traccar GPS Tracking Platform].
-Traccar is a GPS Tracking System (GTS) written in Java and published as Open Source Software.
-The System was thoroughly analyzed in the 
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc[JeeTS Project]
-and
-link:https://github.com/kbeigl/jeets/blob/master/README.adoc#literature[JeeTS Book].
+include::bm-traccar/bm-traccar.adoc[lines=7..17]
 
 xref:./bm-traccar/bm-traccar.adoc[read more to setup and adopt your development environment]
 
 
-As of `v1.1.x` we are developing the following three cascaded and yet independent artifacts as a _layered architecture_. +
-The separation between 
+=== `-openapitools-client`
 
-- `traccar-openapitools-client` (generated)
-- `traccar-api-client` (Java wrapper) 
-- `traccar-realtime-client` (orchestration) 
-
-is deliberate. 
-The Api interface acts as a clean façade hiding all REST complexity.
-
-
-=== Traccar Versioning
-
-The `/bm-traccar` branch is developed against _every other_ stable Traccar version. +
-Therefore the Traccar version is always updated for the complete `bm-traccar` branch, 
-
-[source,text]
------------------
-    [INFO] ---- Traccar 6.12.2 Clients               --- 1.1.20
------------------
-
-and all three artifacts are released with the same Traccar version in their name, +
-i.e. `${traccar.version}-${bm.version}`. 
-
-[source,text]
------------------
-    [INFO] ..... traccar-openapitools-client      6.12.2 ......
-    [INFO] ..... traccar-api-client               6.12.2-1.1.20
-    [INFO] ..... traccar-realtime-client          6.12.2-1.1.20-RC
------------------
-
-In the prototyping phase no precautions are taken to ignore subtle differences to keep the code lean. +
-For best experiences you should use a traccer server with the exact version,
-which is the case, +
-if you use the Docker image provided by the `bm-traccar` branch.
-
-On the other hand we are not coding against the traccar implementation, 
-but against the OpenAPI specification, which is more stable 
-and less prone to breaking changes. 
-During prototyping we are only implementing API methods 
-that we need to progress for the main application's use cases.
-
-Traccar REST API versions are always more than simple version bumps. +
-Anyhow not every change is a breaking change due to this defensive approach.
-
-
-=== `traccar-openapitools-client`
-
-The Traccar REST API is defined in a single `openapi.yaml` file,
-which is processed with the  
-link:https://github.com/OpenAPITools/openapi-generator[OpenAPI Generator] 
-to generate a plain Java Client `traccar-api-generated-x.y.z.jar` from the 
-link:https://swagger.io/specification/[OpenAPI specification]. 
-
-The client generation is done 'out of the box', meaning that the generator 
-is invoked with Maven and there are no manual changes.
-
-[TIP]
-====
-Therefor you can also download the released `jar` for your own purposes. 
-====
+include::./bm-traccar/traccar-openapitools-client/openapitools.adoc[lines=6..23]
 
 xref:./bm-traccar/traccar-openapitools-client/openapitools.adoc[details ...]
 
 
-=== `traccar-api-client`
+=== `-api-client`
 
-The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
-And it can be used to integrate your Tracking System with your company systems, 
-like Human Resources-, Sales- and Fleet Management Software.
-Synchronize your employees with their cars and driver information without utilizing the traccar UI.
-Pull driving reports for your sales team ... and much more ;) 
-
-Technically the project is a higher-level Spring Boot & Camel REST client wrapper over the Traccar API.
+include::./bm-traccar/traccar-api-client/traccar-api-client.adoc[lines=9..14]
 
 xref:./bm-traccar/traccar-api-client/traccar-api-client.adoc[details ...]
 
 
-=== `traccar-realtime-client`
+=== `-realtime-client`
 
-The `traccar-rt-client` is a Java Client Software 
-to provide full (remote) control over and interact 
-via live surveillance of your Traccar Server Scenario. 
-A dual-lock approach (`ConcurrentHashMap` for concurrent reads and `synchronized (deviceMapLock)` 
-for multi-map atomic writes) always assures a stable realtime state.
+include::./bm-traccar/traccar-realtime-client/traccar-realtime-client.adoc[lines=7..14]
 
 xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client.adoc[details ...]
 
 
-=== `traccar-realtime-service`
+=== `-realtime-service`
 
-The `traccar-realtime-service` is a Java Client Software 
-to provide full (remote) control over and interact 
-via live surveillance of your Traccar Server Scenario. 
-
-This application is putting the Trackers, the Traccar API and the Traccar Client 
-together to a general real time application,
-which can be used to create a customized scenario, like a vehicle fleet.
-
-A customized model can help to improve your business by observing and controlling your vehicles.
-
+include::./bm-traccar/traccar-realtime-service/traccar-realtime-service.adoc[lines=7..16]
 
 xref:./bm-traccar/traccar-realtime-service/traccar-realtime-service.adoc[details ...]
 

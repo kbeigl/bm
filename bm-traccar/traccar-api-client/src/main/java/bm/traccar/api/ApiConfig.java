@@ -24,11 +24,26 @@ import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 
+/**
+ * Spring configuration of the Traccar API client.
+ *
+ * <p>Importing this configuration is the complete contract for consumers: it provides the {@link
+ * ApiClient}, one bean per generated {@code *Api}, all {@code Api.*} sub-interface implementations
+ * (as {@code @Component}s), the {@link ApiService}, and -- via {@link ApiAspect} -- the translation
+ * of all {@code RestClientException}s into {@link ApiException}.
+ *
+ * <p>Note: the generated {@code *Api} instances must be Spring beans (as declared below), otherwise
+ * the aspect cannot proxy them and no {@link ApiException} is thrown.
+ */
 @Configuration
 @EnableAspectJAutoProxy
+@Import(ApiAspect.class)
+@ComponentScan(basePackages = {"bm.traccar.api", "bm.traccar.api.impl"})
 public class ApiConfig {
 
   @Value("${traccar.host:http://localhost}") // :80

@@ -33,7 +33,7 @@ public class ServerApiIT extends BaseIntegrationTest {
   public void getServerInfo() {
     // works without authentication !?
     // api.setBearerToken(virtualAdmin);
-    bm.traccar.generated.model.dto.Server server = api.server.getServerInfo();
+    bm.traccar.generated.model.dto.Server server = api.getServerApi().getServer();
     assertNotNull(server, "server info was not returned");
     logger.info("Server Info: {}", server);
   }
@@ -42,7 +42,7 @@ public class ServerApiIT extends BaseIntegrationTest {
   public void setServerRegistration() {
     // works without authentication !?
     // api.setBearerToken(virtualAdmin);
-    Server server = api.server.getServerInfo();
+    Server server = api.getServerApi().getServer();
     logger.info("Server Info: {}", server);
 
     if (!server.getRegistration()) {
@@ -50,7 +50,7 @@ public class ServerApiIT extends BaseIntegrationTest {
       server.setRegistration(true);
       api.getServerApi().updateServer(server);
     }
-    server = api.server.getServerInfo();
+    server = api.getServerApi().getServer();
     logger.info("Server Registration: {}", server.getRegistration());
     assertTrue(server.getRegistration());
   }

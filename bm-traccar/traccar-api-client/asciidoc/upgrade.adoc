@@ -1,7 +1,7 @@
+:toc: left
+// :toclevels: 4
 
-:toc:
-
-= upgrading `traccar-api-client` 
+== upgrading the API client 
 
 The generation of the Java API Client takes place in the `traccar-openapitools-client`
 as a completly independant process and therefor versioned one to one against Traccar.
@@ -14,7 +14,7 @@ xref:../../bm-traccar/traccar-openapitools-client/openapitools.adoc#_openapi_yam
 to be aware of.
 
 
-== Traccar `v6.10.0` to `v6.12.2`
+=== `v6.10.0` to `v6.12.2`
 
 After upgrading the Traccar version
 
@@ -85,6 +85,6 @@ with the addition of new parameters to existing endpoints and the addition of ne
 No need to go into details here, since we implement new API methods on demand. +
 If you are looking for the progress and usage of the Traccar API and sub APIs +
 you can go directly to the 
-xref:./api/traccar-api.adoc[Traccar API page].
+xref:./api/sub-api-implementations.adoc[Traccar API page].
 
 

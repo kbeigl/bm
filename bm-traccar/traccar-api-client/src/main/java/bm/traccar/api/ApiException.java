@@ -39,11 +39,60 @@ public class ApiException extends RuntimeException {
       // could be a PK violation, if object already exists
       APIEX_UNAUTHORIZED = "Unauthorized: check credentials!";
 
+  private final ApiErrorCode errorCode;
+  private final Integer statusCode;
+
   public ApiException(String message) {
-    super(message);
+    this(inferErrorCode(message), null, message, null);
   }
 
   public ApiException(String message, Throwable cause) {
+    this(inferErrorCode(message), null, message, cause);
+  }
+
+  public ApiException(ApiErrorCode errorCode, String message) {
+    this(errorCode, defaultStatusCode(errorCode), message, null);
+  }
+
+  public ApiException(ApiErrorCode errorCode, String message, Throwable cause) {
+    this(errorCode, defaultStatusCode(errorCode), message, cause);
+  }
+
+  public ApiException(ApiErrorCode errorCode, Integer statusCode, String message) {
+    this(errorCode, statusCode, message, null);
+  }
+
+  public ApiException(ApiErrorCode errorCode, Integer statusCode, String message, Throwable cause) {
     super(message, cause);
+    this.errorCode = errorCode != null ? errorCode : ApiErrorCode.UNKNOWN;
+    this.statusCode = statusCode;
+  }
+
+  public ApiErrorCode getErrorCode() {
+    return errorCode;
+  }
+
+  public Integer getStatusCode() {
+    return statusCode;
+  }
+
+  private static ApiErrorCode inferErrorCode(String message) {
+    if (message == null) return ApiErrorCode.UNKNOWN;
+    if (message.equals(APIEX_NO_CONNECTION)) return ApiErrorCode.NO_CONNECTION;
+    if (message.equals(APIEX_UNAUTHORIZED)) return ApiErrorCode.UNAUTHORIZED;
+    if (message.equals(APIEX_BAD_REQUEST)) return ApiErrorCode.BAD_REQUEST;
+    if (message.equals(APIEX_CLIENT_REST)) return ApiErrorCode.CLIENT_REST;
+    return ApiErrorCode.UNKNOWN;
+  }
+
+  private static Integer defaultStatusCode(ApiErrorCode errorCode) {
+    if (errorCode == null) return null;
+    return switch (errorCode) {
+      case BAD_REQUEST -> 400;
+      case UNAUTHORIZED -> 401;
+      case NOT_FOUND -> 404;
+      case SERVER_ERROR -> 500;
+      default -> null;
+    };
   }
 }

@@ -2,10 +2,41 @@
 :toclevels: 3
 :doctype: book
 
-include::architecture.adoc[]
+// see bm-traccar.adoc to include headings
 
-include::implementation.adoc[]
+= The Traccar OpenAPI Client
 
-include::scenario.adoc[]
+The `traccar-api-client` is a Java Client Software to provide full (remote) control over your Traccar server.
+And it can be used to integrate your Tracking System with your company systems, 
+like Human Resources-, Sales- and Fleet Management Software.
+Synchronize your employees with their cars and driver information without utilizing the traccar UI.
+Pull driving reports for your sales team ... and much more ;) 
 
-include::upgrade.adoc[]
+Technically the project is a higher-level Spring Boot & Camel REST client wrapper over the Traccar API.
+
+
+// includes headings
+
+include::architecture.adoc[lines=14..26]
+
+xref:architecture.adoc[more about the architecture of the Traccar API Client ...]
+
+
+include::implementation.adoc[lines=3..11]
+
+xref:implementation.adoc[more about the implementation of the Traccar API Client ...]
+
+include::./api/sub-api-implementations.adoc[lines=5..20]
+
+xref:./api/sub-api-implementations.adoc[goto the sub API implementations ...]
+
+
+include::scenario.adoc[lines=3..9]
+
+xref:scenario.adoc[see how we setup a Scenario for development and testing ...]
+
+
+include::upgrade.adoc[lines=4..14]
+
+xref:upgrade.adoc[look at upgrades and issues ...]
+

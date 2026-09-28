@@ -1,5 +1,8 @@
+:toc: left
+:toclevels: 3
+:doctype: book
 
-= setup development environment
+== Development Environment
 
 The `traccar-api-client` defines an interface between a Java Client and a Traccar Server REST API. 
 In order to test the remote invocation, development requires a running traccar server. 
@@ -7,7 +10,6 @@ This is acquired by using a traccar docker container managed in the Maven lifecy
 The only system requirement to the environment is a `docker` command line and 
 adequat permissions. 
 
-[toc]
 
 == credentials
 

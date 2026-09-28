@@ -1,0 +1,160 @@
+:toc: left
+// :toclevels: 3
+// :doctype: book
+
+== sub API implementations
+
+This project is part of a larger software and therefor the Traccar Api Endpoints (`operationId`)
+are implemented in the order required by the main application.
+During prototyping you should _avoid_ any bulk implementations.
+Protoyping is modelling and every new cycle, i.e. `x.y.z release` 
+can introduce new sub APIs and endpoints - as the main application progresses.
+This way the implementation for all sub APIs turns into a mature pattern.
+And interdependencies can be implemented with convenient methods combining common actions. 
+
+The most important aspect of this project is its _layer functionality_.
+As the Traccar GTS progresses the REST specification is modified 
+and we want to avoid code changes all over our application.
+In the best case the code changes can be restricted to this project.
+The project can fix and hide specification inconsistencies 
+and should provide consistent Java methods.
+
+
+[TIP]
+====
+This page is about the usage of the Traccar API and sub APIs. +
+If you are looking for the architecture and usage of the Traccar OpenAPI Client. +
+you can go directly to the xref:../traccar-api-client.adoc[Traccar OpenAPI Client].
+====
+
+
+include::authentication.adoc[lines=5..11]
+
+xref:authentication.adoc[learn how to authenticate with the Traccar API ...]
+
+
+== The Traccar Sub APIs
+
+As described in the xref:../traccar-api-client.adoc[Traccar OpenAPI Client] page 
+the Traccar REST API `v6.12.2` provides 19 APIs with DTOs.
+You can find the classes in the `bm.traccar.generated.model.dto` package 
+and they are available in every `traccar-client-` implementation.   
+In this section we will go through the APIs in the order of appearance 
+and necessity of usage in the course of the prototype implementation.
+We can find all generated sub APIs in the `bm.traccar.generated.api` package. 
+
+
+=== Sub APIs and DTO Classes
+
+
+[TIP]
+====
+Note that the APIs are introduced in the order of exploration. +
+Starting with `Users API` and `Session API` as the latter is using the earlier + 
+for convenience (and for a fallback solution). +
+With interdependencies of the APIs development, +
+server management (intricicies) can be simplified for API usage.
+====
+
+// make implemented APIs clickable in the table 
+
+|===
+
+|Attribute |Calendar |Command |CommandType
+
+|*Device* |DeviceAccumulators |Driver |Event
+
+|Geofence |*Group* |Maintenance |Notification
+
+|NotificationType |*Permission* |*Position* |ReportStops
+
+|ReportSummary |ReportTrips |*Server* |Statistics
+
+|*User* | | | 
+|===
+
+
+=== Implementing the APIs
+
+To maintain consistency and architectural stability across all sub-APIs, +
+developers follow a standardized implementation recipe and naming conventions.
+
+
+==== Sub-API Developer Recipe
+
+When adding or extending a sub-API, apply the following step-by-step process:
+
+1. **Register `@Bean XxxApi` in `ApiConfig`** +
+   Define the generated API client bean (e.g. `UsersApi`, `DevicesApi`) in `ApiConfig`. +
+   Generated `*Api` instances must be Spring beans so that the `ApiAspect` can proxy them and translate connection errors into `ApiException`.
+
+2. **Declare Platonic Methods on `interface Api.Xxx`** +
+   Add the nested interface (e.g. `Api.Users`, `Api.Devices`) inside `bm.traccar.api.Api`. +
+   Provide platonic methods—one per REST endpoint (`operationId`)—mirroring generated method parameters and signatures.
+
+3. **Narrow ID Types with `ApiHelper.toInt`** +
+   Traccar DTOs carry `Long id`, whereas path parameters in generated APIs expect `Integer`. +
+   Apply `ApiHelper.toInt(id)` on every ID parameter before invoking the generated client to assert valid Integer ranges and handle inconsistencies.
+
+4. **Implement `class XxxImpl implements Api.Xxx`** +
+   Create the implementation in `bm.traccar.api.impl` annotated with `@Component`. +
+   Inject the generated `XxxApi` bean via constructor injection.
+
+5. **Wire into `ApiService` and Expose Getter** +
+   Add the `getXxxApi()` getter to the `Api` interface and inject `Api.Xxx` into `ApiService`. +
+   This allows consumers to inject either the unified `Api` interface or individual `Api.Xxx` sub-API components.
+
+6. **Create Integration Tests (`XxxApiIT`)** +
+   Create `XxxApiIT` extending `BaseScenarioTest` (or `BaseIntegrationTest`). +
+   Write tests for the implemented methods in the `*IT` classes to verify real server interactions and edge cases.
+
+7. **Place Convenience Methods Below Helper Markers** +
+   Keep platonic REST methods separate from higher-level helper routines. +
+   Add convenience methods only below a `// helpers` marker in `Api.Xxx` and `XxxImpl` when required by the application.
+
+
+==== Implementation Order
+
+Sub-APIs are introduced in the order of exploration, architectural dependency, and necessity for the prototype application:
+
+1. **Server & Session API** (`Api.Server`, `Api.Session`) +
+   Essential for server discovery, health checks, authentication, and token management (`JSESSIONID`).
+2. **Users API** (`Api.Users`) +
+   Manages user *Accounts*, credentials, and role hierarchies (Admin, Manager, Regular User).
+3. **Devices API** (`Api.Devices`) +
+   Registers and tracks physical/simulated GPS hardware and identifiers (`uniqueId`).
+4. **Permissions API** (`Api.Permissions`) +
+   Controls access links between users, devices, groups, and notifications.
+5. **Positions, Groups & Higher-Level APIs** (`Api.Position`, `Api.Group`, etc.) +
+   Provides position tracking, geofencing, and reporting as application features expand.
+
+
+[NOTE]
+====
+Every API implementation has its `*IT` where you can find a test for every API method +
+and that you can use to experiment with them.
+====
+
+// includes headings
+
+include::session.adoc[lines=5..13]
+
+xref:session.adoc[read about the Session API vs Traccar Authentication ...]
+
+
+include::users.adoc[lines=5..13]
+
+xref:users.adoc[how to manage users and roles ...]
+
+
+include::devices.adoc[lines=5..15]
+
+xref:devices.adoc[read how to manage devices and device types ...]
+
+
+include::permissions.adoc[lines=5..8]
+
+xref:permissions.adoc[read how to manage permissions ...]
+
+
+

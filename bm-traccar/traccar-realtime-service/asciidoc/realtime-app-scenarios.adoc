@@ -1,0 +1,387 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+:kroki-server-url: http://localhost:8000
+
+== Creating Realtime Scenarios
+
+We can run the `traccar-realtime-service` as a standalone Spring Boot application, + 
+but it does not make much sense to run it without a concrete scenario. +
+The Scenario framework establishes a clear boundary between the core RealTime infrastructure +
+and concrete test scenarios or business workflows.
+
+
+=== Realtime *Scenario*
+
+The `traccar-realtime-service` is targeting the creation of *Realtime Scenarios*. +
+Note that we are already using a 
+xref:../traccar-api-client/scenario.adoc[Traccar Scenario] to test `traccar-api-client`, +
+which implies the basic idea of a Scenario. 
+
+As we are approaching the `traccar-realtime-service` from a higher perspective, +
+we need to define a new concept of a *Traccar Realtime Scenario* as a solid (dev) guideline:
+
+- A *Realtime Scenario is always live*, i.e. _happening now_, and can be observed in real time. 
+
+- The core of a Traccar *Realtime Scenario* is composed of _a set of Tracking Devices_ registered in a Traccar GTS. 
+ 
+- The Tracking Devices can be either real or simulated devices and *can not be distiguished by the GTS*. +
+  The prerequisite for the ROAF Turing Test !
+
+- Each Scenario *must have _one_ registered Traccar User*, which is used to access the GTS and the Tracking Devices. +
+  The Scenario can see everything that this one Traccar User can see.
+  Administration and permission management is executed 
+  on this Traccar User's Account - programmatically or manually via Traccar Frontend.
+
+- In addition a Scenario _can have_ a set of *Scenario Users*, which can access their own Tracking Devices.
+
+- and a Scenario can make use of any Traccar GTS functionality, e.g. Geofences, Notifications, etc.
+
+- a Scenario can be *open* or *closed*, i.e. it can be open to the public or closed to a specific group of users.
+
+- a Scenario can have a *timeframe*, i.e. it can be limited to a specific start and end time, or it can be open-ended.
+
+- a Scenario can be restricted to a *bounding area* similar to a Game Board, +
+  where the players can only move within a certain area. +
+  This area can be defined by a Geofence or by a set of coordinates (polygon). +
+  It could be a city- or a country polygon or even the whole world. 
+
+
+=== ScenarioIT
+
+The `ScenarioIT` test in the `traccar-realtime-client` project already sets up 
+a complete multi-device real-time tracking scenario with four GPX players running concurrently.
+You can run the `ScenarioIT` test class as a JUnit test in your IDE 
+after starting Traccar with `./mvnw docker:run` on command line.
+The execution sequence can be inspected in the log output of the `ScenarioIT` test class 
+or step by step in the Debbugger. 
+
+. **Spring Boot Context Initialization** +
+* Bootstrap the test context
+* inject `Api`, `RealTimeController` and `TrackerRegistration`.
+
+. **Phase 1: Scenario & Controller Initialization (`BaseRealTimeClientTest.setup()`)**
+* `ScenarioLoader.setupScenario()`:
+* `RealTimeController.loginAndInitialize(scenario.admin)`:
+
+. **Phase 2: Tracker Registration (`BaseGpsTrackerIT.registerScenarioTrackers()`)**
+* Calls `TrackerRegistration.registerTracker(uniqueId)` for each scenario device
+
+. **Phase 3: Player Initialization & Playback Start (`ScenarioIT.startAllPlayers()`)**
+* `BaseGpsPlayerIT.createPlayer(tracker, gpxPath)` loads the GPX track for each tracker
+* `PlayerOsmAnd.playOsmAndTrack()` starts asynchronous GPX coordinate playback for all four players.
+
+. **Phase 4: Test Execution**
+* `ScenarioIT.runPlayersForTwoMinutes()` starts running with all four GPS players actively transmitting.
+
+This sequence actually represents the execution of a complete Realtime Application. +
+With the new Realtime Service the `pom.xml` dependencies are simplified and less invasive to existing Software.
+
+
+=== Maven Dependency Usage
+
+For external projects using traccar-realtime-service, 
+add the following Maven dependency to your `pom.xml`:
+
+```xml
+	<dependency>
+	  <groupId>bm</groupId>
+	  <artifactId>traccar-realtime-service</artifactId>
+	  <version>6.14.2-1.1.25</version>
+	</dependency>
+```
+
+=== Realtime Scenario Architecture
+
+[mermaid, target="scenario-architecture", title="RealTime Scenario Architecture", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}', align=center]
+....
+graph TB
+    subgraph RT [realtime-service] 
+        subgraph RC [realtime-client]
+            API[api-client <br> Entities] 
+            RealTime[RealTime <br> Controller] 
+        end 
+        Tracker[gps-trackers] 
+    end 
+    style RC fill:#bcd6f6
+
+    RealTime --> RTCtx
+    API --> RTCtx
+    Tracker --> RTCtx
+
+    RTCtx["RealTimeContext<br/>Unified access point"]
+
+    RTCtx --> SR
+    RTCtx --> SC
+
+    SR["ScenarioRunner<br/>• execute()<br/>• init()<br/>• run()<br/>• shutdown()"]
+    SC["Scenario (abstract)<br/>• initScenario()<br/>• runScenario()<br/>• shutdownScenario()"]
+
+    SR -.->|executes| SC
+
+    style RT fill:#f9f9f9
+    style SR fill:#ffcccc
+    style SC fill:#bcd6f6
+....
+
+The architecture comprises the following key components:
+
+* *`RealTimeContext`*: Injected into scenarios to serve as a cohesive access point +
+    to all underlying infrastructure without tying scenarios directly to Spring container lifecycles.
+* *`ScenarioRunner`*: Manages the execution lifecycle of any given scenario, +
+    ensuring proper sequencing and guaranteed resource disposal.
+* *`Scenario`*: Abstract base class defining the three-phase contract: +
+   `initScenario()`, `runScenario()`, and `shutdownScenario()`.
+
+Scenarios are designed to be reusable and can be shared across projects.
+
+
+=== Scenario Sample Implementation
+
+Scenarios extend the abstract `Scenario` class and interact with the infrastructure through the injected `context`:
+
+[source,java]
+----
+public class MyScenario extends Scenario {
+
+  private Device testDevice;
+  private PlayerOsmAnd player;
+
+  @Override
+  public void initScenario() throws Exception {
+    // 1. Create entities and register trackers
+    testDevice = context.getService()
+                        .createDeviceWithTracker("test-device", "unique-id", "model");
+  }
+
+  @Override
+  public void runScenario() throws Exception {
+    // 2. Play GPS track and verify real-time notifications
+    TrackerOsmAnd tracker = context.getTrackerRegistration()
+                                   .lookupTracker(testDevice.getUniqueId());
+    player = createPlayer(tracker, "gpx/HD-KTM-260725.gpx");
+    player.playOsmAndTrack();
+  }
+
+  @Override
+  public void shutdownScenario() throws Exception {
+    // 3. Clean up created resources (stop player first)
+    if (player != null) 
+      player.stopOsmAndTrack();
+    if (testDevice != null) 
+      context.getService().deleteDeviceWithTracker(testDevice.getId());
+  }
+}
+----
+
+Scenario tests can now choose between:
+
+**Option 1: High-level Service (Recommended for simplicity)**
+```java
+RealTimeAppService appService = scenarioContext.getAppService();
+Device device = appService.createDeviceWithTracker("Mobile", "mobile-001", "iPhone");
+User user = appService.createUserWithDevices("user", "pass", "email", deviceConfigs);
+```
+
+**Option 2: Direct Component Access (When more control needed)**
+```java
+Api api = scenarioContext.getApi();
+TrackerRegistration trackerReg = scenarioContext.getTrackerRegistration();
+// ... manual coordination
+```
+
+**Option 3: Mixed Approach**
+```java
+// Use service for quick setup
+appService.createDeviceWithTracker(...);
+
+// Use direct API for specific operations
+scenarioContext.getApi().getPermissionsApi().createPermission(...);
+```
+
+
+=== Running Scenarios in a Test
+
+```java
+public class MyScenarioTest extends BaseScenarioTest {
+  
+  @Test
+  void testMyScenario() throws Exception {
+    Scenario scenario = new MyScenario();
+    executeScenario(scenario);
+  }
+  
+  // Or manual execution
+  @Test
+  void testManualExecution() throws Exception {
+    Scenario scenario = new MyScenario();
+    
+    scenarioRunner.init(scenario, scenarioContext);
+    // ... inspect state ...
+    
+    scenarioRunner.run(scenario);
+    // ... verify results ...
+    
+    scenarioRunner.shutdown(scenario);
+  }
+}
+```
+
+
+=== Scenario Lifecycle
+
+```
+1. RealTimeApp starts
+   └─> RealTimeAppRunner.run()
+       └─> Checks if test profile → skips login
+       
+2. Test method runs
+   └─> ScenarioRunner.execute(scenario, context)
+       ├─> scenario.initScenario()     [Create resources]
+       ├─> scenario.runScenario()      [Execute test logic]
+       └─> scenario.shutdownScenario() [Clean up (always)]
+       
+3. Test completes
+   └─> BaseScenarioTest.teardown()
+       └─> Shutdown RealTimeController
+```
+
+
+=== Spring Boot Lifecycle
+
+A Scenario represents a complete test workflow that:
+
+- Initializes the test environment (create users, devices, trackers)
+- Runs the actual test logic (start GPS players, verify behavior)
+- Cleans up all created resources
+- Scenarios have access to all RealTime components via the RealTimeContext.
+
+When running scenario tests inside the Spring Boot test environment:
+
+. *Application Startup*:
+  .. `RealTimeApp` bootstraps with Spring Boot configuration.
+  .. `RealTimeRunner.run()` initializes the application environment.
+  .. Spring context dependencies `RealTimeController`, `Api`, `TrackerRegistration`, 
+     `RealTimeService`, `RealTimeContext`, and `ScenarioRunner` are instantiated and wired.
+. *Test Execution* - Scenario Lifecycle:
+  .. The JUnit test method in `ScenarioExamplesIT` (extending `BaseScenarioTest`) runs.
+  .. `ScenarioRunner.execute(scenario, realTimeContext)` is called:
+     * Phase 1: `scenario.initScenario()` initializes test entities.
+     * Phase 2: `scenario.runScenario()` executes the simulation and verification.
+     * Phase 3: `scenario.shutdownScenario()` runs in all cases to guarantee resource teardown.
+. *Test Teardown*:
+  .. JUnit `@AfterAll` / `@AfterEach` executes via `BaseScenarioTest`.
+  .. `RealTimeController` connection is gracefully closed and the context is marked for disposal if needed.
+
+
+=== Scenario Samples
+
+The `ScenarioExamplesIT` test class demonstrates how to implement and execute concrete scenarios using the `ScenarioRunner`. 
+Each scenario encapsulates a specific workflow, allowing developers to focus on the test logic 
+without worrying about the underlying infrastructure.
+
+** `SimplestTrackerScenario` — Demonstrates minimal device registration, +
+    single OsmAnd tracker simulation, and position verification.
+** `HideAndSeekScenario` — Multi-entity simulation with multiple users and devices.
+** `CustomScenario` — Placeholder for user-defined scenarios, allowing developers to implement their own.
+
+[mermaid, target="scenario-implementations", title="Scenario Test Implementatios", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}', align=center]
+....
+graph TB
+    SC["Scenario (abstract)<br/>• initScenario()<br/>• runScenario()<br/>• shutdownScenario()"]
+
+    SC --> ST
+    SC --> HS
+    SC --> CS
+
+    ST["SimplestTrackerScenario<br/>1 user, 1 device"]
+    HS["HideAndSeekScenario<br/>3 users, 3 devices"]
+    CS["Custom Scenario<br/>..."]
+
+    style SC fill:#bcd6f6
+    style ST fill:#e6f3ff
+    style HS fill:#e6f3ff
+    style CS fill:#e6f3ff
+....
+
+
+
+=== Test Execution Flow
+
+Integration tests leverage `BaseScenarioTest` and `ScenarioRunner` to coordinate execution across the scenario lifecycle phases:
+
+[mermaid, target="scenario-execution-flow", title="Test Execution Flow", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}', align=center]
+....
+graph TB
+    BST["BaseScenarioTest<br/>(extends SpringBootTest, provides context & runner)"]
+    BST -->|extends| SET["ScenarioExamplesIT<br/>@Test testScenario() {<br/>  executeScenario(new SimplestTrackerScenario());<br/>}\"]
+    SET -->|calls| SR["ScenarioRunner<br/>.execute(scenario, context)"]
+
+    SR --> P1
+    SR --> P2
+    SR --> P3
+
+    P1["Phase 1: initScenario()<br/>• Create users<br/>• Create devices<br/>• Register trackers"]
+    P2["Phase 2: runScenario()<br/>• Start GPS players<br/>• Verify real-time updates<br/>• Assert results"]
+    P3["Phase 3: shutdownScenario()<br/>• Delete all resources<br/>• Teardown (always!)"]
+
+    style BST fill:#ffe6e6
+    style SET fill:#bcd6f6
+    style SR fill:#ffcccc
+    style P1 fill:#e6f3ff
+    style P2 fill:#e6f3ff
+    style P3 fill:#e6f3ff
+....
+
+The execution flows through three well-defined stages:
+
+1. *Phase 1 — `initScenario()`*:
+   Provisions test users, creates devices in Traccar via REST API, and registers OsmAnd simulated trackers in `TrackerRegistration`.
+2. *Phase 2 — `runScenario()`*:
+   Instantiates `PlayerOsmAnd` players for the registered trackers, starts GPX replay, listens for real-time WebSocket position and event updates via `RealTimeController`, and asserts expectations.
+3. *Phase 3 — `shutdownScenario()`*:
+   Removes created devices, users, and trackers from the Traccar server. Executed inside a `finally` block to ensure all created resources are cleaned up even if `runScenario()` encounters an exception.
+
+The Lifecycle Management guarantees cleanup via ScenarioRunner.
+Even if test fails, shutdown() is called.
+
+The test environment is fully automated, 
+allowing developers to focus on the scenario logic without worrying about resource management.
+The setup and teardown are flexible, allowing for both manual and automated execution of scenarios.
+And the architecture is easy to extend with new scenarios
+
+For new tests with Scenario framework:
+
+- Extend BaseScenarioTest instead of BaseRealTimeScenarioTest
+- Create Scenario classes instead of direct test methods
+- Use ScenarioRunner to execute scenarios
+
+
+=== Separation of Concerns 
+
+[mermaid, target="scenario-benefits", title="Architecture Separation of Concerns", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}', align=center]
+....
+graph TD
+    subgraph Separation [Architecture Separation]
+        RT["RealTime Infrastructure<br/>(Production Components)<br/>• Stable & reusable<br/>• Encapsulates Traccar & GPS"]
+        SCN["Scenarios<br/>(Integration Tests / Workflows)<br/>• Test logic & scenarios<br/>• Flexible & isolated"]
+    end
+
+    RT <-->|uses via RealTimeContext| SCN
+
+    BEN["Benefits<br/>• Easy to test<br/>• Reusable workflows<br/>• Guaranteed cleanup<br/>• Maintainable architecture"]
+
+    RT --> BEN
+    SCN --> BEN
+
+    style RT fill:#ffe6e6
+    style SCN fill:#bcd6f6
+    style BEN fill:#ccffcc
+....
+
+This design brings substantial architectural advantages:
+
+* *Clean Separation*: Stable production infrastructure components (`RealTimeController`, `Api`, `TrackerRegistration`) remain decoupled from test workflows and simulation logic.
+* *Non-Spring Friendly*: Scenarios do not need to be Spring-managed beans; they can be instantiated with `new MyScenario()` and receive their dependencies via `RealTimeContext`.
+* *Guaranteed Resource Hygiene*: The lifecycle strictly protects against test pollution by enforcing teardown in `finally` blocks, keeping the Traccar test database clean across test suites.
+* *Step-by-step Debugging*: `ScenarioRunner` provides distinct `init()`, `run()`, and `shutdown()` methods, allowing developers to pause between phases to inspect Traccar Web UI or database state interactively.

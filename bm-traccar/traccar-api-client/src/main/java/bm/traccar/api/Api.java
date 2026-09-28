@@ -31,7 +31,11 @@ import java.util.List;
  * Every subAPI offers the existing methods of the http methods PUT, GET, POST, DELETE, etc. as
  * defined in the OpenAPI specification.
  *
- * <p>Note that the ApiException is a RuntimeException and it's catching is optional, but advised.
+ * <p><b>Exception Contract:</b> All methods across all sub-APIs may throw {@link ApiException} (an
+ * unchecked {@link RuntimeException}) on communication failures, authentication problems, or server
+ * errors (translated transparently from {@code RestClientException} via AOP). Catching it is
+ * optional at compile time but strongly advised for robust client communication. Sub-API method
+ * signatures do not declare {@code throws ApiException} to maintain clean and consistent contracts.
  */
 public interface Api {
 
@@ -47,22 +51,74 @@ public interface Api {
 
   String getAuthentication();
 
+  // sub-API access -----------------------------------------------------------
+  // One getter per Traccar sub-API (REST tag). The getters are the single public
+  // entry point to the sub-APIs; implementations must not expose the sub-APIs
+  // in any other way (i.e. no public fields).
+
+  /** Sub-API for <a href="https://www.traccar.org/api-reference/#tag/Server">/server</a>. */
   Api.Server getServerApi();
 
-  interface Server { // extends Api ?
-    bm.traccar.generated.model.dto.Server getServerInfo(); // GET
+  /** Sub-API for <a href="https://www.traccar.org/api-reference/#tag/Session">/session</a>. */
+  Api.Session getSessionApi();
+
+  /** Sub-API for <a href="https://www.traccar.org/api-reference/#tag/Users">/users</a>. */
+  Api.Users getUsersApi();
+
+  /** Sub-API for <a href="https://www.traccar.org/api-reference/#tag/Devices">/devices</a>. */
+  Api.Devices getDevicesApi();
+
+  /**
+   * Sub-API for <a href="https://www.traccar.org/api-reference/#tag/Permissions">/permissions</a>.
+   */
+  Api.Permissions getPermissionsApi();
+
+  // sub-API definitions ------------------------------------------------------
+  // The sub-API interfaces define the platonic OpenAPI methods for each REST tag, i.e. operationId.
+  // They are implemented by the ApiService and can be replaced by any other implementation.
+  // The sub-API interfaces are nested inside the Api interface to mimic the API method call URL
+  // and to provide a clean and consistent contract for the client application.
+  // each sub api defines a *** Platonic layer ***
+  //    one method per operationId, mirroring the generated parameter list,
+  //    named <verb><Entity>[ById]: create, update, delete, get (single),
+  //             get<Entity>s (list, all optional parameters nullable).
+  // and a *** Convenience layer ***
+  //    overloads / helpers (getAll…​, search…​, create…​WithCredentials).
+
+  interface Server {
+    bm.traccar.generated.model.dto.Server getServer(); // GET
 
     bm.traccar.generated.model.dto.Server updateServer(
         bm.traccar.generated.model.dto.Server server); // PUT
-  }
 
-  // Api.Session getSessionApi();
+    // operationId mapping to generated API methods - remaining
+    // see output of API generator for the generated methods
+    // get  /server/geocode. 	 serverGeocodeGet
+    // get  /server/timezones. 	 serverTimezonesGet
+    // post /server/file/{path}. serverFilePathPost
+    // get  /server/gc. 	 	 serverGcGet
+    // get  /server/cache. 	 	 serverCacheGet
+    // post /server/reboot. 	 serverRebootPost
+  }
 
   interface Session {
 
     User createSession(String mail, String password); // POST
 
+    User getSession(String token); // GET
+
+    void deleteSession(); // DELETE
+
+    // post /session/token. 	 	 	 sessionTokenPost
+    // post /session/token/revoke. 	     sessionTokenRevokePost
+    //  get /session/openid/auth. 	 	 sessionOpenidAuthGet
+    //  get /session/openid/callback. 	 sessionOpenidCallbackGet
+
+    // derived helper methods for convenience -------------
+
     String createSessionGetJsessionId(String mail, String password); // POST
+
+    String getSessionGetJsessionId(String token); // GET
 
     /**
      * Get the currently authenticated user based on the active authentication method.
@@ -89,24 +145,16 @@ public interface Api {
      * @see <a href="https://www.traccar.org/api-reference/#tag/Session/operation/getSession">GET
      *     /session</a>
      */
-    User getCurrentUser(); // GET without parameters
-
-    User getSession(String token); // GET
-
-    String getSessionGetJsessionId(String token); // GET
-
-    void deleteSession(); // DELETE
+    User getSessionUser(); // GET
   }
-
-  Api.Users getUsersApi();
 
   interface Users {
 
-    User createUser(User user) throws ApiException; // POST
+    User createUser(User user); // POST
 
-    User updateUser(Long id, User user) throws ApiException; // PUT
+    User updateUser(Long id, User user); // PUT
 
-    void deleteUser(Long id) throws ApiException; // DELETE
+    void deleteUser(Long id); // DELETE
 
     /**
      * Get a single user by ID
@@ -115,18 +163,17 @@ public interface Api {
      * doesn't yet have a usersIdGet method corresponding to GET /users/{id} as listed in the
      * OpenAPI specification <a
      * href="https://www.traccar.org/api-reference/#tag/Users/operation/getUsersId">getUsersId</a>.
+     *
+     * <p>http://localhost/api/users/819 works in browser, but not in generated API
      */
-    User getUser(Long id) throws ApiException; // GET
+    User getUser(Long id); // GET
 
     /**
      * @see UsersApi#usersGet(String, Integer, Integer, String)
      */
-    List<User> getUsers(String userId, Integer limit, Integer offset, String keyword)
-        throws ApiException;
+    List<User> getUsers(String userId, Integer limit, Integer offset, String keyword); // GET
 
-    User getUserById(String userId) throws ApiException; // GET
-
-    List<User> getAllUsers() throws ApiException; // GET
+    // post /users/totp.   usersTotpPost
 
     /** Search keyword filter (searches name, email) */
     List<User> searchAllUsers(String keyword);
@@ -136,10 +183,13 @@ public interface Api {
     // List<User> getAllUsers(String userId);
     // List<User> searchAllUsers(String userId, String keyword);
 
-    // helper methods below based on generic calls above ------------
+    // derived helper methods for convenience -------------
 
-    /** Create a user or admin with credentials */
-    User createUserWithCredentials(String name, String pwd, String mail, Boolean admin);
+    /** Create a regular user with credentials (admin = false) */
+    User createUserWithCredentials(String name, String pwd, String mail);
+
+    /** Create an admin user with credentials (admin = true) */
+    User createAdminWithCredentials(String name, String pwd, String mail);
 
     /** Create a manager user with credentials and user limit not 0 */
     User createManagerWithCredentials(String name, String pwd, String mail, Integer userLimit);
@@ -178,8 +228,6 @@ public interface Api {
     //    boolean isRegularUser(User user);
   }
 
-  Api.Devices getDevicesApi();
-
   interface Devices {
 
     Device createDevice(Device device); // POST
@@ -195,14 +243,14 @@ public interface Api {
      * The latter is more flexible and does not require changes to the API,
      * but it can be less efficient if there are many devices.
      */
+    // Devices.getDevices() has no parameters,
+    // while Users.getUsers(userId, limit, offset, keyword) mirrors the generated signature fully.
     List<Device> getDevices(); // GET
 
     // helper methods below based on generic calls above ------------
 
     // Device createDeviceForUser(String name, String uniqueId, String userMail);
   }
-
-  // Api.Permissions getPermissionsApi();
 
   interface Permissions {
 

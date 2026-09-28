@@ -202,15 +202,6 @@ include::./gps-timer.adoc[lines=7..12]
 xref:./gps-timer.adoc[goto Timer Implementation ...]
 
 
-== *gpx* Player 
-
-include::./gpx-player.adoc[lines=9..13]
-
-xref:./gpx-player.adoc[goto GPX Player Implementation ...]
-
-xref:./gpx-player-qs.adoc[goto GPX Player Quickstart ...]
-
-
 == Integration Testing
 
 include::./gps-player-it.adoc[lines=8..10]

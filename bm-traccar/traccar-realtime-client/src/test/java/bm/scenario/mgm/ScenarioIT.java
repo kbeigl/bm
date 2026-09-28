@@ -37,7 +37,7 @@ class ScenarioIT extends BaseGpsPlayerIT {
   private static final Logger logger = LoggerFactory.getLogger(ScenarioIT.class);
   private List<PlayerOsmAnd> allPlayers;
 
-  // @org.junit.jupiter.api.Test
+  //  @org.junit.jupiter.api.Test
   void runPlayersForTwoMinutes() throws InterruptedException {
     logger.info("\t********** Running scenario for 2 minutes **********");
     // sleep(120000);

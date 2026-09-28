@@ -4,7 +4,10 @@
 
 == Permissions API
 
-see `PermissionsApiIT` in scenario package `bm.traccar.api.scenario`
+The Permissions API allows you to manage permissions 
+for users, devices, groups, geofences, notifications, and other entities in Traccar.
+
+// see `PermissionsApiIT` in scenario package `bm.traccar.api.scenario`
 
 
 === development status `v.1.1.26`
@@ -28,9 +31,10 @@ After that we will come back to the Permissions API to assign Devices to Users, 
 
 === Traccar Permission Model
 
-- It tried to create devices as admin, then assign them to users via permissions
+- tried to create devices as admin, then assign them to users via permissions
 - **Problem:** Regular admins CANNOT assign their own devices to other users in Traccar
-- **Solution:** Create devices while authenticated AS the target user, so they automatically belong to that user
+- **Solution:** Create devices while authenticated AS the target user, 
+  so they automatically belong to that user
 
 Understanding Traccar's permission hierarchy:
 
@@ -56,12 +60,16 @@ Understanding Traccar's permission hierarchy:
    - Can only access assigned devices
    - Cannot create users or devices
    - Cannot manage permissions
+   
+and Device Ownership and Creation Rights:
 
 1. **Device Ownership:** When a user creates a device, it automatically belongs to that user
+
 2. **Device Creation Rights:** 
    - Regular users (deviceLimit = 0): CANNOT create devices
    - Managers (deviceLimit != 0): CAN create devices up to their limit
    - Administrators: Can create unlimited devices
+
 3. **Permission Limitations:** Regular admins CANNOT assign their own devices to other users via permissions
 
 
@@ -111,7 +119,7 @@ Solution +
 
 ```java
 // 1. Create user (as admin)
-User user = api.getUsersApi().createUserWithCredentials(name, pwd, email, false);
+User user = api.getUsersApi().createUserWithCredentials(name, pwd, email);
 
 // 2. Grant device creation permission (as admin)
 user.setDeviceLimit(deviceCount);
