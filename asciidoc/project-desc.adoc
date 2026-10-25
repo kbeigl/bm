@@ -1,0 +1,112 @@
+:toc: left
+
+
+=== overview
+
+The goal is to provide reusable Java clients (in this order) 
+and tools for 
+
+* Sending GPS position data to a Traccar server / OsmAnd dcs (tracker simulators)
+* Generating a _strongly-typed Java client_ from Traccar's OpenAPI spec 
+* Receiving real-time updates from a Traccar server via WebSocket
+
+
+      branch  /bm-tracker                   /bm-traccar
+      . 
+      [gps-osmand-tracker]                     [traccar-realtime-client]
+        TrackerOsmAnd                              RealTimeClient 
+            │ .send()                                      │ live updates 
+            ▼                                              ▼
+        Camel direct/seda route               RealTimeController.loginAndInitialize()
+            │                                              │  [traccar-openapitools-client]
+            ▼                                              ├─ REST API [traccar-api-client]
+        HTTP POST to OsmAnd endpoint                       │    └─ /api/users
+        (Traccar DCS:5055)                                 |       /api/devices
+            │                                              |
+            │                                              └─ WebSocket (vertx-websocket)
+            ▼                                                   └─ /api/socket
+        Traccar Server                                                │
+        stores position                   ▲                           ▼
+        and sends updates                 |                WebSocketRoute (Camel CBR)
+        to [traccar-realtime-client] -----+                 │             <Entity> Processors
+                                                            ├─ devices   →   DeviceProcessor
+                                                            └─ positions → PositionProcessor
+            ▲                                                       │              :    
+            |                                                       ▼
+            | creates, controls,                              RealTimeManager (state)
+            | observes trackers                                     |
+            |                                                       |
+            +-------------- [traccar-realtime-service] -------------+
+            |        combines Tracker, API and RealTimeClient       |
+            |       to a full real-time Application (Boot app)      |
+            +-------------------------------------------------------+
+
+
+=== latest versions
+
+include::releases.adoc[lines=4..18]
+
+For earlier versions check the 
+xref:releases.adoc[version history] 
+
+
+=== milestones
+
+The `v1.1.x` prototyping of the two branches `/bm-tracker` and `/bm-traccar` is concluded with the `traccar-realtime-client`.
+As a proof of concept we have implemented the full flow of data from the trackers to the server to the Real Time Client,
+including the setup of a scenario on the server.
+
+These ground layers of the ROAF are now in place and we can start building on top of them. +
+Or they can be used as a solid basis for your own projects. 
+
+Make sure to execute the 
+xref:./bm-traccar/traccar-realtime-client/traccar-realtime-client-qs.adoc[Quickstart]
+of the `traccar-realtime-client` to setup your development environment.
+
+Then you can go into details and use a blueprint
+xref:./bm-traccar/milestone/bm-traccar-milestone.adoc[here]
+for your own step by step development of GPS tracking applications.
+
+
+=== roundtrip engineering
+
+Also Note that with the cycle Tracker2GTS2RealTime we start with roundtrip engineering 
+on any of the involved Components with integrated Traccar Server. 
+
+For example we can use the Traccar Server Events as a certified (i.e. Third Party) Tracker Event. 
+Therfore you will find integration tests for 
+xref:./bm-traccar/traccar-realtime-client/integrated-dev-cycle.adoc[Tracker development]
+in the `traccar-realtime-client` project
+using the Tracker's package names `bm.gps.tracker`. This is a common development cycle and 
+the developer should be aware that the projects, like the Tracker and RealTimeClient
+have to be compiled sequentially, before testing a new Tracker feature in the RealTimeClient project.
+
+
+=== integrated development
+
+The GPS Tracker and Player were developed as client senders for the Traccar GTS.
+Each project test is running standalone for each Unit.
+For a _full integrated development cycle_ we run the Traccar Server in a Docker container 
+and look into the server state with the Traccar REST API and websocket interface.
+This development is done in the `bm-traccar` branch.
+The `traccar-realtime-client` is an important milestone as it allows 
+a _full roundtrip engineering_ in an integrated development cycle.
+
+Therefor the longterm Tracker and Player development happen in the `traccar-realtime-client` project.
+
+xref:./bm-traccar/traccar-realtime-client/integrated-dev-cycle.adoc#_integrated_tracker_development[read about the Integrated Development Cycle]
+
+
+=== quickstarts
+
+The page you are reading is a description 
+of the project structure and the development process. 
+
+include::./quickstarts/bm-quickstarts.adoc[lines=5..8]
+
+If you are looking for a quickstart to get started with each project, 
+xref:./quickstarts/bm-quickstarts.adoc[goto quickstarts ...]
+
+// these headings reflect the projects file structure 
+// but are not part of the big repo toc !
+

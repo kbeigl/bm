@@ -24,14 +24,14 @@
     <parent>
         <groupId>bm</groupId>
         <artifactId>bm-parent</artifactId>
-        <version>1.1.28-RC</version>
+        <version>1.2.0-RC</version>
         <relativePath>../bm-parent</relativePath>
     </parent>
 
     <artifactId>bm-docs</artifactId>
     <packaging>pom</packaging>
 
-    <name>---- blue marble docs aggregator          ---</name>
+    <name>-- blue marble docs aggregator            ---</name>
     <description>
         Aggregates AsciiDoc sources from sibling modules, unpacks their published
         documentation resources, and renders the combined documentation set.
@@ -79,6 +79,11 @@
             <groupId>bm</groupId>
             <artifactId>traccar-realtime-service</artifactId>
             <version>${traccar.version}-${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>bm</groupId>
+            <artifactId>scotland-yard</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
@@ -182,6 +187,25 @@
                                     <targetPath>bm-traccar/traccar-realtime-service</targetPath>
                                     <includes>
                                         <include>**/*.adoc</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}/bm-realtime-apps/asciidoc</directory>
+                                    <targetPath>bm-realtime-apps</targetPath>
+                                    <includes>
+                                        <include>**/*.adoc</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}/bm-realtime-apps/scotland-yard/asciidoc</directory>
+                                    <targetPath>bm-realtime-apps/scotland-yard</targetPath>
+                                    <includes>
+                                        <include>**/*.adoc</include>
+                                        <!-- images are kept in <doc folder>/diagrams, matching the global imagesdir -->
+                                        <include>**/diagrams/*.jpg</include>
+                                        <include>**/diagrams/*.png</include>
+                                        <include>**/diagrams/*.gif</include>
+                                        <include>**/diagrams/*.svg</include>
                                     </includes>
                                 </resource>
                                 <resource>

@@ -68,4 +68,7 @@ public class ScenarioExamplesIT extends BaseScenarioTest {
 
     logger.info("Manual scenario execution test completed");
   }
+
+  // the Scotland Yard scenario has its own test with assertions: ScotlandYardIT in the
+  // scotland-yard project
 }

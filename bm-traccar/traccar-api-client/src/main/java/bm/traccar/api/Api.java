@@ -51,6 +51,33 @@ public interface Api {
 
   String getAuthentication();
 
+  /** An action executed with the API authenticated as another user. */
+  @FunctionalInterface
+  interface ApiAction {
+    void run() throws Exception;
+  }
+
+  /**
+   * Run an action authenticated as {@code user} and restore the previous authentication afterwards.
+   * Uses {@link User#getPassword()} for BasicAuth credentials.
+   *
+   * @param user the user to authenticate as (must have password set)
+   * @param action the action to execute
+   * @throws Exception if the action throws an exception
+   */
+  void runAs(User user, ApiAction action) throws Exception;
+
+  /**
+   * Run an action authenticated as {@code user} with the given {@code password} and restore the
+   * previous authentication afterwards.
+   *
+   * @param user the user to authenticate as
+   * @param password the password to use for BasicAuth
+   * @param action the action to execute
+   * @throws Exception if the action throws an exception
+   */
+  void runAs(User user, String password, ApiAction action) throws Exception;
+
   // sub-API access -----------------------------------------------------------
   // One getter per Traccar sub-API (REST tag). The getters are the single public
   // entry point to the sub-APIs; implementations must not expose the sub-APIs

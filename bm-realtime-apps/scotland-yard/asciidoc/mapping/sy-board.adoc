@@ -1,0 +1,284 @@
+:toc: left
+:toclevels: 3
+
+= The London Game Board 
+
+We have created a Graph representation of the Scotland Yard Game Board in the file `london.geojson`.
+Basically it is a `FeatureCollection` with 199 stations and 461 links between them. 
+The file already implies some game rules, like the start stations, transport modality etc.
+More features can be added on the fly. 
+Now we want to make this read only graph navigable for players and game controller
+in a Java class called `GameBoard` . 
+
+// doesnt work
+// (see <<game-board>>)
+// [INFO] asciidoctor: INFO: bm-realtime-apps/scotland-yard/mapping/sy-board.adoc: possible invalid reference: georeferencing
+
+The `GameBoard` class actually represents what you see on the table, 
+when you play the Scotland Yard Board Game with your friends.
+You see all stations and all connections and the pawns of the players on the board. 
+No intelligence about strategy, just the board and the rules of the game.
+
+[.text-center]
+.Scotland Yard Board Game at https://boardgamegeek.com/image/9799948/scotland-yard[boardgamegeek]
+image::../diagrams/SY-boardWithPawns.jpg[Scotland Yard Board Game, width={scotland-yard-image-width}, link=../diagrams/SY-boardWithPawns.jpg, window=_blank]
+
+
+== Format
+
+The game board is represented as a `FeatureCollection` of `Feature` s in GeoJSON format. 
+In order to play the game, we need to know the stations and the connections between them. 
+Let's look at the two different feature types in the file `london.geojson`:
+
+=== Station features
+
+[source,json]
+----
+{
+  "type": "Feature",
+  "id": "station-13",
+  "geometry": { "type": "Point", "coordinates": [-0.12122397564, 51.53088264838] },
+  "properties": {
+    "kind": "station",
+    "no": 13,
+    "name": "King's Cross St Pancras",
+    "start": true,
+    "pixel": [534, 70],
+    "geoSource": "osm",
+    "osmNode": 119274464,
+    "taxi": [4, 14, 23, 24],
+    "bus": [14, 23, 52],
+    "underground": [46, 67, 89],
+    "boat": []
+  }
+}
+----
+
+NOTE: 
+The generator `build_london_geojson.py` writes native JSON types as shown above. +
+After editing and saving the file with JOSM *all properties are strings*, +
+i.e. `"no": "13"`, `"start": "true"`, `"taxi": "[4,14,23,24]"`. +
+The `GameBoard` class accepts both representations.
+
+And here is what it looks like in JOSM:
+
+.Station 13 in JOSM
+image::../../diagrams/station13attribs.jpg[Station 13, width={scotland-yard-image-width}, link=../diagrams/station13attribs.jpg, window=_blank]
+
+* `start` - one of the 18 start cards of the original game
+* `pixel` - legacy position on the board image (for drawing on `london.jpg`)
+* `geoSource` - `osm` for the 14 anchor stations with a known real position,
+  `tps` for interpolated stations. 
+// (see <<georeferencing>>)
+* `taxi`, `bus`, `underground`, `boat` - neighbour station numbers per transport, +
+   i.e. all possible *Moves* from this station. 
+
+So the graph is fully encoded in the station features and any controller software +
+can simply read the station number and get its neighbours.
+
+
+=== Link features
+
+One `LineString` per connection, `id` = `<transport>-<lower no>-<higher no>`. +
+The legacy `VIA` stations are kept as intermediate vertices so the line follows
+the printed route:
+
+[source,json]
+----
+{
+  "type": "Feature",
+  "id": "underground-13-46",
+  "geometry": { "type": "LineString", "coordinates": [[...], [...], ...] },
+  "properties": { "kind": "link", "transport": "underground",
+                  "from": 46, "to": 13, "via": [47, 34, 22, 23] }
+}
+----
+
+Link-13-46 is a `LineString` with 6 vertices, the first and last are the stations, 
+the four others are the via stations. +
+
+.Underground connection between King's Cross St Pancras (13) and Baker Street (46)
+image::../../diagrams/Link-13-46.jpg[Station 13, width={scotland-yard-image-width}, link=../diagrams/Link-13-46.jpg, window=_blank]
+
+
+=== `board` member
+
+The foreign member `board` carries everything that is not a geometry:
+
+[source,json]
+----
+"board": {
+  "name": "London",
+  "formatVersion": "2.0",
+  "stationCount": 199, "linkCount": 461,
+  "startStations": [13, 26, 29, ...],
+    ...
+  },
+  "georeference": { ... }
+}
+----
+
+Anyhow some attributes are redundant, like `stationCount`, `linkCount` +
+and `BoundBox` can be computed from the features.
+
+We should always be aware that software is about reading and writing data, 
+and that the *data is the source of truth*.
+When generating data a *Controller*  should check the data for consistency and completeness.
+
+For our emerging Realtime Scenario we want each actor of the scenario 
+to be as independent as possible! +
+The Tracking System is the source of truth for the positions of the players,
+whatever they are doing in their scenario. 
+In a Scotland Yard scenario the players use the same data sources to participate in the game.
+The game controller is oberving the game and can check that the game rules are followed.
+
+
+=== build the adjacency
+
+The adjacency of `london.geojson` itself was built from OpenStreetMap data with the following steps: 
+
+	1. Fuzzy-match each `no → name` entry against the `railway=station/public_transport=station` node names +
+        (and bus-stop names for stations without tube access) to get `no → (lat, lon, osm_id)`.
+	2. For `UGRD/BUS` edges: for each `route=subway/route=bus` relation, walk its ordered stop members; +
+        wherever two consecutive stops both happen to be mapped board stations, +
+        add a `TAXI/BUS/UGRD` edge of the appropriate type between those two `NO` s.
+	3. For `TAXI` edges: snap each station to the nearest road network node, +
+        run *shortest-path/adjacency* on the `roads.osm.pbf` graph, +
+        and connect station pairs reachable via a short link not passing through a third station.
+
+
+[[game-board]]
+== Graph in Java 
+
+The class `bm.sy.gameset.GameBoard` is the authoritative in-memory graph of the board.
+The Game Board is a singleton, immutable and thread safe. 
+It is plain Java, created once by the Game Controller and shared with all Players
+to analyze the game status and to plan their strategies.
+Since the graph *cannot be modified after instantiation* a single instance is safe to share.
+
+[source,java]
+----
+GameBoard board = new GameBoard();              // loads london.geojson from the classpath
+
+Station kingsCross   = board.getStation(13);
+Set<Station> byTube  = board.getNeighbors(kingsCross, Modality.SUB);         // 46, 67, 89
+Set<Station> anyMove = board.getNeighbors(kingsCross);    // 4, 14, 23, 24, 46, 52, 67, 89
+
+boolean legal = board.canMove(kingsCross, board.getStation(46), Modality.SUB);     // true
+Link tube = board.getLink(kingsCross, board.getStation(46), Modality.SUB).orElseThrow();
+LineString route = tube.route();                       // the printed route with 6 vertices
+----
+
+=== Classes
+
+[cols="1,4", options="header"]
+|===
+| class | purpose
+
+| `GameBoard`
+| immutable graph with stations, links and the adjacency per modality; +
+  loads and parses `london.geojson` with GeoTools in the constructor
+
+| `Station`
+| immutable node (`record`): `number`, optional `name`, `start` flag +
+  and the WGS84 `location` as JTS `Point` (`lon()` / `lat()`); +
+  identified by its number only
+
+| `Link`
+| immutable, *undirected* edge (`record`): `modality`, `from`, `to`,
+  the `via` stations +
+  and the printed `route` as JTS `LineString`
+
+| `Modality`
+| `enum` of the means of transportation `TAXI`, `BUS`, `SUB`, `FERRY` +
+  mapped to the GeoJSON keys `taxi`, `bus`, `underground`, `boat`
+|===
+
+From any given station, movement is possible along a link matching the modality
+to the adjacent station.
+A "move with any ticket" is simply the union over all modalities - `getNeighbors(Station)` -
+therefore no `ANY` modality is needed in the enum.
+
+
+=== GeoTools Parsing
+
+// link to Global Positioning: generated-docs/bm-tracker/bm-tracker.html
+
+We use the GeoTools library for parsing the GeoJSON file.
+The `london.geojson` is parsed with the  
+https://docs.geotools.org/latest/userguide/library/data/[GeoTools] 
+`DataStore` API and the `FeatureCollection` is read with a `GeoJSONReader`  
+(`org.geotools:gt-geojson-core`).
+The reader streams the `FeatureCollection` as `SimpleFeature` s with JTS geometries,
+and handles the two different feature schemas (stations and links) in one file.
+The constructor of `GameBoard` processes the features in a single pass:
+
+. *Station features* (`kind=station`, `Point`) become `Station` objects, 
+  keyed by `no` in a sorted map. +
+  The neighbour lists `taxi`, `bus`, `underground` and `boat` +
+  are read into the *adjacency* `station -> modality -> set of station numbers`.
+. *Link features* (`kind=link`, `LineString`) become `Link` objects. + 
+  The `transport` property selects the `Modality`, `from` / `to` / `via` the stations. +
+  Every link is also added to the adjacency, so a link without a neighbour entry 
+  (or vice versa) can never get lost.
+. All geometries expand the *bounding box*, +
+  a `ReferencedEnvelope` in WGS84 
+  with `x` = longitude and `y` = latitude (GeoJSON order).
+. After the pass the adjacency is made *symmetric* (the graph is undirected), +
+  station numbers are resolved to the shared `Station` instances +
+  and all collections are wrapped unmodifiable.
+
+Inconsistent data 
+
+* a neighbour or link referencing an unknown station, 
+* a duplicate station or link
+* an unknown `transport` 
+* or a station linking to itself 
+
+is rejected with an `IllegalStateException` at construction time.
+Properties are accepted as native JSON types (generator) *and* as strings (JOSM export).
+
+The top level `bbox` member of the file is *not* used; the bounding box is always
+computed from the actual geometries and therefore stays correct after editing the file.
+
+
+=== Board API
+
+[cols="2,3", options="header"]
+|===
+| method | description
+
+| `getStation(int)` | the station with this number, `IllegalArgumentException` if unknown
+| `hasStation(int)`, `getStations()`, `stationCount()` | all stations ordered by number
+| `maxStation()` | highest station number (199)
+| `maxStartStation()` | highest number of a start station (198)
+| `getStartStations()` | the 18 start stations of the original game
+| `getBoundbox()` | WGS84 `ReferencedEnvelope` of all stations and links (a copy)
+
+| `getNeighbors(Station)` | all adjacent stations with *any* modality
+| `getNeighbors(Station, Modality)` | adjacent stations for `TAXI`, `BUS`, `SUB` or `FERRY`
+| `getModalities(Station)` | modalities available at a station
+| `getModalities(Station, Station)` | modalities connecting two stations directly
+| `canMove(Station, Station, Modality)` | is the move legal on the board?
+
+| `getLinks()`, `linkCount()` | all 461 links
+| `getLinks(Station)` | the links ending at a station
+| `getLink(Station, Station, Modality)` | the link with the route geometry between two adjacent stations
+|===
+
+All `getNeighbors` methods also exist with an `int` station number
+and return sets ordered by station number.
+
+
+=== Tests
+
+`GameBoardTest` is a plain JUnit 5 test, which loads the board once and verifies the 
+facts of the London board: 199 stations, 461 links (344 taxi, 96 bus, 18 underground, 3 boat), 
+the 18 start stations, the bounding box and the neighbours of well known stations.
+Structural tests guarantee that the adjacency is symmetric for every modality, 
+that every neighbour entry has a link with a route geometry starting and ending at the stations,
+and that no returned collection can be modified.
+Small inline GeoJSON boards test both property styles and the error handling.
+
+	$ ./mvnw -pl bm-realtime-apps/scotland-yard test
+

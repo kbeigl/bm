@@ -68,15 +68,15 @@ public class ScenarioRunner {
   public void execute(Scenario scenario, RealTimeContext context) throws Exception {
     scenario.setContext(context);
 
-    logger.info(">>> Executing scenario: {}", scenario.getName());
+    logger.info(">>> Executing {}", scenario.getName());
 
     Exception executionException = null;
 
     try {
-      logger.info(">>> Phase 1: Initialize scenario '{}'", scenario.getName());
+      logger.info(">>> Phase 1: Initialize '{}'", scenario.getName());
       scenario.initScenario();
 
-      logger.info(">>> Phase 2: Run scenario '{}'", scenario.getName());
+      logger.info(">>> Phase 2: Run '{}'", scenario.getName());
       scenario.runScenario();
 
     } catch (Exception e) {
@@ -84,7 +84,7 @@ public class ScenarioRunner {
       executionException = e;
     } finally {
       try {
-        logger.info(">>> Phase 3: Shutdown scenario '{}'", scenario.getName());
+        logger.info(">>> Phase 3: Shutdown '{}'", scenario.getName());
         scenario.shutdownScenario();
 
       } catch (Exception e) {

@@ -97,7 +97,6 @@ They will be described in more detail in the `UsersAPI` and other sections of th
 ====
 
 
-
 === Switching Authentication
 
 You can switch between authentication methods at any time during program execution:
@@ -116,6 +115,82 @@ List<User> allUsers = api.getUsersApi().getUsers(null, null, null, null);
 api.setBasicAuth("admin@domain.com", "adminPassword");
 User newUser = api.getUsersApi().createUser(user);
 ----
+
+==== Temporary Authentication
+
+When an application needs to execute operations on behalf of another user 
+(for example, creating resources or querying devices visible only to that user) 
+and then return to the original caller's session, 
+manually switching credentials and restoring them in `finally` blocks is cumbersome.
+
+The `Api` interface provides the `runAs` convenience methods and the functional interface `ApiAction`:
+
+[source,java]
+----
+	@FunctionalInterface
+	public interface ApiAction {
+	  void run() throws Exception;
+	}
+	
+	void runAs(User user, ApiAction action) throws Exception;
+	void runAs(User user, String password, ApiAction action) throws Exception;
+----
+
+`runAs` saves the current authentication (either `BasicAuth` or `BearerToken`), temporarily sets basic authentication to the specified user, runs the action, and guarantees restoring the original authentication in a `finally` block:
+
+[source,java]
+----
+// Currently authenticated as admin
+api.setBasicAuth("admin@scenario.com", "adminPassword");
+
+// User created via createUserWithCredentials retains password in memory
+User manager = api.getUsersApi()
+	.createManagerWithCredentials("manager", "mgrPassword", "manager@example.com", 2);
+
+// Execute an action authenticated as the manager:
+api.runAs(manager, () -> {
+    // Inside this block, API calls run with the manager's credentials
+    logger.info("Executing as: {}", api.getAuthentication()); 
+    api.getUsersApi()
+    .createUserWithCredentials("player1", "playerPass", "player1@example.com");
+});
+
+// Original admin authentication is automatically restored
+logger.info("Restored auth: {}", api.getAuthentication()); 
+----
+
+[NOTE]
+====
+Users returned from `createUserWithCredentials`, `createAdminWithCredentials`, and `createManagerWithCredentials` 
+have their *plaintext password populated in memory* +
+so `runAs(user, action)` can be used directly.
+
+If the `User` object has no password set +
+(e.g. when loaded from server Traccar omits the password field), + 
+use the overload with the explicit password:
+
+[source,java]
+----
+api.runAs(user, "userPassword", () -> {
+    List<Device> userDevices = api.getDevicesApi().getDevices();
+});
+----
+====
+
+
+==== Server-Side Authentication
+
+It is important to understand that we are programming a client that connects to Traccar.
+If you login to the Traccar web interface, you are using a different authentication mechanism (session cookies) than the REST API. 
+Therfore as an admin or manager you can list your users at `<host>/settings/users` 
+and login as one of them in the web interface, _without knowing their password_.
+
+This backdoor is available for admin or manager users, 
+in case the created users login to the web interface and change their password.
+Anyhow the password can not be explicitly read from the server.
+
+In our client environment, we need to know the password of a user to authenticate as that user via the REST API.
+
 
 === Get Current Authentication
 

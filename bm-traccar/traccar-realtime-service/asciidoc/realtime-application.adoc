@@ -53,7 +53,7 @@ or as long as you are inside the repository, you can run it using Maven:
 	
 	$/bm/bm-traccar/traccar-realtime-service$ mvn spring-boot:run
 
-The service will start and attempt to login to the Traccar server 
+The service will start and attempt to login to the Traccar server +
 using the default credentials of the `application.properties` file. 
 
 Make sure the credentials are correct and the Traccar server is running before starting the Realtime Service.
@@ -101,9 +101,8 @@ to create a device with a tracker and assign it to a user.
 Generally, the Realtime Service is about API, User & Permission ops
 and additional tests can be added continously to cover more scenarios.
 
-By extending the `BaseRealTimeAppTest` we get the complete setup 
-and its methods can be perceived as tiny Real Time Applications 
-with setup and teardown methods.
+By extending the `BaseRealTimeAppTest` we get the complete setup and its methods +
+can be perceived as tiny Real Time Applications with setup and teardown methods.
 
 ```java
 	public class RealTimeServiceIT extends BaseRealTimeAppTest {

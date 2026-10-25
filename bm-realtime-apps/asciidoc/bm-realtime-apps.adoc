@@ -1,0 +1,25 @@
+:toc: left
+:toclevels: 2
+:doctype: book
+
+= Realtime Applications
+
+The `bm-realtime-apps` branch is the place to build *Realtime Applications*
+on top of the `traccar-realtime-service`.
+While the `bm-tracker` and `bm-traccar` branches provide the infrastructure -
+GPS Trackers, Players, the Traccar API and the RealTime WebSocket Client -
+this branch is dedicated to concrete *Realtime Scenarios*
+with their own domain logic, actors and rules.
+
+Each project in this branch imports the `traccar-realtime-service`
+and implements one or more `Scenario` classes
+that are executed with the `ScenarioRunner` against a running Traccar GTS.
+
+
+
+
+
+
+// includes headings
+// include::scotland-yard/scotland-yard.adoc[lines=5..14]
+// xref:scotland-yard/scotland-yard.adoc[read on ...]

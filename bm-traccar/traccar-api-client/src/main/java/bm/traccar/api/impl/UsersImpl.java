@@ -144,7 +144,11 @@ public class UsersImpl implements Api.Users {
     user.setAdministrator(admin);
     user.setUserLimit(userLimit);
     user.setDeviceLimit(deviceLimit);
-    return createUser(user);
+    User created = createUser(user);
+    if (created != null && created.getPassword() == null) {
+      created.setPassword(pwd);
+    }
+    return created;
   }
 
   @Override

@@ -1,0 +1,307 @@
+:toc: left
+:toclevels: 3
+
+== OpenStreetMap
+
+https://www.openstreetmap.org[OpenStreetMap (OSM)]
+ is a free editable map of the world. +
+It can be used to create digital maps for any area of interest.
+And it comes with a large set of tools to process and analyze the data. 
+And you can setup your own OSM server and services to host your own map data and provide it to your own applications.
+We will demonstrate how to use these tools to create a digital map of London for the Scotland Yard Game. 
+Anyhow map engineering is a complex task and we will only show a few steps to get a first impression of the process. 
+Hopefully this will give you some ideas for your own map compiler and your own Realtime Scenario Map.
+
+
+=== osm tooling
+
+[cols="1,3", options="header"]
+|===
+| tool | purpose
+
+| https://osmcode.org/osmium-tool/[osmium]
+| Command line swiss army knife for OSM files: 
+  `fileinfo`, `extract` (clipping to a bbox), `tags-filter`, `tags-count` 
+  and `cat` (format conversion `.osm.pbf` -> `.osm`). 
+  Fast, streaming and knows nothing about geometry or routing. 
+  We use it for all _clipping and filtering_ steps.
+
+| https://osmcode.org/pyosmium/[pyosmium]
+| Python bindings of the Osmium library. 
+  A handler class receives every node, way and relation of a file 
+  and can collect, filter or transform them in plain python. 
+  This is the bridge from _file processing_ to _map processing_: 
+  the `build_*_osm.py` generators read the layer files this way 
+  and apply their own matching logic (nearest stop, Dijkstra, ...).
+
+| https://gdal.org/[GDAL / OGR]
+| The Geospatial Data Abstraction Library reads and writes 
+  dozens of raster and vector formats, OSM included. 
+  It brings real geometry operations (projection, length, buffer, intersection) 
+  to the table and is the backbone of most GIS tools.
+
+| https://gdal.org/programs/ogrinfo.html[ogrinfo]
+| GDAL command line tool to _inspect_ vector data: 
+  list the layers of an `.osm.pbf` file (`points`, `lines`, `multipolygons`, ...), 
+  their fields, feature counts and extents, 
+  or run SQL-like queries against the attributes.
+
+| https://gdal.org/programs/ogr2ogr.html[ogr2ogr]
+| GDAL command line tool to _convert_ vector data between formats 
+  and coordinate systems, e.g. `.osm.pbf` -> GeoJSON, GPX or Shapefile, 
+  optionally clipped (`-clipsrc`) and filtered (`-where`, `-sql`). 
+  Handy to hand the layers over to tools that do not speak OSM.
+|===
+
+In short: *osmium* reduces the raw data to layers, 
+*pyosmium* lets us program against these layers 
+and *GDAL* with `ogrinfo`/`ogr2ogr` is the generic converter 
+whenever a layer has to leave the OSM world.
+
+On Ubuntu all of them are a single command away:
+
+	$ sudo apt-get install osmium-tool python3-pyosmium gdal-bin
+
+
+== OSM data files
+
+Working with digital maps requires a lot of data
+and map processing is basically clipping and filtering of data.
+Therefor you should always start with a small area of interest 
+to get a first impression of the data and the processing steps.
+
+Our area of interest is the city of London and for example geofabrik provides +
+a good source for OpenStreetMap data files on a daily basis: 
+
+    https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html
+                                  ------ -------------- -------         ------
+
+We used the file `greater-london-260824.osm.pbf` for a start.
+
+It is important to build the map processor with this exact file 
+and recommended to process it through all steps in one chain.
+Yet, this is only a rough guideline _how to proccess map data_ 
+and should give some ideas for your map processor. 
+
+
+== OSMium tool
+
+The file `greater-london-260824.osm.pbf` is still a huge file 
+with 1.5 million nodes and half a million ways and about 120 MB in size.
+For a game graph with 199 stations we need to filter the data 
+to a small subset of the original data.
+ 
+The OpenStreetMap data file is a binary file in the PBF format
+and before we even 'open' this file we can already filter it 
+with the  
+https://osmcode.org/osmium-tool/[command line tool Osmium] to a smaller file.
+
+
+[quote, see https://osmcode.org/osmium-tool/]
+____
+Osmium Tool +
+A multipurpose command line tool based on the Osmium Library. +
+____
+
+With the Osmium Tool you can:
+
+- Get information about an OSM file
+- Convert OSM files from one format into another
+- Create geographical extracts from OSM files
+- Filter OSM files by tags
+
+and much more...
+
+Generally, the Osmium Tool is a swiss army knife for OSM files and can be used to process OSM data files in many ways. 
+But it is important to understand that the Osmium Tool is a file processor and not a map editor.
+Osmium knows nothing about the map, navigation and routing.
+
+In Ubuntu you can install the tool with the following command:
+
+	$ sudo apt-get install osmium-tool
+
+and get some insight into the file with the command:
+
+	$ osmium fileinfo -e greater-london-260824.osm.pbf 
+	File:
+	  Name: greater-london-260824.osm.pbf
+	  Size: 128426249
+	Data:
+	  Bounding box: (-0.6125036,51.2268449,0.399669,51.7314462)
+	  Number of nodes:  10949160
+	  Number of ways:    2202228
+	  Number of relations: 31715
+
+
+=== bounding box
+
+The bounding box of the file is still too large for our area of interest 
+and we can filter or actually 'clip' the data to a smaller bounding box.
+To identify the `bbox` of the *Scotland Yard Game Board* we have used _bio scanning_,
+i.e. we have defined the box on a visual map with mouse coordinates.
+Don't worry about precision here, the box only has to cover the game area 
+and we can clean up as we go along.
+
+We will use the following bounding box for our area of interest:
+
+    Bounding box: (-0.2, 51.48, -0.07, 51.54)
+
+and can now reduce the file size with the following command:
+
+	$ osmium extract -b -0.2,51.48,-0.07,51.54 greater-london-260824.osm.pbf -o sy_london.osm.pbf
+
+to generate a 87 % smaller file `sy_london.osm.pbf` with the following properties:
+
+	$ osmium fileinfo -e sy_london.osm.pbf 
+	File:
+	  Name: sy_london.osm.pbf
+	  Size: 16958040
+	Data:
+	  Bounding box: (-0.2813332,51.404155,-0.0094126,51.5921677)
+	  Number of nodes:   967043
+	  Number of ways:    211327
+	  Number of relations: 6935
+
+which fits better into the RAM.
+
+
+== JOSM data editor
+
+Now we have prepared a smaller OSM data and can start editing it.
+As we are creating a game don't have maximum precision in mind, but rather a good representation of the game board.
+And for a small tutorial we want to visualize the process of editing the data.
+For this purpose we can use a simple editor like the 
+https://josm.openstreetmap.de/[Java OpenStreetMap Editor JOSM] to edit the data.
+
+[quote, see josm.openstreetmap.de]
+____
+JOSM is an extensible editor for ​OpenStreetMap (OSM) written in ​Java 11+.
+
+It supports loading GPX tracks, background imagery, and OSM data from local and online sources, 
+and allows editing the OSM data (nodes, ways, and relations) and their metadata tags. 
+____
+
+[NOTE]
+====
+Every editor, i.e. JOSM and Osmium, can add own metadata or remove existing metadata from other editors.
+And each editor can require different attributes for the same object. +
+For example, JOSM requires a version/timestamp on real nodes, but Osmium does not. +
+And a hand written python generator can basically do anything with the data. +
+Make sure to look at the different outputs to avoid surprises.
+====
+
+Again we will only list a single line command to install JOSM on Ubuntu:
+
+	$ sudo apt-get install josm
+	
+and you can find a way to install it on your platform on the JOSM website.
+
+Now you can run JOSM and load the file `sy_london.osm.pbf`,
+but before we do that we must warn you:
+ 
+[WARNING]
+====
+The JOSM editor is an online editor and you can directly download the data from the OSM server. +
+Creating our Scotland Yard game board is a _one way process_ ! +
+*We do not want to modify original data on the server !*  +
+So please do not upload any changes to the server. Save your changes to local files. 
+====
+
+Now run JOSM 
+
+	$ josm
+
+and load the file `sy_london.osm.pbf` with the menu item `File -> Open...` +
+or by simply drag and drop the file into the JOSM window. +
+Now you can see the data:
+
+[.text-center]
+.The Scotland Yard game board fitted under the OSM map. (click on image for more details)
+image::mapWithBoard.jpg[Scotland Yard board, width={scotland-yard-image-width}, link=diagrams/mapWithBoard.jpg, window=_blank]
+
+
+=== picture layer
+
+Note that we have already 'fitted' our jpg image of the Scotland Yard game board 
+to the map and can use it as a reference for editing the map data. 
+This can be achieved by using the menu `Imagery` and allows you to define the position of the image on the map
+in a calibration file `sy_london.jpg.cal` which looks like this:
+
+	#JOSM PicLayer plugin calibration data
+	INITIAL_SCALE=1408.3918039941136
+	M00=0.29572957423590196
+	M01=0.0
+	M02=75.34096165835723
+	M10=0.0
+	M11=0.3005488648548801
+	M12=51.13704725893311
+	POSITION_X=-16083.57039683419
+	POSITION_Y=6712677.143024445
+
+The calibration file is automatically allocated by JOSM and whenever you re-position the image on the map, 
+you should save the calibration file to make sure that the image is always positioned correctly on the map.
+
+Basically this is our first step to transform pixels to geo coordinates. +
+Remember that there are no pixels in the real world, but only geo coordinates!
+
+Now we can see the massive map data covering the original Scotland Yard game board. +
+Notice how you can already see two big parks and the Thames river shining through. +
+Great fit!
+
+
+=== osm tags
+
+With Osmosium you can look into the data by attributes:
+
+	$ osmium tags-count sy_london.osm.pbf > sy_london-tags.txt
+	         ----------
+
+to get a list of all tags in the file and their counts:
+
+	111378  "highway"
+	 74893  "addr:street"
+	 74127  "name"
+	 69120  "addr:housenumber"
+	 68688  "building"
+
+or count particular tags with the command:
+
+	$ osmium tags-count sy_london.osm.pbf highway=*
+	
+	44242   "highway"       "footway"
+	10855   "highway"       "crossing"
+	 6596   "highway"       "service"
+	 4753   "highway"       "residential"
+	 3638   "highway"       "primary"
+	 2840   "highway"       "unclassified"
+	 2730   "highway"       "traffic_signals"
+	 2474   "highway"       "steps"
+	 2377   "highway"       "cycleway"
+	 1542   "highway"       "give_way"
+	 
+and you can explore the data with more commands like:	 
+	 
+	 $ osmium tags-count sy_london.osm.pbf highway building
+	 $ osmium tags-count sy_london.osm.pbf highway=primary highway=residential building=yes
+	 $ osmium tags-count sy_london.osm.pbf building building:part
+
+But when we recall our mission to create a trimodal map for the Scotland Yard game, 
+we can see that there are many more tags in the data file. 
+We have a map with all details of the city of London. 
+We see 68 thousand buildings, but we only want to use the streets and the stations for our game. 
+
+Now one approach is to (reverse) filter the data by tags and remove all data which is not relevant for the game:
+
+    $ osmium tags-filter sy_london.osm.pbf   /
+    	building=*                                           -i -o sy_london-2.osm.pbf
+    $ osmium tags-filter sy_london-2.osm.pbf /
+        highway=footway highway=residential highway=cycleway -i -o sy_london-3.osm.pbf
+    $ osmium tags-filter sy_london-3.osm.pbf /
+        footway surface natural barrier lit                  -i -o sy_london-4.osm.pbf 
+
+This is a typical map process over several steps.
+Note the processing chain of file names `sy_london` 2, 3, 4.
+The process starts with the original file `sy_london.osm.pbf` and ends with the final file `sy_london-4.osm.pbf`.
+The files in between are only temporary, but can be useful for debugging and to check the intermediate results.
+If you add the `--overwrite` option to the command, you can run the process repeatedly.
+

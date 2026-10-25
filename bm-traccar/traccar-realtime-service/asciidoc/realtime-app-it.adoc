@@ -81,3 +81,25 @@ of the `Initializer` and the `RealTimeAppIT` test class:
 ```
 
 with `@Test void runRealTimeApp()` as a placeholder for one integration test.
+
+
+==== Realtime Test Environment
+
+With the implementation of the `traccar-realtime-service` we have a complete Realtime Application.
+We will see how to implement Realtime Applications in the module `bm-realtime-apps`.
+For development and testing we have created the `BaseRealTimeAppTest` class 
+which provides a complete test environment for Realtime Applications.
+
+Have a look a the `scotland-yard` pom file to see how to import the `test-jar` module + 
+as a dependency for your own Realtime Application Integration Tests:
+
+		<!-- BaseScenarioTest & Co. for the scenario integration tests -->
+        <dependency>
+            <groupId>bm</groupId>
+            <artifactId>traccar-realtime-service</artifactId>
+            <version>${traccar.version}-${project.parent.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+

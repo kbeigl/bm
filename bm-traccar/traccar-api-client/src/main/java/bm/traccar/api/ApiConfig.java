@@ -22,6 +22,8 @@ import bm.traccar.generated.api.ServerApi;
 import bm.traccar.generated.api.SessionApi;
 import bm.traccar.generated.api.UsersApi;
 import bm.traccar.invoke.ApiClient;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -51,7 +53,12 @@ public class ApiConfig {
 
   @Bean
   ApiClient apiClient() {
-    ApiClient apiClient = new ApiClient();
+    // Traccar's Permission requires exactly two keys (e.g. userId + deviceId) in the JSON body,
+    // the generated DTOs would serialize all other fields as null -> "Invalid permission".
+    // Omitting nulls is harmless for all other entities (missing fields keep their defaults).
+    ObjectMapper mapper = ApiClient.createDefaultMapper(null);
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    ApiClient apiClient = new ApiClient(mapper, ApiClient.createDefaultDateFormat());
     apiClient.setBasePath(basePath + "/api");
     return apiClient;
   }

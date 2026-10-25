@@ -1,0 +1,263 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+
+= Real Time Scotland Yard Game
+
+The `scotland-yard` project is the first *Realtime Application*
+built on top of the `traccar-realtime-service`. 
+Inspired by the board game, a fugitive - _Mister X_ - moves through the city
+while a group of detectives tries to catch him.
+All participants are Tracking Devices registered in the Traccar GTS,
+either real or simulated, and can be observed live via the RealTime WebSocket. 
+
+The board game Scotland Yard is a great template and guideline for a Real Time Scenario! +
+The Game Board was derived from a real map of London, 
+interpolated with the pixel coordinates of the original board game and provided as a GeoJSON file.
+And a Game Board is a good example of a bounding area for a Traccar Realtime Scenario.
+The maximum number of rounds and the time limit for each round define a timeframe for the scenario.
+
+We will demo how to transform the Scotland Yard Game into a Real Time Scenario 
+as a proof of concept for a real time application with Traccar.
+The project can serve as a blueprint for your own Realtime Scenarios: 
+import the `traccar-realtime-service`, extend `Scenario` and play.
+
+
+http://en.wikipedia.org/wiki/Scotland_Yard_(board_game)[Game description on Wikipedia]
+
+
+== Scotland Yard Scenario
+
+The Scotland Yard Game is a turn-based game, which makes it a good candidate for a step by step transformation into a real time scenario. 
+The game is played on a map of London, where one player takes on the role of Mr. X, a criminal, and two or three other players are detectives trying to catch him. 
+
+We'll start with a simple definition of the Game for a Scenario:
+
+- the SY Scenario is a *closed* scenario, which is only open to a specific group of users, i.e. the players of the game.
+
+- the SY Scenario is restricted to the *bounding area* defined by the _game board_, + 
+  which will be replaced by a _real map of London_ in the real time scenario.
+
+- the SY Scenario has a *timeframe*. +
+  The game starts when all Players are registered and ends when Mr. X is caught or escapes, or when the detectives run out of turns.
+  At development time we will use a time limit for each turn and a maximum number of rounds.
+  
+- by design the SY Scenario is a *mixed reality scenario*, which means that the players can be real or simulated players, 
+  but the game controller does not distinguish between them.
+
+- the SY Scenario _can have_ a set of *Scenario Users*, which can access their own Tracking Devices.
+
+- the SY Scenario will apply Traccar GTS `Geofence` s and `Notification` s in a first approach.
+
+
+=== Domain language
+
+Business models and business rules should always be separated from the technical implementation.
+
+When you want to expand your own business domain to a real time scenario, 
+your application should drive the design of the scenario.
+In this case of a well defined game, the rules and the board are the driving factors, 
+which are not technology related, but rather domain related.
+To underline the difference between the domain language and the technical language, 
+we will start developing the game with plain Java classes and interfaces.
+
+
+// consider using headings from the referenced adoc
+== Graph Navigation
+
+include::mapping/sy-graph.adoc[lines=6..10]
+
+xref:mapping/sy-graph.adoc[Extracting the *Graph Format* from the original Game Board ...] 
+
+
+=== Game Board
+
+include::mapping/sy-board.adoc[lines=6..12]
+
+xref:mapping/sy-board.adoc[Creating the *Game Board* in Java ...] 
+
+
+== Digital Maps
+
+include::mapping/sy-map.adoc[lines=6..10]
+
+xref:mapping/sy-map.adoc[Creating a *Digital Map of London* with OpenStreetMap Tools ...] 
+
+
+=== Game Map
+
+Switch Game from Graph to Map
+
+	GameMap extends GameBoard !
+    override graph link methods with map links with full geometry
+    same usage
+
+
+==  Initialize Game 
+
+include::sy-init.adoc[lines=6..12]
+
+xref:sy-init.adoc[Initializing the Scotland Yard Scenario] 
+
+
+== Game Controller
+
+The game is controlled on the server side by a Game Controller, 
+which is responsible for the game logic and the game state.
+Each move is validated by the Game Controller and the game state is updated accordingly.
+
+[.text-center]
+.client-server-sequence
+image::../diagrams/client-server-sequence.gif[Client - Server, width={scotland-yard-image-width}, link=../diagrams/client-server-sequence.gif, window=_blank]
+
+// geht auch:
+// image::client-server-sequence.gif[]
+
+
+package spiel:
+
+Die zentrale Instanz Spiel ist aus der Notwendigkeit heraus entstanden, 
+den Status aller Spieler auf möglichst einfache Weise verwalten zu können. 
+Daher erbt Spiel von AbstractClient und implementiert die notifyMove() Methode 
+um über alle Spielzüge informiert zu werden. 
+Daraus ergibt sich, dass die Spieler diese Methode nicht mehr implementieren müssen, 
+da sich Spiel alle Zustände der Spieler merkt. 
+Dafür enthält Spiel eine Klasse SpielerZustand, die diese Infos speichert. 
+Jeder Spieler wird lokal verwaltet.
+
+
+== Game Strategies
+
+Since the game only has two roles, Mr. X and the detectives, 
+we can define a set of strategies for each role.
+Anyhow we want to keep the strategies simple and easy to understand,
+And we want to provide methods to be used by both sides - with oposing intentions.
+
+
+=== Mr. X Strategies
+
+Own position: 
+
+1. avoid being caught by the detectives, which means to stay away from them and to move
+2. plan as many moves away from detectives as possible and 
+   move to a station with many connections to other stations
+3. use all available means of transportation
+
+Detective positions:
+
+1. less connections of detectives to other stations, the better for Mr. X
+
+
+=== Detective Team Strategies
+
+detectives do not know any position of Mr. X.
+
+1. evaluate moves with maximum reachability to other stations.
+
+detectives know the last known position of Mr. X.
+
+1. evaluate the last known position of Mr. X and the possible moves he can make.
+2. evaluate the positions of the other detectives and their possible moves.
+3. use probability to find Mr. X and move to the most probable station.
+
+A messageing system is needed to communicate between the detectives 
+and to coordinate their moves.
+
+package ki:
+
+Die KI holt sich zu Beginn des Spieles eine Spielplankopie. 
+Anhand der Spielplankopie und der Position der Spieler (Kommunikation mit Spiel)
+wird ein Spielbaum erstellt. 
+Es werden alle Zweige des Spielbaumes mittels verschiedener Bewertungsalgorithmen bewertet. 
+Ein weiterer Algorithmus (der Entscheidungsalgorithmus) sucht sich anschließend
+unter allen bewerteten Zuegen den fuer die derzeitige Spielersituation besten Zug raus. 
+
+
+== GUI Features
+
+- zoombare Uebersichtskarte
+- Chat- und Messagefenster
+- Timeoutanzeige
+- Tippbutton
+- Anzeige, in wieviel Runden sich Mr. X zeigt
+Kooperation mit anderen Packages:
+
+Spiel [notifyMoveListener(), checkmove(), getHistory())] -> GUI
+benoetigt Informationen ueber einen gemachten Zug, um diesen
+Darzustellen. Ist ein Zug gueltig? Was war vorher ein paar Zuegen?
+
+Spielplan [getAllStations(), getGUIzieleVon()] -> GUI holt sich fuer
+die Darstellung des Graphen eine Adjazenzliste mit den Stationen und
+Via-Stationen.
+
+KI [getBestMove()] -> Tipp-Button fuer einen verzweifelzen
+menschlichen Spieler
+
+
+== meta Ebene
+
+Der Metaserver hat die Aufgabe Clients an bereits vorhandene Spielserver zu vermitteln. 
+Praktisch ein Forum fuer FU-Yard Spieler.
+Die Clients haben dadurch die Möglichkeit sich weltweit an einem Spiel anzumelden. 
+Der Metaserver stellt lediglich Methoden zur Serververmittlung bereit. 
+Es bedarf keiner Änderungen bei den Clients, um mit dem Metaserver zu kommunizieren. 
+Im Prinzip fragt ein Metaclient bei dem Metaserver an, 
+welche Spiele am Metaserver angemeldet wurden. 
+Nun kann man sich ein interessantes Spiel aussuchen
+und der Metaserver übermittelt an den Metaclient die IP-Adresse.
+Dieser schreibt die IP in die Startroutine des jeweiligen Clients.
+Dieser verbindet sich nun automatisch mit dem richtigen Spieleserver.
+
+
+
+
+
+== Scotland Yard Components
+
+// actually this diagram should be changed to TB for better readability
+
+[mermaid, target="traccar-realtime-app", title="Real Time Application projects", theme="base", themeVariables='{"primaryColor":"#bcd6f6"}']
+....
+graph BT
+ 
+    subgraph RS [Realtime Scenario] 
+    end 
+
+    subgraph RT [traccar-realtime-app] 
+        direction LR
+        subgraph TRC [traccar-realtime-client .]
+                API[<b>Control</b>  Server <br> traccar-api-client]
+                RTC[<b>Receive</b> Real Time Data . <br> WebSocketRoute <br> EntityMapper <br> RealTimeController]
+            end
+        subgraph TR [<b>Send</b> Real Time Data .]
+            DEV@{ shape: processes, label: "/bm-tracker <br> gps-osmand-tracker" }
+        end
+    end 
+    style TR fill:#bcd6f6
+    style TRC fill:#bcd6f6
+    
+    RS   <-->  RT
+    
+    subgraph TS [Traccar GTS .] 
+        DCS[DCS .] 
+        REST[REST .] 
+        WS[Websocket] 
+    end 
+    
+    RT    <-->  TS
+
+    subgraph TRA [Traccar Trackers .] 
+    end 
+
+    TS   <-->  TRA    
+
+    subgraph UI [Traccar UI / Map / Admin ] 
+    end 
+
+    TS   <-->  UI    
+....
+
+
+include::sy-user-guide.adoc[]
+
+

@@ -24,6 +24,8 @@ import bm.traccar.api.ApiException;
 import bm.traccar.api.BaseIntegrationTest;
 import bm.traccar.generated.model.dto.Permission;
 import bm.traccar.generated.model.dto.User;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,36 +67,44 @@ public class PermissionsApiIT extends BaseIntegrationTest {
       permission.setManagedUserId(hide.getId());
       logger.info("Create Permission: {}", permission);
 
-      // NOTE: Traccar's API does NOT support creating user-to-user management permissions
-      // through the standard /permissions endpoint, even with adminAuth authentication.
-      // The UI allows this through "Connections" but it's not exposed via the REST API.
-      //
-      // Attempting to create userId + managedUserId permission:
-      // This will fail with "Invalid permission" because Traccar's Permission validation
-      // at Permission.java:56 rejects this combination when created via API.
+      // NOTE: Traccar's Permission constructor requires exactly two keys in the JSON body
+      // (owner + property, e.g. userId + managedUserId). The generated DTO would serialize
+      // all other fields as null, which Traccar rejects with "Invalid permission".
+      // ApiConfig therefore configures the ApiClient's ObjectMapper with Include.NON_NULL,
+      // so user-to-user (and user-to-device) permissions work via the REST API.
+      api.getPermissionsApi().createPermission(permission);
 
-      // Assert that the expected exception is thrown.
-      // ApiConfig registers the ApiAspect: the server's 400 arrives as ApiException
-      // with the original HttpClientErrorException as cause.
+      // the manager now manages 'hide' but not 'seek': GET /users?userId=<manager>
+      Set<Long> managed =
+          api.getUsersApi().getUsers(String.valueOf(manager.getId()), null, null, null).stream()
+              .map(User::getId)
+              .collect(Collectors.toSet());
+      assertEquals(Set.of(hide.getId()), managed, "manager manages hide only");
+
+      // and the link can be removed again
+      api.getPermissionsApi().deletePermission(permission);
+      managed =
+          api.getUsersApi().getUsers(String.valueOf(manager.getId()), null, null, null).stream()
+              .map(User::getId)
+              .collect(Collectors.toSet());
+      assertTrue(managed.isEmpty(), "manager manages nobody after deletePermission");
+
+      // an incomplete permission (owner only) is still rejected by the server
+      Permission invalid = new Permission();
+      invalid.setUserId(manager.getId());
       ApiException exception =
           assertThrows(
               ApiException.class,
-              () -> api.getPermissionsApi().createPermission(permission),
-              "Expected ApiException when creating user-to-user permission");
+              () -> api.getPermissionsApi().createPermission(invalid),
+              "Expected ApiException for a permission without property");
       assertEquals(ApiException.APIEX_BAD_REQUEST, exception.getMessage());
       assertTrue(
           exception.getCause() instanceof HttpClientErrorException,
           "Expected HttpClientErrorException as cause, but got: " + exception.getCause());
-
-      // Verify the server's error message contains "Invalid permission"
       assertTrue(
           exception.getCause().getMessage().contains("Invalid permission"),
           "Expected error message to contain 'Invalid permission', but got: "
               + exception.getCause().getMessage());
-
-      logger.warn(
-          "User-to-user permission creation failed as expected - not supported via Traccar REST API. "
-              + "Use the web UI 'Connections' feature to manage user relationships.");
     } finally {
       deleteTestUsers();
     }

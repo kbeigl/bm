@@ -1,0 +1,343 @@
+:toc: left
+:toclevels: 3
+:scotland-yard-image-width: 700
+
+== creating transport layers
+
+Getting back to our mission to create a trimodal map for the Scotland Yard game, 
+we will take different approach and filter the data to layers. 
+A layer is a subset of the original data with a particular tag or set of tags.
+
+== extracting transport layers
+
+Extracting the transport layers from map data is usually the first step in map processing, +
+since the data size is reduced to limit the processing power, memory and time
+of the map compilation.
+
+
+=== subway stations
+
+A good start is to create a layer for all subway stations with
+
+	$ osmium tags-filter -o tube_stations.osm --overwrite sy_london.osm.pbf \
+      n/railway=station n/station=subway n/public_transport=station
+
+Note that we are using `*.osm` as output format this time! +
+The file sizes are smaller and we can easily edit the data with JOSM. +
+Therfore the first steps of a map processor 
+are usually to reduce and split data from the sources.
+
+A second step is to provide a list of stations with their geo coordinates as _anchors for map processing_. +
+Map processors can be simple, but the data size  draws the boundaries of the processing power. 
+
+This is also important, if you want to ask AI to process the data for you! +
+Mapping algorithms can be simple, but to navigate through London 
+you should not use city, country, continent deliveries to start with. 
+Also the response time does not scale with duration and cost, 
+since map processing can be highly parallelized. 
+By providing clipped data the job gets a lot cheaper.
+
+The tube stations are the smallest subset of the map and we can use them as a reference for the other layers. +
+So let's start with the subway layer.
+
+To make a long story short, we have hand picked 14 subway stations and their geo coordinates +
+with JOSM and saved them in a file `tube_stations.osm`. +
+Here's is our first layer with the exlusive 14 subway nodes:
+
+[cols="1,4,2,3,2", options="header"]
+|===
+| number | name | pixel | geoCoords | modality
+
+| 1   | St. John's Wood          | 118, 34  | 51.5353523, -0.1742097 | subway
+| 13  | King's Cross St Pancras  | 534, 70  | 51.5306090, -0.1239491 | subway
+| 46  | Baker Street             | 251, 194 | 51.5225853, -0.1567431 | subway
+| 67  | Holborn                  | 571, 250 | 51.5171149, -0.1200657 | subway
+| 74  | Paddington               | 88, 297  | 51.5154795, -0.1753650 | subway
+| 79  | Bond Street              | 317, 299 | 51.5139808, -0.1494231 | subway
+| 89  | Bank                     | 840, 293 | 51.5131048, -0.0893749 | subway
+| 93  | Queensway                | 31, 359  | 51.5104729, -0.1872329 | subway
+| 111 | Green Park               | 387, 404 | 51.5066244, -0.1429437 | subway
+| 128 | Elephant & Castle        | 759, 563 | 51.4948884, -0.1005731 | subway
+| 140 | Westminster              | 518, 492 | 51.5013562, -0.1249302 | subway
+| 153 | Victoria                 | 366, 558 | 51.4963688, -0.1431522 | subway
+| 163 | South Kensington         | 112, 598 | 51.4940799, -0.1729072 | subway
+| 185 | Vauxhall                 | 556, 698 | 51.4860091, -0.1248604 | subway
+|===
+
+This is a great start for a _realistic_ base map.
+
+With these co-coordinates we can already do some reverse engineering.
+
+We won't go into the details, since our game map is a one way hand selected process. +
+It can not easily be reused elsewhere, but provides some insight to map engineering.
+
+Briefly speaking a _backward-warp algorithm_ was used to match pixels to geo coordinates
+and bend the `jgp` map to fit the Scotland Yard game board.
+You can see the warped game board in the image below 
+and the result, only a slight deformation 
+confirms the good fit of the map to the game board.
+
+
+=== subway lines
+
+Now that we have a stable base with the subway stations, +
+we can create a layer for the subway lines with
+
+	$ osmium tags-filter -o subway_routes.osm sy_london.osm.pbf r/route=subway,light_rail
+							-----------------
+
+Again we'll keep it brief and only show the result of the hand made filtering process.
+
+Our focus is to create a little network of subway lines between the stations.
+And the resolution of the game board for only a few players
+does not require a high precision for every station.
+Then would need to distiguish driving directions and 
+provide lanes for each direction and vehicle.
+
+Therefore we have hand picked single subway lines and their geo coordinates
+mainly to get the *geometry of the links* between the stations.
+In case of subways the lines are usually underground 
+and the geometry tied to the roads above.
+Only the stations have to match on all layers 
+in order to switch between the layers and to navigate between them.
+
+Here is our second layer with the exclusive subway lines 
+matched to the warped (you can see the white border) 
+Scotland Yard game board in the background:
+
+[.text-center]
+.The warped Scotland Yard game board with a subway layer
+image::map-subway-lines.jpg[Scotland Yard board, width={scotland-yard-image-width}, link=diagrams/map-subway-lines.jpg, window=_blank]
+
+And this image shows the two layers matched by geo coordinates with stations as red dots:
+
+
+[.text-center]
+.The Scotland Yard with a subway station and -lines layer.
+image::subway-stations-lines.jpg[Scotland Yard board, width={scotland-yard-image-width}]
+
+
+=== bus stops & routes
+
+    osmium tags-filter -o bus_stops.osm.pbf sy_london.osm.pbf n/highway=bus_stop
+
+    osmium tags-filter -o bus_routes.osm.pbf sy_london.osm.pbf r/route=bus
+
+=== road network
+
+street/road network for the taxi graph
+
+No stations needed, just match with existing subway stations and bus stops.
+
+    osmium tags-filter -o roads.osm.pbf sy_london.osm.pbf \
+    w/highway=motorway,trunk,primary,secondary,tertiary \
+    				,unclassified,residential,living_street,pedestrian
+
+
+== compiling layers
+
+We have introduced the OSMium tool to process OSM data files 
+and JOSM and QGIS as visual editor or visualizer for your map. 
+This project is not primarily about map processing, 
+but we wanted to demo a few steps to create a digital map for your scenario.
+
+We will not go into the details of the processing to the final Game Map here.
+But we want to give a short overview of professional osm tools for inspiration.
+Here is a short overview of the open source tooling around OSM data
+and the role each tool plays in our map processor.
+
+
+=== network files
+
+At the end of the map processing, we have a set of layers for the three networks
+with the files `bus.osm`, `cab.osm` and `sub.osm`.
+The abstract board links are mapped onto the real London transport network
+in three OSM files next to it, one per transport:
+
+[cols="1,1,1,2", options="header"]
+|===
+| file | transport | board links | OSM source
+| `sub.osm` | underground |  18 | `subway_routes.osm.pbf`
+| `bus.osm` | bus         |  96 | `bus_stops.osm.pbf`, `bus_routes.osm.pbf`
+| `cab.osm` | taxi        | 344 | `roads.osm` - street network
+|===
+
+The following sections briefly describe how these files are generated and what they contain.
+
+
+[[bus-osm]]
+=== bus network
+
+Bus Route 15-41 is a `LineString` with 3 vertices
+and connects the bus stations 15 and 41 via the bus station 16. 
+
+.Bus Route connecting bus stations 15 and 41
+image::../../diagrams/busRoute-15-41.jpg[Bus Route 15-41, width={scotland-yard-image-width}, link=../diagrams/busRoute-15-41.jpg, window=_blank]
+
+You can see that the bus route follows the streets and 
+is not a straight line between the stations as the graph link is. 
+
+`src/main/resources/bus.osm` maps the 64 bus stations and 96 bus links of the
+board onto the real London bus network. It is generated from the board and
+two OpenStreetMap extracts:
+
+* `bus_stops.osm.pbf` - all London bus stops (`highway=bus_stop`)
+* `bus_routes.osm.pbf` - all London bus route relations
+  (`type=route`, `route=bus`) with their stops, ways and nodes
+
+Plain `.osm` XML works as well; +
+`.osm.pbf` is converted on the fly with `osmium cat` (package `osmium-tool`).
+
+[source,bash]
+----
+cd bm-realtime-apps/scotland-yard
+python3 tools/board/build_bus_osm.py -v      # pure python + osmium, ~6 s
+----
+
+Matching:
+
+. every OSM stop within 350 m of a board bus station is assigned to its
+  nearest board station;
+. the ordered stop list of every OSM route is translated into the sequence
+  of board stations it passes;
+. a board link A-B is served by a route if A and B are consecutive in that sequence +
+  the route with the fewest intermediate OSM stops wins.
+. links without a direct route fall back to a route passing one other board
+  station (`sy:skipped_stations`), then to wider stop radii of 500 m and
+  650 m (`sy:stop_radius_m`), and finally to two skipped stations.
+
+Content of `bus.osm`:
+
+* one relation per board bus link (negative id): `type=route`, `route=bus`,
+  `ref=<bus number>`, `sy:link=A-B`, `sy:from`, `sy:to`,
+  `sy:osm_relation` (source relation), `sy:routes` (all bus numbers serving
+  the link), `sy:stops_between`, `sy:segment_m`; members are the two OSM stops
+  (`platform`) and the OSM ways between them in relation order;
+* the OSM stop nodes used, tagged `sy:station=<no>`;
+* one synthetic node per board bus station (id `-<no>`) with `sy:station`,
+  `sy:name`, `sy:bus_neighbours` and `sy:routes` (bus numbers at that station);
+* the way nodes needed by the ways.
+
+Result: +
+95 of 96 links matched. +
+Link 74-94 (Paddington - Lancaster Gate) is written with `sy:unmatched=yes` and +
+the two board stations only: route 46,
+which used to connect them, terminates at Paddington in the OSM data.
+
+
+[[cab-osm]]
+=== routing for cabs
+
+The figure shows the shortest and actual road path between two stations. +
+The graph link is replaced by the real road geometry in a `LineString` with vertices.
+
+.Cabs follow the streets of London and not the graph link 
+image::../../diagrams/cab-routing.jpg[Taxi routing, width={scotland-yard-image-width}, link=../diagrams/cab-routing.jpg, window=_blank]
+
+`src/main/resources/cab.osm` maps the 199 taxi stations and 344 taxi links of
+the board onto the real London street network, using `roads.osm`
+(OSM `highway=*` ways with their nodes).
+
+[source,bash]
+----
+cd bm-realtime-apps/scotland-yard
+python3 tools/board/build_cab_osm.py -v      # pure python, ~10 s
+----
+
+Matching:
+
+. the road network inside the board bbox (+1 km) is loaded as an undirected graph weighted in metres; +
+  ways a cab cannot use (pedestrian, footway, steps, cycleway, ...) are skipped;
+. every board station is snapped to its nearest road node +
+  (`sy:osm_node`, `sy:snap_m` - all stations within a few metres);
+. for every taxi link A-B the shortest road path between the two snapped nodes +
+  and routes are computed with *Dijkstra's Algorithm*, 
+  and the OSM way ids along the path are stored
+
+https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm[Dijkstra's Algorithm at wikipedia]
+
+
+Content of `cab.osm` (same `sy:` attributes as `bus.osm`):
+
+* one relation per taxi link (negative id): `type=route`, `route=taxi`,
+  `sy:link=A-B`, `sy:from`, `sy:to`, `sy:segment_m` (road distance),
+  `sy:straight_m` (beeline), `sy:osm_ways` (road way ids along the path),
+  `sy:streets` (street names in driving order, e.g. _Vauxhall Bridge;
+  Bridgefoot_); members are the two snapped station nodes (`stop`) and the
+  path way;
+* one way per taxi link (negative id, `sy:kind=taxi_path`, `sy:link`)
+  built from the real OSM road nodes of the path;
+* the OSM road nodes used, the snapped ones tagged `sy:station=<no>`;
+* one synthetic node per board station (id `-<no>`) with `sy:station`,
+  `sy:name`, `sy:taxi_neighbours`.
+
+Result: all 344 taxi links routed.
+
+
+[[sub-osm]]
+=== subway lines
+
+This figure shows that the subway lines are not following the streets of London, +
+but have their own underground geometry, even underneath the Thames river. +
+Most importantly, the lines connect two stations, to make a realistic move in the game.
+
+.subways have their own ways underground and even under the Thames river
+image::../../diagrams/sub-routing.jpg[Subway Routes, width={scotland-yard-image-width}, link=../diagrams/sub-routing.jpg, window=_blank]
+
+
+`src/main/resources/sub.osm` maps the 14 underground stations and 18
+underground links of the board onto the real London Underground. It is
+generated by `build_sub_osm.py`, which reuses the algorithm of
+`build_bus_osm.py` configured for the subway network, from
+
+* `subway_routes.osm.pbf` - all London route relations `route=subway`
+  (Underground) and `route=light_rail` (DLR) with their stop positions,
+  track ways and nodes; there is no separate stops file, the stop positions
+  are taken from the route members.
+
+[source,bash]
+----
+cd bm-realtime-apps/scotland-yard
+python3 tools/board/build_sub_osm.py -v      # pure python + osmium, < 1 s
+----
+
+Differences to the bus matching:
+
+. all 14 board tube stations carry their real name, so a named OSM stop
+  position is only assigned to a board station of the *same name*
+  (`match_names`) - otherwise _Lancaster Gate_ would be assigned to
+  _Paddington_, _Monument_ to _Bank_, etc.;
+. tube stations are large - platforms of one station can be 300 m apart -
+  so the stop radius is 400 m, +
+  with fallbacks of 600 m / 800 m and one or two skipped board stations;
+
+Content of `sub.osm` (same `sy:` attributes as `bus.osm`):
+
+* one relation per board underground link (negative id): `type=route`,
+  `route=subway`, `ref=<line>` (e.g. _Piccadilly_), `sy:link=A-B`,
+  `sy:from`, `sy:to`, `sy:osm_relation`, `sy:osm_route`,
+  `sy:routes` (all lines serving the link, e.g. _Circle;Metropolitan;Hammersmith & City_),
+  `sy:stops_between`, `sy:segment_m`; members are the two OSM stop positions
+  (`stop`) and the track ways between them in relation order;
+* the OSM stop positions used, tagged `sy:station=<no>`, and the track nodes;
+* one synthetic node per board underground station (id `-<no>`) with
+  `sy:station`, `sy:name`, `sy:underground_neighbours` and `sy:routes`
+  (lines at that station).
+
+Result: +
+all 18 links matched, 15 of them directly. +
+Three links of the board do not exist as direct connections in the real network + 
+and are only matched via the fallback radius (`sy:stop_radius_m`):
+
+[cols="1,2,1,3", options="header"]
+|===
+| link | stations | line | real-world connection
+| 89-140  | Bank - Westminster              | District | Mansion House (600 m from Bank) - Westminster
+| 128-140 | Elephant & Castle - Westminster | Bakerloo | Elephant & Castle - Embankment (600 m from Westminster)
+| 128-185 | Elephant & Castle - Vauxhall    | Northern | Kennington (800 m from Elephant & Castle) - Nine Elms (800 m from Vauxhall)
+|===
+
+NOTE: All three generators accept the GeoJSON as written by `build_london_geojson.py` +
+and as re-exported by JOSM (all properties as strings).
+
+

@@ -1,0 +1,327 @@
+:toc: left
+:toclevels: 3
+
+= Setting up the Scotland Yard Scenario
+
+After we have created a `GameBoard` class implying _binding Rules for all Scotland Yard players_, + 
+we bring in the `traccar-realtime-service` to implement a Scotland Yard Scenario, + 
+by extending the `Scenario` class and implementing the `initScenario()` method. +
+We can set up the game and register Users as players with Devices as pawns in the Traccar GTS +
+before we start the game with a `startScenario()` call. 
+
+
+== requirements
+
+- a runnning *Traccar Server* is required to register the players 
+  * an admin user is required to *create a manager* account for the game controller +
+    the admin could also be used, but is discouraged for security reasons.
+  * with the *credentials of the manager* account +
+    the game controller can register the players as users with devices.
+  * the manager must have *permission to +
+    create Users and permit them to create Devices*.
+  
+- For a *Scotland Yard Game* we need these Traccar Entities:
+  * a _Game Manager User_ without a Device (maybe later)
+  * a minimum of _three Devices_  
+  	* one User for Mister X with a Device (1:1)
+  	* and one User for each detective Device (1:1)
+  	* _or_ one User for many detective Devices (1:n)
+
+
+== development environment
+
+We have created the RealTime Service 
+to make real-time applications easy to implement and run. +
+Therefore the project imports the `traccar-realtime-service` 
+as _single dependency_, 
+
+[source,xml]
+----
+	<dependency>
+	    <groupId>bm</groupId>
+	    <artifactId>traccar-realtime-service</artifactId>
+	    <version>${traccar.version}-${project.parent.version}</version>
+	</dependency>
+----
+
+which transitively brings all required components:
+
+* `traccar-realtime-client` - live updates via WebSocket, `RealTimeController`
+* `traccar-api-client` - control the server via REST API
+* `gps-osmand-tracker` and `gps-osmand-player` - simulated Tracking Devices
+
+// update link to new structure of the `traccar-realtime-service` module
+// Read 
+// xref:../../bm-traccar/traccar-realtime-service/realtime-app-scenarios.adoc[Creating Realtime Scenarios]
+// for the concept of a *Traccar Realtime Scenario*.
+
+
+=== testing the scenario
+
+The `traccar-realtime-service` module also provides 
+a _test-jar_ with the base classes for integration tests of a scenario:
+
+[source,xml]
+----
+    <dependency>
+        <groupId>bm</groupId>
+        <artifactId>traccar-realtime-service</artifactId>
+        <version>${traccar.version}-${project.parent.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+    </dependency>
+----
+
+
+== SY Class
+
+The starting point of the application is the `bm.sy.ScotlandYard` class
+
+	ScotlandYard extends Scenario
+	
+to implement the three lifecycle phases of a `Scenario` - like a Game:
+
+[cols="1,3"]
+|===
+| phase | Scotland Yard
+
+| `initScenario()`   | *register* _Mister X_ and a number of detectives as devices and +
+                       *wait* for the players to enter the game with their tracking devices
+| `runScenario()`    | *play* the game: move the devices and observe the GTS (TODO)
+| `shutdownScenario()` | delete all devices and trackers created by the scenario
+|===
+
+All devices created by the scenario carry the unique ID prefix `sy-` +
+so they can be identified and cleaned up on the server.
+
+The scenario is executed with the `ScenarioRunner` from the `traccar-realtime-service`:
+
+[source,java]
+----
+@Autowired ScenarioRunner runner;
+@Autowired RealTimeContext context;
+
+runner.execute(new ScotlandYard(3), context);
+----
+
+See `ScotlandYardIT` for an example of a test case 
+that executes each phase of the scenario explicitly for debugging.
+
+    runner.init(game, context);
+
+
+// ScotlandYard roles & instances
+// ScotlandYard instances
+// ScotlandYard Rules
+== SY Contract
+
+It is important to understand that our version of the Scotland Yard Game +
+is played against the Traccar GTS as the common Game Board. +
+In a first implementation, the players `users` can not communicate with each other! +
+Each player uses the same `scotland-yard.jar` to play from their local machine, +
+and relies on the realtime service to update the game board and the other players. 
+
+This is intentional, because the game is played in a _real-time_ environment, +
+where the trackers represent people or things moving in the real world. +
+If they don't adhere to the rules of the game, +
+they will simply be disqualified and removed from the scenario. 
+
+For example, a car scenario might require that the players follow the traffic rules, +
+and if a simulated car is speeding all the time, 
+it can be removed from the scenario.
+
+
+== SY Instances
+
+We'll jump ahead a bit just to give a notion of how the game 
+can be played over the network +
+with multiple players against the same game board and rules:
+
+To setup, start or join a game, all you need is the `scotland-yard-x.y.z.jar`. +
+Use admin account to setup game:
+
+  ScotlandYard    - created game manager sy-game-manager-1794396653568 (id=599)
+  
+  ScotlandYard    - created player sy-misterX-1794396653568 (id=600)
+  RealTimeService - Creating device 'sy-misterX-1794396653568' 
+                      with uniqueId 'sy-misterX-1794396653568' and local tracker
+  
+  ScotlandYard    - created player sy-detectives-1794396653568 (id=601)
+  RealTimeService - Creating device 'sy-detective-1-1794396653568' ...
+  RealTimeService - Creating device 'sy-detective-2-1794396653568' ...
+
+[NOTE]
+=====
+In the domain language of the game, we speak of _players_ and _pawns_, +
+but in the realtime service we speak of _users_ and _devices_. 
+=====
+
+We have designed the game to run on top of the `traccar-realtime-service`, +
+so we might as well use the jar 
+to _verify the game setup and the player credentials_. +
+Inside the repository, you can go to
+
+	bm/bm-traccar/traccar-realtime-service/target
+
+and run
+
+	$java -jar traccar-realtime-service-6.14.2-1.2.0-RC-exec.jar \ 
+          --traccar.password=scotland-yard \
+          --traccar.email=sy-game-manager-1794396653568@example.comom
+
+to see what the game manager can see:
+
+  RealTimeRunner     - Login RealTimeController for 'sy-game-manager-1794396653568@example.com' ...
+  RealTimeController - --- Loading initial users from server...   ---
+  RealTimeController - User.id601: sy-detectives-1794396653568@example.com
+  RealTimeController - User.id600: sy-misterX-1794396653568@example.com
+  RealTimeController - --- Loading initial devices from server... ---
+  RealTimeController - Device.id345: sy-detective-1-1794396653568
+  RealTimeController - Device.id346: sy-detective-2-1794396653568
+  RealTimeController - Device.id344: sy-misterX-1794396653568
+  RealTimeController - User logged in: admin
+  RealTimeRunner - RealTimeController started and logged in successfully.
+  RealTimeRunner - RealTimeService running ...
+
+He cannot see himself, but he can see two users / players and three devices / pawns. +
+(and three local trackers, which are listed in the full output). +
+Mister X ..
+
+  --traccar.email=sy-misterX-1794396653568@example.com
+                  ----------
+  RealTimeRunner - Login RealTimeController for 'sy-misterX-1794396653568@example.com' ...
+  RealTimeController - --- Loading initial users from server...   ---
+  RealTimeController - --- Loading initial devices from server... ---
+  RealTimeController - Device.id344: sy-misterX-1794396653568
+
+can not see himself. No users, but one device. +
+The detective user / player ..
+
+  --traccar.email=sy-detectives-1794396653568@example.com
+                  -------------
+  RealTimeRunner - Login RealTimeController for 'sy-detectives-1794396653568@example.com' ...
+  RealTimeController - --- Loading initial users from server...   ---
+  RealTimeController - --- Loading initial devices from server... ---
+  RealTimeController - Device.id345: sy-detective-1-1794396653568
+  RealTimeController - Device.id346: sy-detective-2-1794396653568
+
+can see his two (or more) devices, but no users.
+
+Now you might get the idea of how the game is played. +
+Each player has his own instance of the game running on his local machine, +
+or you can open two terminals and to play a game with two players.
+
+
+== SY Roles
+
+The scenario is hosted by the user that is logged in to the realtime service. +
+What can be set up depends on the Traccar role of that user:
+
+- `admin` - creates a dedicated game manager and the players below it
+- `manager` - acts as game manager and creates the players as managed users
+- regular `user` - cannot create users and therefore cannot host a game. +
+  can _play the game in one of two roles_, if he has the credentials.
+
+You can run the Game Setup with a manager or admin user.
+
+- if the admin user is used, he should provide the manager credentials to a person.
+
+- if the manager is used, he should provide the credentials to a person representing each role. 
+
+- each role is played by a person with a device on his local machine.
+
+Each player is using the identical `scotland-yard-x.y.z.jar`, +
+but in a different _Instances_ with different Traccar credentials, +
+to play from their local machine.
+
+
+=== SY properties
+
+After extending the `Scenario` class, we can implement the `initScenario()` method to set up the game. +
+But first we create the Scotland Yard Game Board with the `GameProps` class. +
+
+  public ScotlandYard(Properties settings) {
+    this.gameProps = new GameProps(settings);
+
+For simplicity, we have created a `GameProps` class to manage game properties. +
+Basically the server host, the manager credentials, and the player credentials are required to set up the game. +
+
+Users represent persons (or machines) playing the game, +
+devices represent the pawns on the board.
+
+The players are created by the game manager and managed by him. +
+The pawns are linked to their player with a device permission:
+
+- *Mister X* gets one pawn
+- The *Detectives* player gets one pawn per detective
+- All pawns get a local OsmAnd tracker registered so they can be moved with GPS players later on.
+
+The `bm.sy.init.GameProps`:
+
+- Encapsulates loading application.properties from classpath (loadProperties()).
+- Implements property lookups with system property precedence and parsing
+- Supports both instance-based usage `new GameProps(settings)` and static utility calls.
+
+
+=== init - on your marks
+
+After construction, the `ScotlandYard` scenario is initialized with the `initScenario()` method. 
+
+- The real-time service has been started, so we can fetch the current user and his role. 
+- The `bm.sy.init.GameInit` class is used to set up the game and register the players with their pawns. +
+  It encapsulates the initialization and role logic on the Traccar server, +
+- The Role of the current user is used to dispatch the game initialization to the correct method.
+
+
+[source,java]
+----
+  @Override
+  public void initScenario() throws Exception {
+    traccarAccount = context.getRealtimeUser();
+    hostRole = userApi.getTraccarRole(traccarAccount);
+    gameInit = new GameInit(context, traccarAccount, nrOfDetectives);
+
+    switch (hostRole) {
+      case ADMIN    -> gameInit.initGameAsAdmin();
+      case MANAGER  -> gameInit.initGameAsManager();
+      case REG_USER -> gameInit.playGameInRole();
+    }
+    :
+    TODO
+----
+
+Now we have clarified multi-instance execution, role credentials, and runtime verification against Traccar. +
+And we gain accessors to the game properties like `getPlayerRole(), getMyPawns(), getGameInit()`.
+
+
+=== init - get set
+
+Note that the `initScenario()` method is not completely implemented at this point! +
+The Players have been created, but no one has sent their initial position from a valid start station on the game board. 
+Technically, they do not exist in the state controller yet, because they have not sent a message to the realtime service. 
+Only after the players have sent their initial position, the game can be started with `runScenario()`.
+And although we have created Devices with Trackers, the players could login and use their own devices to play the game.
+
+Each player starts their local instance of `scotland-yard-x.y.z.jar` with their player credentials:
+
+[source,bash]
+----
+java -jar scotland-yard-1.2.0-beta.jar \
+    --traccar.email=sy-misterX@example.com \
+    --traccar.password=scotland-yard
+----
+
+When logging in as a regular user, the scenario welcomes the player in their assigned role, discovers their pawns, and waits for them to send their initial position from a valid start station on the game board.
+
+
+=== run - go
+
+Once the players are ready:
+
+* The game moves round by round through `runScenario()`.
+* Every player moves their pawns along the links of the `GameBoard`.
+* The game manager observes all pawns across the board, while detectives only see their own pawns and periodic reveals of Mister X.
+* At game completion, resources are cleaned up in `shutdownScenario()`.
+
+
+

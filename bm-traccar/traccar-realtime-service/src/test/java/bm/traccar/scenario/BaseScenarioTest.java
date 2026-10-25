@@ -86,7 +86,7 @@ public abstract class BaseScenarioTest extends BaseRealTimeAppTest {
   @AfterAll
   public void teardown() {
     logger.info("Tearing down BaseScenarioTest");
-    realTimeContext.setRealtimeAdmin(null);
+    realTimeContext.setRealtimeUser(null);
     // handle controller shutdown and admin user cleanup
     super.teardown();
   }

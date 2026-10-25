@@ -1,0 +1,15 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+
+== Roadmap
+
+* [x] georeference the board: `london.geojson` (see xref:mapping/sy-board.adoc[])
+* [x] map the board links onto the real London network:
+  `cab.osm` (taxi), `bus.osm` (bus), `sub.osm` (underground)
+* load `london.geojson` and model the board graph in Java
+* generate GPX tracks per link from `cab.osm` / `bus.osm` / `sub.osm`
+  and attach `PlayerOsmAnd` instances to _Mister X_ and the detectives
+* define the rules of the game: moves, visibility of _Mister X_, capture distance
+* use Traccar Geofences and Notifications as game events
+* integration test `ScotlandYardIT` against the dockerized Traccar Server

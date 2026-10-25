@@ -1,0 +1,41 @@
+:toc: left
+:toclevels: 4
+:doctype: book
+:imagesdir: diagrams
+
+= Scotland Yard Users Guide
+
+Note that this real time scenario is a proof of concept for a real time application. +
+It does not cover all the rules of the board game.
+The rules are reduced to a minimum as a reachable goal 
+for a first (but extendable) implementation of a real time scenario.
+No Taxi, no Bus, no Underground, no black tickets - *no tickets at all*.
+No barriers.
+
+
+== Game Description
+
+On a map of London, one player - alias Mister X - moves invisibly along the stations.
+After Mr. X has made his move, the other players - Scotland Yard detectives - are allowed to make their move. 
+The goal is to move to the field where Mister X is located. 
+Mister X only shows his position every x moves, otherwise he is invisible.
+Detectives can and should communicate their strategies to catch Mister X.
+
+:scotland-yard-image-width: 800
+
+[.text-center]
+image::scotland-yard.jpg[Scotland Yard board, width={scotland-yard-image-width}, link=diagrams/scotland-yard.jpg, window=_blank]
+
+BU Figure x: a map of London with 199 stations, which is the basis for the Scotland Yard Game.
+
+[.text-center]
+link:scotland-yard.jpg[Open game board in new tab for more details, window=_blank]
+
+The game has 199 stations
+
+trimodal map: sub - red, bus - yellow, cab - green
+
+- Mr. X must show his position after his 3., 8., 13., 18., and 24. move. +
+  He should not appear one station away from a detective,
+  while the detectives should move to a central station to move faster to the next station.
+

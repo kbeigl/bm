@@ -93,7 +93,7 @@ public class RealTimeRunner implements ApplicationRunner {
     if (success) {
       logger.info("RealTimeController started and logged in successfully.");
       User loggedIn = controller.getCurrentUser().orElse(realtimeAccount);
-      context.setRealtimeAdmin(loggedIn);
+      context.setRealtimeUser(loggedIn);
     } else {
       logger.error(
           "Bad credentials - cannot run RealTimeService without valid admin on host '{}'", host);

@@ -44,7 +44,7 @@ public class RealTimeContext {
   private final TrackerRegistration trackerRegistration;
   private final RealTimeService service;
 
-  private User realtimeAdmin;
+  private User realtimeUser;
 
   public RealTimeContext(
       RealTimeController realTimeController,
@@ -104,25 +104,26 @@ public class RealTimeContext {
   }
 
   /**
-   * Get the admin user that is logged in to the RealTime service. Convenience method to access the
+   * Get the user that is logged in to the RealTime service. Convenience method to access the
    * current user from the RealTimeController if not explicitly set.
    *
    * @return the admin User
    */
-  public User getRealtimeAdmin() {
-    if (realtimeAdmin != null) {
-      return realtimeAdmin;
+  public User getRealtimeUser() {
+    if (realtimeUser != null) {
+      return realtimeUser;
     }
     return realTimeController.getCurrentUser().orElse(null);
   }
 
   /**
-   * Set the admin user that is logged in to the RealTime service. This is typically called by the
+   * Set the user that is logged in to the RealTime service. This is typically called by the
    * RealTimeRunner after successful login.
    *
    * @param realtimeAdmin the admin User
    */
-  public void setRealtimeAdmin(User realtimeAdmin) {
-    this.realtimeAdmin = realtimeAdmin;
+  public void setRealtimeUser(User realtimeUser) {
+    // this is too simple. Check if the user is actually logged in.
+    this.realtimeUser = realtimeUser;
   }
 }

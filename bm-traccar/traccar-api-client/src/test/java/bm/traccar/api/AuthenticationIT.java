@@ -16,6 +16,7 @@
  */
 package bm.traccar.api;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import bm.traccar.generated.model.dto.User;
@@ -124,6 +125,26 @@ public class AuthenticationIT extends BaseIntegrationTest {
     users = api.getUsersApi().getUsers(null, null, null, null);
     logger.info("virtualAdmin users: {}", users);
     assertNotNull(users, "nothing returned from server");
+  }
+
+  @Test
+  public void testRunAs() throws Exception {
+    api.setBasicAuth(adminMail, adminPassword);
+    User manager =
+        api.getUsersApi()
+            .createManagerWithCredentials("runas-mgr", "mgrPass", "runas-mgr@domain.com", 2);
+    try {
+      assertEquals("mgrPass", manager.getPassword());
+      api.runAs(
+          manager,
+          () -> {
+            assertEquals("BasicAuth=runas-mgr@domain.com/ *****", api.getAuthentication());
+          });
+      // original admin authentication is restored
+      assertEquals("BasicAuth=" + adminMail + "/ *****", api.getAuthentication());
+    } finally {
+      api.getUsersApi().deleteUser(manager.getId());
+    }
   }
 
   /** Authentications required to GET actual credentials. Set credentials via apiClient. */

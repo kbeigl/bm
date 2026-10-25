@@ -1,0 +1,161 @@
+:toc: left
+:toclevels: 3
+
+= Scotland Yard Map
+
+Clearly each scenario needs a map at this early stage.
+The scenario map is a bounding area for the scenario 
+and is used to restrict the movement of the players.
+Even better, the scenario should provide a digital map of the area, 
+which can be used for navigation and visualization.
+It is worth while to understand 
+the map of London and how it is represented in the game. 
+The game board is a graph with stations as nodes and streets as edges.
+
+Each Player of the game can move along the streets of the map of London on a digital map. +
+Each move is a track between two stations on the map, which are the edges of the graph of the map.
+
+
+== mapping the world
+
+A GPS Tracker is a fascinating little matchbox to scan the world. +
+We attach it to some thing, measure its motion to explore the globe or our neighborhood. +
+Birds and Wales show us their travel around the globe for best seasonal conditions.
+
+The GPS Traces of racing cars are more than points on the racing track. +
+They imply physics like the grip of the tires, the airpressure on the vehicle and much more. +
+Just imagine some computer creating these tracks from all vehicle parameters. +
+How likely do the measured tracks match the simulated ones?
+
+A GPS Tracker Software or Simulator opens even more perspectives for a tracking tool. +
+In theory you can transform any shape defined in cartesion systems to geographic coordinates. +
+It might make sense to define a house in geo coordinates as it doesn't change its location, +
+but measuring it with a GPS unit is practically impossible.
+
+It _is_ possible with much more effort, like differential GPS for centimeter precision and much more.
+Many of these efforts are made in the sciences of geodesy and cartography.
+Navigation Systems have become Driver Systems, which push the demand for high density maps.
+These include _road furniture_ and other tiny details used for driving information.
+
+By using *Digital Maps* exclusivly defined with only [_lat,lon_] points 
+we get a reliable source for the actual positions of geostationary objects.
+On an Open Source Platforms like OpenStreetMap all contributers 
+have to agree on the final coordinates of a road or building.
+
+[IMPORTANT]
+====
+Digital Maps provide a *Common Ground* like a Game Board for Real World Scenarios.
+====
+
+
+== creating a navigable map
+
+If you look at the Scotland Yard game board, 
+the mission for a corresponding digital map becomes clear. 
+
+// width is also used in images below!
+:scotland-yard-image-width: 700
+
+[.text-center]
+.The original Scotland Yard Game Board
+// the board image lives one level up in asciidoc/diagrams (shared with the user guide)
+image::../../diagrams/scotland-yard.jpg[Scotland Yard board, width={scotland-yard-image-width}, link=../diagrams/scotland-yard.jpg, window=_blank]
+
+The map of London is a graph with 199 stations and 3 different types of connections. +
+It is a *Trimodal Map* with _3 different types of edges_ between _3 different networks_. 
+
+So, let`s see how we can process OpenStreetMap data +
+to create a digital trimodal road map for a game of Scotland Yard.
+
+
+== graph vs map
+
+In the previus section we have created the Scotland Yard Game Board as a Graph. +
+For convenience we have added geo coordinates to the stations,
+but this is not necessary for game control. +
+The moves of the players are defined by the edges of the graph and not by the streets. +
+In the figure below you can see the Graph projected onto the open street map of London. +
+Thanks to precise georeferencing the stations are in the correct geographic position + 
+and some *Links* are roughly following the larger streets, + 
+while other links are straight lines going through buildings and parks.
+
+We want more. +
+We want the players to move along the streets of the map of London on a digital map +
+and provide the geometry for our trackers to follow.
+
+
+[.text-center]
+.Graph on Map
+image::../../diagrams/graphOnMap.jpg[Scotland Yard Graph, width={scotland-yard-image-width}, link=../diagrams/graphOnMap.jpg, window=_blank]
+
+
+Navigation systems usually work with a graph and encoded links. +
+Each link can have large numbers of attributes, like its length, 
+to use in complex algorithms. 
+
+A navigation system does not require the real road geometry,
+simply because a person is steering the car by sight. +
+The nodes of the graph are also called maneuver points, 
+where a driver has to make a decision. 
+
+A self driving car does need the geometry of the road to steer the car along the road. +
+That is what we want to provide with our digital map. +
+
+
+// heading is in the adoc
+// = OpenStreetMap 
+
+include::sy-osm.adoc[lines=4..14]
+
+xref:sy-osm.adoc[OpenStreetMap *Formats and Tools* ...] 
+
+
+
+// = creating transport layers
+
+include::sy-layers.adoc[lines=4..9]
+
+xref:sy-layers.adoc[Creating the *OSM Layers* ...] 
+
+
+
+== outlook
+
+When two cars - in the real world - are approaching each other head on 
+at high speeds on a narrow road, drivers don't need a map to avoid a collesion. 
+They need to look ahead and react to the situation.
+
+For a Driver Assistance System a map can help to tell that the two cars
+are speeding on the Autobahn, but each one on his lane in his direction. 
+Large physical dividers between the lanes. 
+No warning required from ADAS.
+
+In automotive industry this is often referred to 
+as the _Digital Horizon_ or _eHorizon_. +
+So the system can warn the driver of a car about upcoming 'events' and obstacles on the road. +
+This would not work without digital map data.
+
+Therefor a realistic scenario does not need a common map for the actors. +
+We will develop Real World Objects, which can be navigated independently. +
+Like in real life every one can use his own map and navigation system, +
+or simply look through the windshield and follow the road.
+
+The moving objects define the world.
+The map is for visualization and navigation.
+A RealObject can also install navigation software for osm.
+The synchronization is achieved by a common coordinate system, i.e. map and a common time base. 
+
+
+== public transport
+
+We have used the public transport network of London to create a realistic game map for Scotland Yard. 
+This is start.
+On a longer term we could access public transportation data servers 
+to get the actual positions of the vehicles and provide live subways for London or any other place in the world.
+
+Google provides a good source for public transport data in the
+https://developers.google.com/transit/gtfs[General Transit Feed Specification (GTFS)].
+
+Another source is the https://transitfeeds.com/website, +
+which provides a large collection of GTFS feeds from around the world.
+

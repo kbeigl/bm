@@ -12,3 +12,9 @@ bm-tracker/gps-osmand-player/src/test/resources/gpx/
 # review some time
 gps-book.adoc
 /.metadata/
+
+# python tooling
+__pycache__/
+
+# scotland-yard: huge OSM street extract, download/extract locally (see board-format.adoc)
+bm-realtime-apps/scotland-yard/src/main/resources/roads.osm

@@ -16,9 +16,13 @@
  */
 package bm.traccar.api;
 
+import bm.traccar.generated.model.dto.User;
 import bm.traccar.invoke.ApiClient;
 import bm.traccar.invoke.auth.HttpBasicAuth;
 import bm.traccar.invoke.auth.HttpBearerAuth;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -96,6 +100,65 @@ public class ApiService implements Api {
     if (username != null || password != null) return "BasicAuth=" + username + "/ *****";
     // dont reveal password
     return null;
+  }
+
+  private static final Logger logger = LoggerFactory.getLogger(ApiService.class);
+
+  /**
+   * Run an action authenticated as {@code user} and restore the previous authentication afterwards.
+   * Uses {@link User#getPassword()} for BasicAuth credentials.
+   *
+   * @param user the user to authenticate as (must have password set)
+   * @param action the action to execute
+   * @throws Exception if the action throws an exception
+   */
+  @Override
+  public void runAs(User user, ApiAction action) throws Exception {
+    Objects.requireNonNull(user, "user");
+    runAs(user, user.getPassword(), action);
+  }
+
+  /**
+   * Run an action authenticated as {@code user} with the given {@code password} and restore the
+   * previous authentication afterwards.
+   *
+   * @param user the user to authenticate as
+   * @param password the password to use for BasicAuth
+   * @param action the action to execute
+   * @throws Exception if the action throws an exception
+   */
+  @Override
+  public void runAs(User user, String password, ApiAction action) throws Exception {
+    Objects.requireNonNull(user, "user");
+    Objects.requireNonNull(action, "action");
+    if (password == null) {
+      throw new IllegalArgumentException(
+          "Password is required for runAs (user.getPassword() was null)");
+    }
+
+    HttpBearerAuth apiKey = (HttpBearerAuth) apiClient.getAuthentication("ApiKey");
+    String originalToken = apiKey != null ? apiKey.getBearerToken() : null;
+    HttpBasicAuth basicAuth = (HttpBasicAuth) apiClient.getAuthentication("BasicAuth");
+    String originalUsername = basicAuth != null ? basicAuth.getUsername() : null;
+    String originalPassword = basicAuth != null ? basicAuth.getPassword() : null;
+
+    logger.debug("switching authentication to {}", user.getEmail());
+    try {
+      setBasicAuth(user.getEmail(), password);
+      action.run();
+    } finally {
+      if (originalToken != null) {
+        setBearerToken(originalToken);
+        logger.debug("restored bearer token authentication");
+      } else if (originalUsername != null && originalPassword != null) {
+        setBasicAuth(originalUsername, originalPassword);
+        logger.debug("restored authentication of {}", originalUsername);
+      } else {
+        apiClient.setUsername(null);
+        apiClient.setPassword(null);
+        apiClient.setBearerToken((String) null);
+      }
+    }
   }
 
   /* constructor injection makes dependencies explicit and objects immutable. */

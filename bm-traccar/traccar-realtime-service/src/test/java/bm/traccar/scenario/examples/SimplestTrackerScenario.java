@@ -68,7 +68,7 @@ public class SimplestTrackerScenario extends Scenario {
   @Override
   public void initScenario() throws Exception {
 
-    User realtimeAdmin = context.getRealtimeAdmin();
+    User realtimeAdmin = context.getRealtimeUser();
     logger.info(
         "realtimeAdmin: {} / {} / {}",
         realtimeAdmin.getId(),
