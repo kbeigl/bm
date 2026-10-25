@@ -41,9 +41,9 @@
 
     <properties>
         <!-- simplify build on github and user clones-->
-        <openapi.skip>true</openapi.skip>
+        <openapi.skip>false</openapi.skip>
         <!-- dev mode: mvn docker:run with JUnit for ITs -->
-        <integration.tests.skip>false</integration.tests.skip>
+        <integration.tests.skip>true</integration.tests.skip>
         <!-- dev mode: save time on bm-docs project -->
         <asciidoc.process.skip>false</asciidoc.process.skip>
         <maven.javadoc.skip>true</maven.javadoc.skip>
