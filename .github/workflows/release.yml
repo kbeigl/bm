@@ -34,7 +34,7 @@ jobs:
           API_CLIENT=$(find bm-traccar/traccar-api-client/target -name 'traccar-api-client-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
           REALTIME=$(find bm-traccar/traccar-realtime-service/target -name 'traccar-realtime-service-*-exec.jar' | head -n 1)
           REALTIME_ORIG=$(find bm-traccar/traccar-realtime-service/target -name 'traccar-realtime-service-*.jar' ! -name '*-exec.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
-          GPX_PLAYER=$(find bm-tracker/gps-osmand-player/target -name 'gpx-player-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
+          GPX_PLAYER=$(find bm-tracker/gpx-osmand-player/target -name 'gpx-player-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
 
           test -n "$OPENAPITOOLS"
           test -n "$API_CLIENT"

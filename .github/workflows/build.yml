@@ -38,5 +38,5 @@ jobs:
             bm-traccar/traccar-openapitools-client/target/*.jar
             bm-traccar/traccar-api-client/target/*.jar
             bm-traccar/traccar-realtime-service/target/*.jar
-            bm-tracker/gps-osmand-player/target/*.jar
+            bm-tracker/gpx-osmand-player/target/*.jar
           if-no-files-found: ignore
