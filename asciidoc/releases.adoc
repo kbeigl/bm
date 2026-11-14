@@ -13,7 +13,7 @@ For versions before 1.2 check the xref:releases-1.1.adoc[version < 1.2  history]
 	[INFO] ...... traccar-realtime-client         6.14.2-1.2.0-RC 
 	[INFO] ...... traccar-realtime-service        6.14.2-1.2.0-RC 
 	[INFO] ---- Realtime Applications      *NEW*     --- 1.2.0-RC 
-	[INFO] ...... scotland-yard            *NEW*         1.2.0-alpha 
+	[INFO] ...... scotland-yard            *NEW*         1.2.0-RC 
 	[INFO] -- blue marble docs aggregator            --- 1.2.0-RC 
 
     added Realtime Applications on top of traccar-realtime-service  

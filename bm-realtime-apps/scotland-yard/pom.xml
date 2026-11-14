@@ -29,7 +29,6 @@
     </parent>
 
 	<artifactId>scotland-yard</artifactId>
-	<version>1.2.0-alpha</version>
 
     <name>...... scotland-yard</name>
     <description>Scotland Yard - a Realtime Scenario on top of the traccar-realtime-service</description>
